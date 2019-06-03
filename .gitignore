@@ -1,5 +1,5 @@
 # Prerequisites
-*.d
+#*.d
 
 # Object files
 *.o
@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+moraldnsserver
+*.bin
+*.ipch
+.nyc_output
+output
+out

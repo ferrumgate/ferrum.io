@@ -1,0 +1,62 @@
+CFLAGS = -Wall -W -O0 -g -ggdb -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG
+LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv
+
+CFLAGSTEST = -Wall -W -O0 -g -ggdb -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG
+LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv
+
+
+
+
+OUTPUT = rebrick
+SRC = src
+TEST = test
+OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_async_udpsocket.o \
+		 \
+ 		rebrick_context.o rebrick_metrics.o \
+
+OBJSTEST = test.o ./server_client/udpecho.c test_rebrick_util.o test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
+			test_rebrick_async_udpsocket.o \
+			 \
+			../src/rebrick_config.o ../src/rebrick_util.o  ../src/rebrick_context.o ../src/rebrick_metrics.o \
+			../src/rebrick_async_udpsocket.o \
+			 \
+
+
+
+
+ifeq ($(TEST),TRUE)
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGSTEST)
+else
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+endif
+
+all:clean
+	@cd $(SRC) && make -f ../Makefile $(OUTPUT)
+
+rebrick : $(OBJS)
+	$(CC) -o $(OUTPUT) $(OBJS) $(LDFLAGS)
+
+
+check:clean
+	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrun
+buildtest:
+	@cd $(TEST) && make TEST=TRUE -f ../Makefile test
+
+test : $(OBJSTEST)
+	$(CC) -o test  $(OBJSTEST) $(LDFLAGSTEST)
+testrun: test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=1000 LISTEN_FAMILY=IPV4_IPV6  BACKENDS=deneme:192.168.30.3:53,two:192.168.1.1:5353 ./test
+
+
+
+clean:
+	find ./$(SRC) -name "*.o" -type f -delete
+	find ./$(TEST) -name "*.o" -type f -delete
+	rm -rf $(SRC)/rebrick
+	rm -rf $(TEST)/test
+	rm -rf output
+	rm -rf out
+
