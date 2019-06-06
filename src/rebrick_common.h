@@ -57,6 +57,10 @@
 #define fill_zero(x, size) memset((x), 0, (size))
 #define cast(x, y) ((y)x)
 #define unused(x) (void)(x)
+#define if_is_null_then_die(x,y) if(!x){ \
+                              rebrick_log_fatal(y);\
+                              exit(1);\
+                              }
 
 
 /**
@@ -72,7 +76,7 @@
 
 
 /**
- * @brief sock add
+ * @brief socket address union
  *
  */
 typedef union rebrick_sockaddr {

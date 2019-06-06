@@ -56,7 +56,8 @@ int udp_echo_start(int port) {
 
 int udp_echo_recv(char buf[ECHO_BUF_SIZE]){
 
-    int len, n;
+    socklen_t len;
+    int n;
     memset(buf,0,ECHO_BUF_SIZE);
     n = recvfrom(sockfd, (char *)buf, ECHO_BUF_SIZE-1,
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr,
@@ -70,7 +71,7 @@ int udp_echo_recv(char buf[ECHO_BUF_SIZE]){
 }
 
 int udp_echo_send(const char *msg){
-    int len=strlen(msg);
+   // int len=strlen(msg);
     sendto(sockfd, (const char *)msg, strlen(msg),
         MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
             sizeof(struct sockaddr_in));
@@ -79,7 +80,7 @@ int udp_echo_send(const char *msg){
 
 }
 int udp_echo_send2(const char *msg,const struct sockaddr_in *client){
-    int len=strlen(msg);
+   // int len=strlen(msg);
     errno=0;
    ssize_t res= sendto(sockfd, (const char *)msg, strlen(msg),
         MSG_CONFIRM,(const struct sockaddr *)  client,

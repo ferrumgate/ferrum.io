@@ -1,5 +1,6 @@
 #include "rebrick_common.h"
 #include "server_client/udpecho.h"
+#include "server_client/tcpecho.h"
 #include "rebrick_util.h"
 #include "cmocka.h"
 #include <unistd.h>
@@ -36,10 +37,24 @@ extern int test_rebrick_backend();
    exit(0);
 } */
 
+static void test_tcpecho_server(){
+  fprintf(stdout,"starting tcp test server\n");
+  tcp_echo_start(9191,1);
+  int result;
+  while(1){
+    result=tcp_echo_listen();
+    if(result>=0)
+    break;
+    usleep(1000000);
+  }
+  fprintf(stdout,"client connected\n");
+}
+
 int main()
 {
   fprintf(stdout, "starting test\n");
   // test_udpecho_server();
+  test_tcpecho_server();
  if(test_rebrick_util())
    exit(1);
    if(test_rebrick_config())

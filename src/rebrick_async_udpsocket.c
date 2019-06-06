@@ -85,7 +85,6 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n",nread,rcvbuf->len);
     if (nread <= 0)//burası silinirse,
-    //socket->after_data_received(socket->callback_data, addr, rcvbuf->base,nread); buna kontrol koymak lazım
     {
 
         rebrick_log_debug("nread is <=0 from %s port %s\n", socket->bind_ip,socket->bind_port);
@@ -125,10 +124,11 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
 }
 
 
-static  int32_t create_socket(rebrick_async_udpsocket_data_t *socket){
+static  int32_t create_socket(rebrick_async_udpsocket_t *data){
  char current_time_str[32] = {0};
 
     int32_t result;
+    rebrick_async_udpsocket_data_t *socket=cast(data->data,rebrick_async_udpsocket_data_t*);
     socket->loop = uv_default_loop();
     result = uv_udp_init(socket->loop, &socket->handle);
     if (result < 0)
@@ -162,26 +162,16 @@ rebrick_sockaddr_t bind_addr,
 void *callback_data,
 rebrick_after_data_received_callback_t after_data_received,
 rebrick_after_data_sended_callback_t after_data_sended){
+
     char current_time_str[32] = {0};
     int32_t result;
     rebrick_async_udpsocket_t *tmp=new(rebrick_async_udpsocket_t);
-    if(!tmp){
-         rebrick_log_fatal("memory allocation failed\n");
-         return REBRICK_ERR_MALLOC;
-
-    }
-    fill_zero(tmp,sizeof(rebrick_async_udpsocket_t));
-    strcpy(tmp->type_name,"rebrick_async_udpsocket_t");
+    constructor(tmp,rebrick_async_udpsocket_t,"rebrick_async_udpsocket_t");
 
     rebrick_async_udpsocket_data_t *data=new(rebrick_async_udpsocket_data_t);
-    if(!data){
-         free(tmp);
-         rebrick_log_fatal("memory allocation failed\n");
-         return REBRICK_ERR_MALLOC;
-    }
+    constructor(data,rebrick_async_udpsocket_data_t,"rebrick_async_udpsocket_data_t");
 
-    fill_zero(data,sizeof(rebrick_async_udpsocket_data_t));
-    strcpy(data->type_name,"rebrick_async_udpsocket_data_t");
+
     //burası önemli,callback data
     data->callback_data=callback_data;
 
@@ -190,14 +180,11 @@ rebrick_after_data_sended_callback_t after_data_sended){
     rebrick_util_addr_to_port_string(&data->bind_addr,data->bind_port),
 
 
-
-
-
     data->after_data_received=after_data_received;
     data->after_data_sended=after_data_sended;
 
     tmp->data=data;
-    result=create_socket(data);
+    result=create_socket(tmp);
     if(result<0){
         rebrick_log_fatal("create socket failed bind at %s port:%s\n",data->bind_ip,data->bind_port);
         free(data);
@@ -231,9 +218,7 @@ char current_time_str[32] = {0};
             rebrick_async_udpsocket_data_t *data=  cast(socket->data,rebrick_async_udpsocket_data_t *);
             uv_handle_t *handle=cast(&data->handle,uv_handle_t*);
             if(!uv_is_closing(handle)){
-                //burası çok önemli
-                //eğer handle üzerinde başka data olacak ise dikkat etmek lazım
-                handle->data=socket;
+
                 rebrick_log_info("closing connection %s port:%s\n",data->bind_ip,data->bind_port);
                 uv_close(handle,on_close);
 
