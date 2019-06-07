@@ -128,6 +128,41 @@ int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock,char buf
  */
 int32_t rebrick_util_to_socket(rebrick_sockaddr_t *sock, const char *ip,const char*port);
 
+int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock);
+
+
+int32_t rebrick_util_addr_to_rebrick_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock);
+
+
+
+/**
+ * @brief convert a ip stirng and port to @rebrick_sockaddr_t
+ *
+ * @param sock
+ * @param ip
+ * @param port
+ * @return int32_t
+ */
+int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sockaddr_t *sock);
+
+
+/**
+ * @brief compares ips
+ *
+ * @return 1 for equal otherwise 0
+ */
+int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src,const rebrick_sockaddr_t *dst);
+
+/**
+ * @brief read all bytes from a file
+ *
+ * @param file
+ * @param buffer will allocate buffer
+ * @param len allocated size
+ * @return int32_t
+ */
+int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *len);
+
 
 
 

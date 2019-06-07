@@ -16,7 +16,7 @@ typedef struct rebrick_async_tcpsocket
 
 }rebrick_async_tcpsocket_t;
 
-typedef int32_t (*rebrick_after_connection_accepted_callback_t)(const struct sockaddr *addr,rebrick_async_tcpsocket_t *client_handle);
+typedef int32_t (*rebrick_after_connection_accepted_callback_t)(void *callback_data,const struct sockaddr *addr,rebrick_async_tcpsocket_t *client_handle);
 typedef int32_t (*rebrick_after_connection_closed_callback_t)(void *callback_data);
 
 /**
@@ -34,22 +34,10 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket,rebrick_s
 rebrick_after_connection_accepted_callback_t after_connection_accepted,
 rebrick_after_connection_closed_callback_t after_connection_closed,
 rebrick_after_data_received_callback_t after_data_received,
-rebrick_after_data_sended_callback_t after_data_sended,int32_t backlog);
+rebrick_after_data_sended_callback_t after_data_sended,int32_t backlog_or_isclient);
 
 int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket);
-int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket,rebrick_sockaddr_t *dst_addr, char *buffer,size_t len);
-/**
- * @brief for client tcp connections after connected to server, reinit events
- *
- * @param socket
- * @param after_connection_closed
- * @param after_data_received
- * @param after_data_sended
- * @return int32_t
- */
-int32_t rebrick_async_tcpsocket_reevents(rebrick_async_tcpsocket_t *socket,
-rebrick_after_connection_closed_callback_t after_connection_closed,
-rebrick_after_data_received_callback_t after_data_received,
-rebrick_after_data_sended_callback_t after_data_sended);
+int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer,size_t len,void *aftersend_data);
+
 
 #endif

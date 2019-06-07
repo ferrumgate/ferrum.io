@@ -9,7 +9,8 @@
 
 
 typedef int32_t (*rebrick_after_data_received_callback_t)(void *callback_data,const struct sockaddr *addr, const char *buffer,size_t len);
-typedef int32_t (*rebrick_after_data_sended_callback_t)(void *callback_data,int status);
+typedef int32_t (*rebrick_after_data_sended_callback_t)(void *callback_data,void *after_senddata, int status);
+
 
 
 

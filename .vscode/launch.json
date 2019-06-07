@@ -53,7 +53,7 @@
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [{"name": "LISTEN_PORT","value": "9090"},
-                {"name": "LISTEN_FAMILY","value": "IPV4"},
+                {"name": "LISTEN_FAMILY","value": "IPV4_IPV6"},
                 {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],
             "externalConsole": true,
             "additionalSOLibSearchPath": "${workspaceFolder}/external/libs/lib",

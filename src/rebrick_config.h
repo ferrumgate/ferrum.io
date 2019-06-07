@@ -12,7 +12,7 @@
 enum rebrick_listen_family{
     REBRICK_IPV4=0,
     REBRICK_IPV6=1,
-    ROSKIT_IPV4_IPV6=2
+    REBRICK_IPV4_IPV6=2
 };
 
 typedef struct rebrick_config

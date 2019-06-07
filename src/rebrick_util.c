@@ -236,6 +236,19 @@ char *rebrick_util_time_r(char * str){
 }
 
 
+int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock){
+
+    if(addr->sa_family==AF_INET){
+        memcpy(&sock->v4,addr,sizeof(struct sockaddr_in));
+    }
+     if(addr->sa_family==AF_INET6){
+        memcpy(&sock->v6,addr,sizeof(struct sockaddr_in6));
+    }
+    return REBRICK_SUCCESS;
+
+}
+
+
 int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock,char buffer[REBRICK_IP_STR_LEN]){
      if(sock->base.sa_family==AF_INET){
 
@@ -280,6 +293,57 @@ int32_t rebrick_util_to_socket(rebrick_sockaddr_t *sock, const char *ip,const ch
         }
     }
     return REBRICK_SUCCESS;
+
+}
+
+int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sockaddr_t *sock){
+    fill_zero(sock,sizeof(rebrick_sockaddr_t));
+    if (uv_ip6_addr(ip, atoi(port), cast(&sock->v6, struct sockaddr_in6 *)) < 0)
+    {
+
+        if (uv_ip4_addr(ip, atoi(port), cast(&sock->v4, struct sockaddr_in *)) < 0)
+        {
+
+            return REBRICK_ERR_BAD_IP_PORT_ARGUMENT;
+        }
+    }
+    return REBRICK_SUCCESS;
+
+}
+
+
+
+int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *len){
+    FILE *fileptr;
+    int64_t filelen;
+    fileptr=fopen(file,"rb");
+    if(!fileptr)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    fseek(fileptr,0,SEEK_END);
+    filelen=ftell(fileptr);
+    rewind(fileptr);
+    char *temp=malloc(filelen+1);
+    if(!temp)
+    {
+        fclose(fileptr);
+        exit(1);
+    }
+    fill_zero(temp,filelen+1);
+    fread(temp,filelen,1,fileptr);
+    fclose(fileptr);
+    *buffer=temp;
+    *len=filelen;
+    return REBRICK_SUCCESS;
+
+}
+
+
+int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src,const rebrick_sockaddr_t *dst){
+    if(!src || !dst)
+    return 0;
+    if(src->base.sa_family==AF_INET)
+    return memcmp(&src->v4.sin_addr,&dst->v4.sin_addr,sizeof(struct in_addr))==0?1:0;
+    return memcmp(&src->v6.sin6_addr,&dst->v6.sin6_addr,sizeof(struct in6_addr))==0?1:0;
 
 }
 

@@ -23,7 +23,7 @@ static int teardown(void **state)
 static int32_t flag=0;
 char read_buffer[65536];
 const char *testdata="merhaba";
-static int32_t on_server_received(void *data,const struct sockaddr *addr, const char *buffer,size_t len){
+static int32_t on_server_received(void *data,const struct sockaddr *addr, const char *buffer,size_t len,void *deletedata){
     unused(addr);
 
     assert_string_equal(data,testdata);
@@ -86,7 +86,7 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
       char *reply="got it";
       char *bufferreplay=new(sizeof(reply));
         strcpy(bufferreplay,reply);
-     result= rebrick_async_udpsocket_send(server,&client, bufferreplay,sizeof(bufferreplay));
+     result= rebrick_async_udpsocket_send(server,&client, bufferreplay,sizeof(bufferreplay),NULL);
      assert_int_equal(result,0);
      // uv_run(uv_default_loop(),UV_RUN_NOWAIT);
 

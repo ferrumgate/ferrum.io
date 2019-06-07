@@ -37,7 +37,7 @@ int32_t rebrick_config_new(rebrick_config_t **config)
         if (strcmp(listen_family, "IPV6") == 0)
             tmp->listen_family = REBRICK_IPV6;
         if (strcmp(listen_family, "IPV4_IPV6") == 0)
-            tmp->listen_family = ROSKIT_IPV4_IPV6;
+            tmp->listen_family = REBRICK_IPV4_IPV6;
     }
 
 

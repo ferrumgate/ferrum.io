@@ -14,7 +14,7 @@ OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_async_udpsocket.o 
  		rebrick_context.o rebrick_metrics.o ./lib/b64/decode.o ./lib/b64/encode.o \
 
 OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebrick_util.o test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
-			test_rebrick_async_udpsocket.o \
+			test_rebrick_async_udpsocket.o test_rebrick_async_tcpsocket.o \
 			../src/rebrick_config.o ../src/rebrick_util.o  ../src/rebrick_context.o ../src/rebrick_metrics.o \
 			../src/rebrick_async_udpsocket.o ../src/rebrick_async_tcpsocket.o\
 			../src/lib/b64/encode.o ../src/lib/b64/decode.o
@@ -46,7 +46,7 @@ buildtest:
 test : $(OBJSTEST)
 	$(CC) -o test  $(OBJSTEST) $(LDFLAGSTEST)
 testrun: test
-	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=1000 LISTEN_FAMILY=IPV4_IPV6  ./test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6  ./test
 
 
 
