@@ -12,8 +12,8 @@
 typedef struct rebrick_context
 {
       base_class();
-      rebrick_config_t *config;
-      rebrick_metrics_t *metrics;
+     public readonly rebrick_config_t *config;
+     public readonly rebrick_metrics_t *metrics;
 
 
 }rebrick_context_t;

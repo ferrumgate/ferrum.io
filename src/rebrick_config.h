@@ -20,9 +20,9 @@ typedef struct rebrick_config
     /* memory leak olursa,memory dump yapıp bakıyoruz, bütün struct larda aynı property var */
     base_class();
     /*server listen port*/
-    int32_t listen_port;
+   public readonly int32_t listen_port;
     /*server listen family */
-    int32_t listen_family;
+   public readonly int32_t listen_family;
 
 
 

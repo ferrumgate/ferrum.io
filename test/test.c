@@ -122,11 +122,12 @@ int main()
    exit(1);
    if(test_rebrick_context())
    exit(1);
-   if(test_rebrick_async_tcpsocket())
-   exit(1);
-   exit(0);
+
+   //exit(0);
 
    if(test_rebrick_async_udpsocket())
+   exit(1);
+    if(test_rebrick_async_tcpsocket())
    exit(1);
 
 

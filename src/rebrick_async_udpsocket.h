@@ -2,11 +2,26 @@
 #define __REBRICK_ASYNC_UDPSOCKET_H__
 #include "rebrick_async_socket.h"
 
-
+public
 typedef struct rebrick_async_udpsocket
 {
     base_class();
-    void *data;
+
+    public readonly char bind_ip[REBRICK_IP_STR_LEN];
+    public readonly char bind_port[REBRICK_PORT_STR_LEN];
+
+    private uv_loop_t *loop;
+    private uv_udp_t handle;
+    public readonly rebrick_sockaddr_t bind_addr;
+    private rebrick_after_data_received_callback_t after_data_received;
+    private rebrick_after_data_sended_callback_t after_data_sended;
+
+    /**
+     * @brief customer user data for every callback
+     *
+     */
+    private void *callback_data;
+
 
 } rebrick_async_udpsocket_t;
 

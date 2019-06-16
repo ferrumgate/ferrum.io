@@ -4,44 +4,6 @@ static void on_close(uv_handle_t *handle);
 
 
 
-private
-typedef struct rebrick_async_tcpsocket_data
-{
-    base_class();
-    char bind_ip[REBRICK_IP_STR_LEN];
-    char bind_port[REBRICK_PORT_STR_LEN];
-
-    uv_loop_t *loop;
-    uv_tcp_t handle;
-    rebrick_sockaddr_t bind_addr;
-    // for clients
-    rebrick_after_data_received_callback_t after_data_received;
-    //for clients
-    rebrick_after_data_sended_callback_t after_data_sended;
-    //for servers
-    rebrick_after_connection_accepted_callback_t after_connection_accepted;
-    //for server
-    rebrick_after_connection_closed_callback_t after_connection_closed;
-
-
-    /**
-     * @brief customer user data for every callback
-     *
-     */
-    void *callback_data;
-
-    struct rebrick_async_tcpsocket_data *clients;
-
-    struct rebrick_async_tcpsocket_data *prev;
-    struct rebrick_async_tcpsocket_data *next;
-    // server socket
-    struct rebrick_async_tcpsocket *parent;
-
-    void *write_buffer;
-
-
-} rebrick_async_tcpsocket_data_t;
-
 static void on_send(uv_write_t *req, int status)
 {
     // TODO: status a göre işlem yapılmalı
@@ -54,8 +16,8 @@ static void on_send(uv_write_t *req, int status)
     if (req->handle)
         if (req->handle->data)
         {
-            const rebrick_async_tcpsocket_t *socketwrapper=cast(req->handle->data,rebrick_async_tcpsocket_t*);
-            const rebrick_async_tcpsocket_data_t *socket = cast(socketwrapper->data, rebrick_async_tcpsocket_data_t *);
+            const rebrick_async_tcpsocket_t *socket=cast(req->handle->data,rebrick_async_tcpsocket_t*);
+
             if (socket->after_data_sended)
                 socket->after_data_sended(socket->callback_data,req->data, status);
         }
@@ -68,7 +30,7 @@ int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *bu
     char current_time_str[32] = {0};
 
     int32_t result;
-    rebrick_async_tcpsocket_data_t *data = cast(socket->data, rebrick_async_tcpsocket_data_t *);
+
     uv_write_t *request = new (uv_write_t);
     if_is_null_then_die(request,"malloc problem\n");
     fill_zero(request, sizeof(uv_write_t));
@@ -76,14 +38,14 @@ int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *bu
 
     request->data = aftersend_data;
 
-    result = uv_write(request, cast(&data->handle,uv_stream_t*), &buf, 1, on_send);
+    result = uv_write(request, cast(&socket->handle,uv_stream_t*), &buf, 1, on_send);
     if (result < 0)
     {
 
-        rebrick_log_info("sending data to  %s port:%s failed\n", data->bind_ip, data->bind_port);
+        rebrick_log_info("sending data to  %s port:%s failed\n", socket->bind_ip, socket->bind_port);
         return REBRICK_ERR_UV + result;
     }
-    rebrick_log_debug("data sended  len:%zu to   %s port:%s\n", len, data->bind_ip, data->bind_port);
+    rebrick_log_debug("data sended  len:%zu to   %s port:%s\n", len, socket->bind_ip, socket->bind_port);
     return REBRICK_SUCCESS;
 }
 
@@ -94,8 +56,8 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    const rebrick_async_tcpsocket_t *handler = cast(handle->data,rebrick_async_tcpsocket_t*);
-    const rebrick_async_tcpsocket_data_t *socket = cast(handler->data, rebrick_async_tcpsocket_data_t *);
+    const rebrick_async_tcpsocket_t *socket = cast(handle->data,rebrick_async_tcpsocket_t*);
+
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
     if (nread <= 0) //burası silinirse,
@@ -156,11 +118,11 @@ static void on_connect(uv_connect_t* connection, int status)
         return;
     }
 
-    rebrick_async_tcpsocket_t *serversockethandle = cast(connection->data, rebrick_async_tcpsocket_t *);
-    rebrick_async_tcpsocket_data_t *serversocketdata = cast(serversockethandle->data, rebrick_async_tcpsocket_data_t *);
+    rebrick_async_tcpsocket_t *serversocket = cast(connection->data, rebrick_async_tcpsocket_t *);
 
-    if(serversocketdata->after_connection_accepted){
-        serversocketdata->after_connection_accepted(serversocketdata->callback_data,NULL,serversockethandle);
+
+    if(serversocket->after_connection_accepted){
+        serversocket->after_connection_accepted(serversocket->callback_data,NULL,serversocket);
     }
 
     free(connection);
@@ -188,22 +150,23 @@ static void on_connection(uv_stream_t *server, int status)
 
 
     uv_tcp_t *tcp = cast(server, uv_tcp_t *);
-    rebrick_async_tcpsocket_t *serversockethandle = cast(tcp->data, rebrick_async_tcpsocket_t *);
-    rebrick_async_tcpsocket_data_t *serversocketdata = cast(serversockethandle->data, rebrick_async_tcpsocket_data_t *);
+    rebrick_async_tcpsocket_t *serversocket = cast(tcp->data, rebrick_async_tcpsocket_t *);
+
 
     rebrick_async_tcpsocket_t *client= new (rebrick_async_tcpsocket_t);
     constructor(client,rebrick_async_tcpsocket_t,"rebrick_tcpclient_data_t");
 
-    rebrick_async_tcpsocket_data_t *clientdata=new(rebrick_async_tcpsocket_data_t);
-    constructor(clientdata,rebrick_async_tcpsocket_data_t,"rebrick_async_tcpsocket_data_t");
-    uv_tcp_init(uv_default_loop(), &clientdata->handle);
 
-    result = uv_accept(server,cast(&clientdata->handle,uv_stream_t*));
+
+
+    uv_tcp_init(uv_default_loop(), &client->handle);
+
+    result = uv_accept(server,cast(&client->handle,uv_stream_t*));
     if (result < 0)
     {
         // TODO: make it threadsafe
         rebrick_log_fatal("accept error uverror:%d %s\n", result, uv_strerror(result));
-        free(clientdata);
+
         free(client);
         //TODO burada extra bir şey lazımmı
         return;
@@ -211,46 +174,45 @@ static void on_connection(uv_stream_t *server, int status)
 
 
 
-    //important
-    client->data=clientdata;
-
-
-    uv_tcp_getsockname(&serversocketdata->handle, &clientdata->bind_addr.base, &temp);
-
-
-    rebrick_util_addr_to_ip_string(&clientdata->bind_addr, clientdata->bind_ip);
-    rebrick_util_addr_to_port_string(&clientdata->bind_addr, clientdata->bind_port);
-    rebrick_log_debug("connected client from %s:%s\n", clientdata->bind_ip,clientdata->bind_port);
-
-    clientdata->handle.data=client;
-    clientdata->after_connection_closed=serversocketdata->after_connection_closed;
-    clientdata->after_data_received=serversocketdata->after_data_received;
-    clientdata->after_data_sended=serversocketdata->after_data_sended;
-    clientdata->callback_data=serversocketdata->callback_data;
-    clientdata->parent=serversockethandle;
 
 
 
-    if (serversocketdata->after_connection_accepted)
+    uv_tcp_getsockname(&serversocket->handle, &client->bind_addr.base, &temp);
+
+
+    rebrick_util_addr_to_ip_string(&client->bind_addr, client->bind_ip);
+    rebrick_util_addr_to_port_string(&client->bind_addr, client->bind_port);
+    rebrick_log_debug("connected client from %s:%s\n", client->bind_ip,client->bind_port);
+
+    client->handle.data=client;
+    client->after_connection_closed=serversocket->after_connection_closed;
+    client->after_data_received=serversocket->after_data_received;
+    client->after_data_sended=serversocket->after_data_sended;
+    client->callback_data=serversocket->callback_data;
+    client->parent_socket=serversocket;
+
+
+
+    if (serversocket->after_connection_accepted)
     {
 
-        DL_APPEND(serversocketdata->clients,clientdata);
-        serversocketdata->after_connection_accepted(clientdata->callback_data, &clientdata->bind_addr.base,client);
+        DL_APPEND(serversocket->clients,client);
+        serversocket->after_connection_accepted(client->callback_data, &client->bind_addr.base,client);
 
     }
 
 
     //start reading client
-    uv_stream_t *tmp=cast(&clientdata->handle,uv_stream_t*);
+    uv_stream_t *tmp=cast(&client->handle,uv_stream_t*);
     uv_read_start(tmp, on_alloc, on_recv);
         //burada kaldım.
 }
 
-static int32_t create_client_socket(rebrick_async_tcpsocket_t *data)
+static int32_t create_client_socket(rebrick_async_tcpsocket_t *socket)
 {
     char current_time_str[32] = {0};
     int32_t result;
-    rebrick_async_tcpsocket_data_t *socket = cast(data->data, rebrick_async_tcpsocket_data_t *);
+
     socket->loop = uv_default_loop();
     result = uv_tcp_init(socket->loop, &socket->handle);
     if (result < 0)
@@ -262,7 +224,7 @@ static int32_t create_client_socket(rebrick_async_tcpsocket_t *data)
     uv_tcp_keepalive(&socket->handle, 1, 60);
     uv_connect_t *connect=new(uv_connect_t);
     if_is_null_then_die(connect,"malloc problem\n");
-    connect->data=data;
+    connect->data=socket;
     result = uv_tcp_connect(connect,&socket->handle, &socket->bind_addr.base, on_connect);
     if (result < 0)
     {
@@ -272,16 +234,17 @@ static int32_t create_client_socket(rebrick_async_tcpsocket_t *data)
 
 
     rebrick_log_info("socket connected to %s port:%s\n", socket->bind_ip, socket->bind_port);
-    socket->handle.data = data;
-
+    socket->handle.data = socket;
+    uv_stream_t *tmp=cast(&socket->handle,uv_stream_t*);
+    uv_read_start(tmp, on_alloc, on_recv);
     return REBRICK_SUCCESS;
 }
 
-static int32_t create_server_socket(rebrick_async_tcpsocket_t *data, int32_t backlog)
+static int32_t create_server_socket(rebrick_async_tcpsocket_t *socket, int32_t backlog)
 {
     char current_time_str[32] = {0};
     int32_t result;
-    rebrick_async_tcpsocket_data_t *socket = cast(data->data, rebrick_async_tcpsocket_data_t *);
+
     socket->loop = uv_default_loop();
     result = uv_tcp_init(socket->loop, &socket->handle);
     if (result < 0)
@@ -305,7 +268,7 @@ static int32_t create_server_socket(rebrick_async_tcpsocket_t *data, int32_t bac
         return REBRICK_ERR_UV + result;
     }
     rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
-    socket->handle.data = data;
+    socket->handle.data = socket;
 
     return REBRICK_SUCCESS;
 }
@@ -320,11 +283,10 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket,
 {
     char current_time_str[32] = {0};
     int32_t result;
-    rebrick_async_tcpsocket_t *tmp = new (rebrick_async_tcpsocket_t);
-    constructor(tmp, rebrick_async_tcpsocket_t, "rebrick_async_tcpsocket_t");
+    rebrick_async_tcpsocket_t *data = new (rebrick_async_tcpsocket_t);
+    constructor(data, rebrick_async_tcpsocket_t, "rebrick_async_tcpsocket_t");
 
-    rebrick_async_tcpsocket_data_t *data = new (rebrick_async_tcpsocket_data_t);
-    constructor(data, rebrick_async_tcpsocket_data_t, "rebrick_async_tcpsocket_data_t");
+
     //burası önemli,callback data
     data->callback_data = callback_data;
 
@@ -337,20 +299,20 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket,
     data->after_connection_accepted = after_connection_accepted;
     data->after_connection_closed=after_connection_closed;
 
-    tmp->data = data;
+
     if(backlog)
-    result = create_server_socket(tmp, backlog);
+    result = create_server_socket(data, backlog);
     else
-    result=create_client_socket(tmp);
+    result=create_client_socket(data);
     if (result < 0)
     {
         rebrick_log_fatal("create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);
         free(data);
-        free(tmp);
+
         return result;
     }
 
-    *socket = tmp;
+    *socket = data;
     return REBRICK_SUCCESS;
 }
 
@@ -362,19 +324,20 @@ static void on_close(uv_handle_t *handle)
         if (handle->data)
         {
             rebrick_async_tcpsocket_t *socket = cast(handle->data, rebrick_async_tcpsocket_t *);
-            if (socket->data){
-                rebrick_async_tcpsocket_data_t *data=cast(socket->data,rebrick_async_tcpsocket_data_t*);
-                if(data->after_connection_closed){
+
+
+                if(socket->after_connection_closed){
                     rebrick_log_debug("handle closed\n");
-                    data->after_connection_closed(data->callback_data);
+                    socket->after_connection_closed(socket->callback_data);
                 }
-                if(data->parent){
-                    rebrick_async_tcpsocket_data_t *dataparent=cast(data->parent->data,rebrick_async_tcpsocket_data_t*);
-                    DL_DELETE(dataparent->clients,data);
+                //client is closing
+                if(socket->parent_socket){
+
+                    DL_DELETE(socket->parent_socket->clients,socket);
                 }
-                free(socket->data);
-            }
-            free(socket);
+                free(socket);
+
+
         }
 }
 
@@ -385,13 +348,23 @@ int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
     if (socket)
     {
         //close if server is ready
-        rebrick_async_tcpsocket_data_t *data = cast(socket->data, rebrick_async_tcpsocket_data_t *);
-        uv_handle_t *handle = cast(&data->handle, uv_handle_t *);
+
+        uv_handle_t *handle = cast(&socket->handle, uv_handle_t *);
         if (!uv_is_closing(handle))
         {
+            //server is closing
+            if(!socket->parent_socket){
 
-            rebrick_log_info("closing connection %s port:%s\n", data->bind_ip, data->bind_port);
+                    //server socket is closing
+                    struct rebrick_async_tcpsocket *el,*tmp;
+                    DL_FOREACH_SAFE(socket->clients,el,tmp){
+                        rebrick_async_tcpsocket_destroy(el);
+                    }
+
+            }
+            rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
             uv_close(handle, on_close);
+
 
         }
     }
