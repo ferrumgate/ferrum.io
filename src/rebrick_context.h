@@ -9,11 +9,11 @@
  * @brief context object that holds system configration,and all static data
  *
  */
-typedef struct rebrick_context
+public_ typedef struct rebrick_context
 {
       base_class();
-     public readonly rebrick_config_t *config;
-     public readonly rebrick_metrics_t *metrics;
+     public_ readonly_ rebrick_config_t *config;
+     public_ readonly_ rebrick_metrics_t *metrics;
 
 
 }rebrick_context_t;

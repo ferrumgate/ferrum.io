@@ -38,7 +38,7 @@ int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *bu
 
     request->data = aftersend_data;
 
-    result = uv_write(request, cast(&socket->handle,uv_stream_t*), &buf, 1, on_send);
+    result = uv_write(request, cast(&socket->handle.tcp,uv_stream_t*), &buf, 1, on_send);
     if (result < 0)
     {
 
@@ -65,16 +65,15 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
 
         rebrick_log_debug("nread is %zd <=0  from %s port %s\n",nread, socket->bind_ip, socket->bind_port);
         free(rcvbuf->base);
-        uv_handle_t* tmp=cast(&socket->handle,uv_handle_t*);
+        uv_handle_t* tmp=cast(&socket->handle.tcp,uv_handle_t*);
         uv_close(tmp,on_close);
         return;
     }
 
-
+        //nread >0 is safeguard, it is almost above
         if (socket->after_data_received && nread > 0)
         {
-            //nread ssize_t olmasına karşın parametre olarak geçildi
-            //neticed eğer nread<0 zaten buraya gelmiyor
+
             socket->after_data_received(socket->callback_data,NULL, rcvbuf->base, nread);
         }
 
@@ -154,14 +153,14 @@ static void on_connection(uv_stream_t *server, int status)
 
 
     rebrick_async_tcpsocket_t *client= new (rebrick_async_tcpsocket_t);
-    constructor(client,rebrick_async_tcpsocket_t,"rebrick_tcpclient_data_t");
+    constructor(client,rebrick_async_tcpsocket_t);
 
 
 
 
-    uv_tcp_init(uv_default_loop(), &client->handle);
+    uv_tcp_init(uv_default_loop(), &client->handle.tcp);
 
-    result = uv_accept(server,cast(&client->handle,uv_stream_t*));
+    result = uv_accept(server,cast(&client->handle.tcp,uv_stream_t*));
     if (result < 0)
     {
         // TODO: make it threadsafe
@@ -177,14 +176,14 @@ static void on_connection(uv_stream_t *server, int status)
 
 
 
-    uv_tcp_getsockname(&serversocket->handle, &client->bind_addr.base, &temp);
+    uv_tcp_getsockname(&serversocket->handle.tcp, &client->bind_addr.base, &temp);
 
 
     rebrick_util_addr_to_ip_string(&client->bind_addr, client->bind_ip);
     rebrick_util_addr_to_port_string(&client->bind_addr, client->bind_port);
     rebrick_log_debug("connected client from %s:%s\n", client->bind_ip,client->bind_port);
 
-    client->handle.data=client;
+    client->handle.tcp.data=client;
     client->after_connection_closed=serversocket->after_connection_closed;
     client->after_data_received=serversocket->after_data_received;
     client->after_data_sended=serversocket->after_data_sended;
@@ -203,7 +202,7 @@ static void on_connection(uv_stream_t *server, int status)
 
 
     //start reading client
-    uv_stream_t *tmp=cast(&client->handle,uv_stream_t*);
+    uv_stream_t *tmp=cast(&client->handle.tcp,uv_stream_t*);
     uv_read_start(tmp, on_alloc, on_recv);
         //burada kaldım.
 }
@@ -214,18 +213,18 @@ static int32_t create_client_socket(rebrick_async_tcpsocket_t *socket)
     int32_t result;
 
     socket->loop = uv_default_loop();
-    result = uv_tcp_init(socket->loop, &socket->handle);
+    result = uv_tcp_init(socket->loop, &socket->handle.tcp);
     if (result < 0)
     {
         // TODO: make it thread safe
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
-    uv_tcp_keepalive(&socket->handle, 1, 60);
+    uv_tcp_keepalive(&socket->handle.tcp, 1, 60);
     uv_connect_t *connect=new(uv_connect_t);
     if_is_null_then_die(connect,"malloc problem\n");
     connect->data=socket;
-    result = uv_tcp_connect(connect,&socket->handle, &socket->bind_addr.base, on_connect);
+    result = uv_tcp_connect(connect,&socket->handle.tcp, &socket->bind_addr.base, on_connect);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
@@ -234,8 +233,8 @@ static int32_t create_client_socket(rebrick_async_tcpsocket_t *socket)
 
 
     rebrick_log_info("socket connected to %s port:%s\n", socket->bind_ip, socket->bind_port);
-    socket->handle.data = socket;
-    uv_stream_t *tmp=cast(&socket->handle,uv_stream_t*);
+    socket->handle.tcp.data = socket;
+    uv_stream_t *tmp=cast(&socket->handle.tcp,uv_stream_t*);
     uv_read_start(tmp, on_alloc, on_recv);
     return REBRICK_SUCCESS;
 }
@@ -246,7 +245,7 @@ static int32_t create_server_socket(rebrick_async_tcpsocket_t *socket, int32_t b
     int32_t result;
 
     socket->loop = uv_default_loop();
-    result = uv_tcp_init(socket->loop, &socket->handle);
+    result = uv_tcp_init(socket->loop, &socket->handle.tcp);
     if (result < 0)
     {
         // TODO: make it thread safe
@@ -254,21 +253,21 @@ static int32_t create_server_socket(rebrick_async_tcpsocket_t *socket, int32_t b
         return REBRICK_ERR_UV + result;
     }
 
-    result = uv_tcp_bind(&socket->handle, &socket->bind_addr.base, 0);
+    result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
 
-    result = uv_listen(cast(&socket->handle,uv_stream_t*), backlog, on_connection);
+    result = uv_listen(cast(&socket->handle.tcp,uv_stream_t*), backlog, on_connection);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
     rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
-    socket->handle.data = socket;
+    socket->handle.tcp.data = socket;
 
     return REBRICK_SUCCESS;
 }
@@ -284,7 +283,7 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket,
     char current_time_str[32] = {0};
     int32_t result;
     rebrick_async_tcpsocket_t *data = new (rebrick_async_tcpsocket_t);
-    constructor(data, rebrick_async_tcpsocket_t, "rebrick_async_tcpsocket_t");
+    constructor(data, rebrick_async_tcpsocket_t);
 
 
     //burası önemli,callback data
@@ -349,7 +348,7 @@ int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
     {
         //close if server is ready
 
-        uv_handle_t *handle = cast(&socket->handle, uv_handle_t *);
+        uv_handle_t *handle = cast(&socket->handle.tcp, uv_handle_t *);
         if (!uv_is_closing(handle))
         {
             //server is closing

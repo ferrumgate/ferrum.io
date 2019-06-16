@@ -45,13 +45,13 @@
 
 /* @brief allocation methods */
 #define new(x) malloc(sizeof(x))
-#define constructor(x,y,z) \
+#define constructor(x,y) \
                             if(!x) { \
                           rebrick_log_fatal("malloc problem\n");\
                           exit(1);\
                          } \
                          fill_zero(x,sizeof(y));\
-                         strcpy(x->type_name,z);
+                         strcpy(x->type_name,#y);
 
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
@@ -67,12 +67,14 @@
  * @brief base class for every structs
  *
  */
-#define base_class(x)  char type_name[REBRICK_STRUCT_NAME_LEN]
+#define base_class(x)  public_ readonly_ char type_name[REBRICK_STRUCT_NAME_LEN]
 
 
-#define public
-#define private
-#define readonly
+
+#define public_
+#define private_
+#define readonly_
+#define protected_
 
 
 /**

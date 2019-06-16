@@ -8,7 +8,7 @@ int32_t rebrick_metrics_new(rebrick_metrics_t **metrics)
 
     rebrick_metrics_t *tmp;
     tmp = new (rebrick_metrics_t);
-    constructor(tmp, rebrick_metrics_t, "rebrick_metrics_t");
+    constructor(tmp, rebrick_metrics_t);
 
     tmp->start_time = rebrick_util_micro_time();
     *metrics = tmp;

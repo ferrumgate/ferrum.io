@@ -5,26 +5,21 @@
 #include "rebrick_log.h"
 #include "rebrick_util.h"
 
-typedef struct rebrick_metrics
+public_ typedef struct rebrick_metrics
 {
     base_class();
-    int64_t start_time;
-    int64_t current_time;
-    int64_t received_total;
-    int64_t received_error_total;
-    int64_t received_success_total;
+    public_ int64_t start_time;
+    public_ int64_t current_time;
+    public_ int64_t received_total;
+    public_ int64_t received_error_total;
+    public_ int64_t received_success_total;
 
-    int64_t forward_total;
-    int64_t forward_error_total;
-    int64_t forward_success_total;
-
-
-
+    public_ int64_t forward_total;
+    public_ int64_t forward_error_total;
+    public_ int64_t forward_success_total;
 
     /* data */
-}rebrick_metrics_t;
-
-
+} rebrick_metrics_t;
 
 /**
  * @brief Create a roksit metrics object
@@ -33,7 +28,6 @@ typedef struct rebrick_metrics
  * @return int32_t  <0 means error, @see REBRICK_SUCCESS
  */
 int32_t rebrick_metrics_new(rebrick_metrics_t **metrics);
-
 
 /**
  * @brief destroys a roksit metrics objects
@@ -47,7 +41,6 @@ void rebrick_metrics_destroy(rebrick_metrics_t *metrics);
  */
 #define REBRICK_METRICS_MAX_STR_LEN 512
 
-
 /**
  * @brief writes metric object as string
  *
@@ -55,6 +48,6 @@ void rebrick_metrics_destroy(rebrick_metrics_t *metrics);
  * @param buffer
  * @return int32_t <0 means error, >0 strlen of string
  */
-int32_t rebrick_metrics_tostring(const rebrick_metrics_t *metrics,char buffer[REBRICK_METRICS_MAX_STR_LEN]);
+int32_t rebrick_metrics_tostring(const rebrick_metrics_t *metrics, char buffer[REBRICK_METRICS_MAX_STR_LEN]);
 
 #endif

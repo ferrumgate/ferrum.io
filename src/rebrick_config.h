@@ -15,14 +15,14 @@ enum rebrick_listen_family{
     REBRICK_IPV4_IPV6=2
 };
 
-typedef struct rebrick_config
+public_ typedef struct rebrick_config
 {
     /* memory leak olursa,memory dump yapıp bakıyoruz, bütün struct larda aynı property var */
     base_class();
     /*server listen port*/
-   public readonly int32_t listen_port;
+   public_ readonly_ int32_t listen_port;
     /*server listen family */
-   public readonly int32_t listen_family;
+   public_ readonly_ int32_t listen_family;
 
 
 

@@ -5,7 +5,7 @@ int32_t rebrick_context_new(rebrick_context_t **context, rebrick_config_t *confi
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_context_t *tmp = new (rebrick_context_t);
-    constructor(tmp, rebrick_context_t, "rebrick_context_t");
+    constructor(tmp, rebrick_context_t);
 
     tmp->config = config;
     tmp->metrics = metrics;

@@ -9,14 +9,14 @@
 /**
     * @brief linked list structure and functions
     */
-typedef struct rebrick_linked_item
+public_ typedef struct rebrick_linked_item
 {
     base_class();
-    unsigned char *data;
-    size_t len;
-    struct rebrick_linked_item *next;
-    struct rebrick_linked_item *prev;
-    union {
+    public_ readonly_ unsigned char *data;
+    public_ readonly_ size_t len;
+    public_ readonly_ struct rebrick_linked_item *next;
+    public_ readonly_ struct rebrick_linked_item *prev;
+    public_ union {
         int val_int;
         short val_short;
         void *val_ext;

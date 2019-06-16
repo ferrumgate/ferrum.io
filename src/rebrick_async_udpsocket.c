@@ -32,7 +32,7 @@ int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_
     fill_zero(request, sizeof(uv_udp_send_t));
     uv_buf_t buf = uv_buf_init(buffer, len);
     request->data=after_sendata;
-    result = uv_udp_send(request, &socket->handle, &buf, 1, &dstaddr->base, on_send);
+    result = uv_udp_send(request, &socket->handle.udp, &buf, 1, &dstaddr->base, on_send);
     rebrick_util_addr_to_ip_string(dstaddr, dst_ip);
     rebrick_util_addr_to_port_string(dstaddr, dst_port);
     if (result < 0)
@@ -101,7 +101,7 @@ static int32_t create_socket(rebrick_async_udpsocket_t *socket)
     int32_t result;
 
     socket->loop = uv_default_loop();
-    result = uv_udp_init(socket->loop, &socket->handle);
+    result = uv_udp_init(socket->loop, &socket->handle.udp);
     if (result < 0)
     {
         // TODO: burası multi thread değil
@@ -109,21 +109,21 @@ static int32_t create_socket(rebrick_async_udpsocket_t *socket)
         return REBRICK_ERR_UV + result;
     }
 
-    result = uv_udp_bind(&socket->handle, &socket->bind_addr.base, 0);
+    result = uv_udp_bind(&socket->handle.udp, &socket->bind_addr.base, 0);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
 
-    result = uv_udp_recv_start(&socket->handle, on_alloc, on_recv);
+    result = uv_udp_recv_start(&socket->handle.udp, on_alloc, on_recv);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
     rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
-    socket->handle.data = socket;
+    socket->handle.udp.data = socket;
 
     return REBRICK_SUCCESS;
 }
@@ -138,7 +138,7 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
     char current_time_str[32] = {0};
     int32_t result;
     rebrick_async_udpsocket_t *tmp = new (rebrick_async_udpsocket_t);
-    constructor(tmp, rebrick_async_udpsocket_t, "rebrick_async_udpsocket_t");
+    constructor(tmp, rebrick_async_udpsocket_t);
 
 
 
@@ -183,7 +183,7 @@ int32_t rebrick_async_udpsocket_destroy(rebrick_async_udpsocket_t *socket)
     {
         //close if server is ready
 
-        uv_handle_t *handle = cast(&socket->handle, uv_handle_t *);
+        uv_handle_t *handle = cast(&socket->handle.udp, uv_handle_t *);
         if (!uv_is_closing(handle))
         {
 
