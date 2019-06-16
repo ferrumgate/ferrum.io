@@ -7,7 +7,7 @@
 
 public_ typedef struct rebrick_metrics
 {
-    base_class();
+    base_object();
     public_ int64_t start_time;
     public_ int64_t current_time;
     public_ int64_t received_total;

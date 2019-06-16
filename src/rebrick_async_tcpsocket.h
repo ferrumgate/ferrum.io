@@ -10,7 +10,7 @@ typedef int32_t (*rebrick_after_connection_closed_callback_t)(void *callback_dat
 
 public_ typedef struct rebrick_async_tcpsocket
 {
-    base_class();
+    base_object();
     base_socket();
 
     //for servers

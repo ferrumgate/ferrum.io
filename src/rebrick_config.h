@@ -18,7 +18,7 @@ enum rebrick_listen_family{
 public_ typedef struct rebrick_config
 {
     /* memory leak olursa,memory dump yapıp bakıyoruz, bütün struct larda aynı property var */
-    base_class();
+    base_object();
     /*server listen port*/
    public_ readonly_ int32_t listen_port;
     /*server listen family */

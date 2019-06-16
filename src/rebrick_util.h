@@ -11,7 +11,7 @@
     */
 public_ typedef struct rebrick_linked_item
 {
-    base_class();
+    base_object();
     public_ readonly_ unsigned char *data;
     public_ readonly_ size_t len;
     public_ readonly_ struct rebrick_linked_item *next;

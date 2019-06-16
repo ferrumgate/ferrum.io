@@ -164,6 +164,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
     assert_int_equal(connected_toserver, 1);
     datareceived_ok = 0;
     tcp_echo_send("deneme");
+    counter=10;
     while (counter)
     {
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);

@@ -23,7 +23,7 @@ typedef int32_t (*rebrick_after_data_sended_callback_t)(void *callback_data, voi
     protected_ void *callback_data;
 
 public_ typedef struct rebrick_async_socket{
-    base_class();
+    base_object();
     base_socket();
 }rebrick_async_socket_t;
 

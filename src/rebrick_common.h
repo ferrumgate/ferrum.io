@@ -67,7 +67,9 @@
  * @brief base class for every structs
  *
  */
-#define base_class(x)  public_ readonly_ char type_name[REBRICK_STRUCT_NAME_LEN]
+#define base_object(x)  public_ readonly_ char type_name[REBRICK_STRUCT_NAME_LEN]
+
+#define typeof(x,y) !strcmp((x)->type_name,#y)
 
 
 

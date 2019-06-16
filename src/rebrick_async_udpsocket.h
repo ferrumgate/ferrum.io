@@ -4,7 +4,7 @@
 
 public_ typedef struct rebrick_async_udpsocket
 {
-    base_class();
+    base_object();
     base_socket();
 
 
