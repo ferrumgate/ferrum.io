@@ -103,7 +103,7 @@ int tcp_echo_send(const char *msg)
     err = send(client_fd, msg, strlen(msg) + 1, 0);
     if (err < 0)
         return on_error("Client write failed\n");
-    return 0;
+    return err;
 }
 
 void tcp_echo_close_server()

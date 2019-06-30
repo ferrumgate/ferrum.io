@@ -13,11 +13,11 @@ echo $DESTFOLDER
 cd $TMPFOLDER
 tar zxvf libuv-v1.27.0.tar.gz
 cd libuv-v1.27.0
-#sh autogen.sh
-#./configure --prefix=$DESTFOLDER
-#make
-#make check
-#make install
+sh autogen.sh
+./configure --prefix=$DESTFOLDER
+make
+make check
+make install
 
 
 ######## install cmocka ############

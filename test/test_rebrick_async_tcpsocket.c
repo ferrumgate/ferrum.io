@@ -163,7 +163,13 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     assert_int_equal(connected_toserver, 1);
     datareceived_ok = 0;
-    tcp_echo_send("deneme");
+    counter=10;
+    while(counter){
+        result=tcp_echo_send("deneme");
+        if(result>=0)
+        break;
+        counter--;
+    }
     counter=10;
     while (counter)
     {
