@@ -13,6 +13,10 @@
 #include <stdarg.h>
 #include <inttypes.h>
 #include "uv.h"
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <openssl/conf.h>
+#include <openssl/engine.h>
 
 
 /**
