@@ -14,6 +14,7 @@ extern int test_rebrick_backend_group();
 extern int test_rebrick_backend();
 extern int test_rebrick_async_tcpsocket();
 extern int test_rebrick_buffer();
+extern int test_rebrick_tls();
 
 /*static void test_udpecho_server(){
     fprintf(stdout, "starting udp test server\n");
@@ -127,10 +128,12 @@ int main()
   if (test_rebrick_buffer())
     exit(1);
 
-
   if (test_rebrick_async_udpsocket())
     exit(1);
   if (test_rebrick_async_tcpsocket())
+    exit(1);
+
+  if (test_rebrick_tls())
     exit(1);
 
   return 0;

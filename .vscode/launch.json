@@ -51,7 +51,7 @@
             "program": "${workspaceFolder}/test/test",
             "args": [],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/test",
             "environment": [{"name": "LISTEN_PORT","value": "9090"},
                 {"name": "LISTEN_FAMILY","value": "IPV4_IPV6"},
                 {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],

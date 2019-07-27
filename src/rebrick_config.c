@@ -8,11 +8,8 @@ int32_t rebrick_config_new(rebrick_config_t **config)
 
     char current_time_str[32] = {0};
     rebrick_config_t *tmp = new(rebrick_config_t);
-    if (!tmp)
-        return REBRICK_ERR_MALLOC;
+    constructor(tmp,rebrick_config_t);
 
-    fill_zero(tmp, sizeof(rebrick_config_t));
-    strcpy(tmp->type_name, "rebrick_config_t");
     char *port = getenv("LISTEN_PORT");
 
     rebrick_log_info("environment variable LISTEN_PORT is: %s\n", port ? port : "null");

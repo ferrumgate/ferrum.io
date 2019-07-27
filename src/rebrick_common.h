@@ -34,6 +34,11 @@
 #define REBRICK_ERR_MORE_BUFFER -8
 
 
+#define REBRICK_ERR_TLS_INIT -20
+#define REBRICK_ERR_TLS_NEW -21
+#define REBRICK_ERR_TLS_ERR -22
+
+
 /*
 * @brief every struct has a typen name, sometimes we are using for detect memory leak
 */
@@ -45,6 +50,8 @@
 #define REBRICK_IP_STR_LEN 64
 
 #define REBRICK_PORT_STR_LEN 8
+
+#define REBRICK_TLS_KEY_LEN 128
 
 
 /* @brief allocation methods */

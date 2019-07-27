@@ -24,6 +24,7 @@
     "files.associations": {
         "rebrick_log.h": "c",
         "rebrick_async_udpsocket.h": "c",
-        "rebrick_util.h": "c"
+        "rebrick_util.h": "c",
+        "rebrick_tls.h": "c"
     }
 }
