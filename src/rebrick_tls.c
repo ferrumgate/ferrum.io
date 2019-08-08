@@ -1,13 +1,145 @@
 #include "rebrick_tls.h"
 
-int32_t rebrick_tls_init()
+
+
+//struct rebrick_tls_checkitem_list_t *tls_after_io_checklist = NULL;
+//struct rebrick_tls_checkitem_list_t *tls_before_io_checklist = NULL;
+//multi init protector
+static int32_t tls_init_finished = 0;
+
+static void after_io(uv_check_t *check)
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    if (check && check->data)
+    {
+        rebrick_tls_checkitem_list_t *checklist = cast(check->data, rebrick_tls_checkitem_list_t *);
+        rebrick_tls_checkitem_t *tmp;
+        DL_FOREACH(checklist->head, tmp)
+        {
+
+            tmp->func(tmp->socket);
+        }
+    }
+}
+
+int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket)
 {
 
-    SSL_library_init();
-    OpenSSL_add_all_algorithms();
-    OpenSSL_add_all_digests();
-    SSL_load_error_strings();
-    ERR_load_crypto_strings();
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_tls_checkitem_t *tmp;
+
+    int32_t founded = 0;
+    DL_FOREACH(tls_after_io_checklist->head, tmp)
+    {
+        if (tmp->socket == socket)
+        {
+            founded = 1;
+            break;
+        }
+    }
+    if (!founded)
+    {
+        rebrick_tls_checkitem_t *item = new (rebrick_tls_checkitem_t);
+        constructor(item, rebrick_tls_checkitem_t);
+        item->socket = socket;
+        item->func=func;
+        DL_APPEND(tls_after_io_checklist->head, item);
+    }
+
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket)
+{
+
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_tls_checkitem_t *tmp, *el;
+
+    DL_FOREACH_SAFE(tls_after_io_checklist->head, el, tmp)
+    {
+        if (el->socket == socket)
+            DL_DELETE(tls_after_io_checklist->head, el);
+    }
+
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket)
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_tls_checkitem_t *tmp;
+
+    int32_t founded = 0;
+    DL_FOREACH(tls_before_io_checklist->head, tmp)
+    {
+        if (tmp->socket == socket)
+        {
+            founded = 1;
+            break;
+        }
+    }
+    if (!founded)
+    {
+        rebrick_tls_checkitem_t *item = new (rebrick_tls_checkitem_t);
+        constructor(item, rebrick_tls_checkitem_t);
+        item->socket = socket;
+        item->func=func;
+        DL_APPEND(tls_before_io_checklist->head, item);
+    }
+
+    return REBRICK_SUCCESS;
+}
+
+
+
+int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket)
+{
+
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_tls_checkitem_t *tmp, *el;
+
+    DL_FOREACH_SAFE(tls_before_io_checklist->head, el, tmp)
+    {
+        if (el->socket == socket)
+            DL_DELETE(tls_before_io_checklist->head, el);
+    }
+
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_tls_init()
+{
+    if (!tls_init_finished)
+    {
+        char current_time_str[32] = {0};
+        unused(current_time_str);
+        SSL_library_init();
+        OpenSSL_add_all_algorithms();
+        OpenSSL_add_all_digests();
+        SSL_load_error_strings();
+        ERR_load_crypto_strings();
+
+        tls_after_io_checklist=new(rebrick_tls_checkitem_list_t);
+        constructor(tls_after_io_checklist,rebrick_tls_checkitem_list_t);
+
+         tls_before_io_checklist=new(rebrick_tls_checkitem_list_t);
+        constructor(tls_before_io_checklist,rebrick_tls_checkitem_list_t);
+
+        uv_check_t *check = new (uv_check_t);
+        if_is_null_then_die(check, "malloc problem\n");
+
+        uv_check_init(uv_default_loop(), check);
+        check->data = tls_after_io_checklist;
+        uv_check_start(check, after_io);
+
+        tls_init_finished = 1;
+    }
+
     return REBRICK_SUCCESS;
 }
 
@@ -67,7 +199,6 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         return REBRICK_ERR_TLS_INIT;
     }
     strncpy(ctx->key, key, REBRICK_TLS_KEY_LEN - 1);
-
     SSL_CTX_set_verify(ctx->tls_ctx, ssl_verify, NULL);
     SSL_CTX_set_session_cache_mode(ctx->tls_ctx, session_mode);
     SSL_CTX_set_options(ctx->tls_ctx, options);
@@ -81,7 +212,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     HASH_ADD_STR(ctx_map, key, hash);
     rebrick_log_debug("%s ssl context created\n", key);
 
-    *context=ctx;
+    *context = ctx;
     return REBRICK_SUCCESS;
 }
 
@@ -173,23 +304,23 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
     BIO_set_nbio(read, 1);
     BIO_set_nbio(write, 1);
 
-
     rebrick_tls_ssl_t *state = new (rebrick_tls_ssl_t);
     constructor(state, rebrick_tls_ssl_t);
     state->ssl = tmp;
-    state->read=read;
-    state->write=write;
-    SSL_set_bio(tmp,read,write);
+    state->read = read;
+    state->write = write;
+    SSL_set_bio(tmp, read, write);
     *ssl = state;
     return REBRICK_SUCCESS;
 }
 
 int32_t rebrick_tls_ssl_destroy(rebrick_tls_ssl_t *tls)
 {
-    if(tls){
-        if(tls->ssl){
+    if (tls)
+    {
+        if (tls->ssl)
+        {
             SSL_free(tls->ssl);
-
         }
         free(tls);
     }

@@ -1,6 +1,6 @@
 #include "rebrick_common.h"
 #include "rebrick_log.h"
-
+#include "rebrick_tls.h"
 
 int main(){
 
@@ -8,11 +8,7 @@ int main(){
     unused(current_time_str);
 
 
-/*
-    if(rebrick_router_start()<0){
-        rebrick_log_fatal("roksit router start failed\n");
-        exit(1);
-    } */
+
 
 
 

@@ -314,6 +314,9 @@ int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sock
 
 
 int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *len){
+
+     char current_time_str[32] = {0};
+    unused(current_time_str);
     FILE *fileptr;
     int64_t filelen;
     fileptr=fopen(file,"rb");
@@ -323,11 +326,8 @@ int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *l
     filelen=ftell(fileptr);
     rewind(fileptr);
     char *temp=malloc(filelen+1);
-    if(!temp)
-    {
-        fclose(fileptr);
-        exit(1);
-    }
+    if_is_null_then_die(temp,"malloc problem\n");
+
     fill_zero(temp,filelen+1);
     fread(temp,filelen,1,fileptr);
     fclose(fileptr);

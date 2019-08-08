@@ -4,6 +4,38 @@
 #include "./rebrick_common.h"
 #include "./rebrick_log.h"
 #include "./lib/uthash.h"
+#include "./lib/utlist.h"
+
+struct rebrick_async_tlssocket;
+
+typedef void (*rebrick_tls_checkitem_func)(struct rebrick_async_tlssocket *socket);
+
+typedef struct rebrick_tls_checkitem{
+    base_object();
+    public_ readonly_ struct rebrick_async_tlssocket *socket;
+    public_ readonly_ rebrick_tls_checkitem_func func;
+    private_ struct rebrick_tls_checkitem *prev;
+    private_ struct rebrick_tls_checkitem *next;
+}rebrick_tls_checkitem_t;
+
+
+typedef struct rebrick_tls_checkitem_list{
+    base_object();
+    public_ rebrick_tls_checkitem_t *head;
+}rebrick_tls_checkitem_list_t;
+
+/**
+ * @brief after io, and before io check list
+ * singleton pattern
+ *
+ */
+rebrick_tls_checkitem_list_t *tls_after_io_checklist;
+rebrick_tls_checkitem_list_t *tls_before_io_checklist;
+
+int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket);
+int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket);
+int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket);
+int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket);
 
 
 /**
@@ -13,6 +45,10 @@
  */
 int32_t rebrick_tls_init();
 
+
+
+
+
 typedef struct rebrick_tls_context{
     base_object();
     private_ char key[REBRICK_TLS_KEY_LEN];
@@ -21,23 +57,19 @@ typedef struct rebrick_tls_context{
 
 }rebrick_tls_context_t;
 
-typedef struct rebrick_tls{
-    base_object();
 
-
-}rebrick_tls_t;
 
 /**
  * @brief creates a new context if is absent in hash map with key
  *
  * @param context
  * @param key hash key
- * @param ssl_verify
- * @param session_mode
- * @param options
- * @param certificate_file
- * @param private_file
- * @return int32_t return REBRICK_SUCCESS  <0 means error
+ * @param ssl_verify  SSL_VERIFY_NONE,SSL_VERIFY_PEER,SSL_VERIFY_FAIL_IF_NO_PEER_CERT,SSL_VERIFY_CLIENT_ONCE,SSL_VERIFY_POST_HANDSHAKE
+ * @param session_mode  SSL_SESS_CACHE_OFF, SSL_SESS_CACHE_CLIENT,SSL_SESS_CACHE_SERVER,SSL_SESS_CACHE_BOTH
+ * @param options SSL_OP_ALL, or vs... vs...
+ * @param certificate_file NULL for client
+ * @param private_file NULL for client
+ * @return int32_t return REBRICK_SUCCESS,  <0 means error
  */
 int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key, int32_t ssl_verify,int32_t session_mode,int32_t options,const char *certificate_file,const char *private_file);
 int32_t rebrick_tls_context_destroy(rebrick_tls_context_t *context);

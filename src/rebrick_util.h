@@ -1,6 +1,7 @@
 #ifndef __REBRICK_UTIL_H__
 #define __REBRICK_UTIL_H__
 #include "rebrick_common.h"
+#include "rebrick_log.h"
 #include <sys/types.h>
 #include <sys/time.h>
 

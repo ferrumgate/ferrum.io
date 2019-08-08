@@ -1,6 +1,6 @@
 #include "rebrick_buffer.h"
 #include "cmocka.h"
-
+#define REBRICK_BUFFER_DEFAULT_MALLOC_SIZE 1024
 static int setup(void**state){
     unused(state);
     fprintf(stdout,"****  %s ****\n",__FILE__);
@@ -16,7 +16,7 @@ static void buffer_init_add_success(void **start){
     unused(start);
     rebrick_buffer_t *buffer;
     char *deneme="hamza";
-    int32_t result=rebrick_buffer_new(&buffer,cast(deneme,uint8_t*),strlen(deneme));
+    int32_t result=rebrick_buffer_new(&buffer,cast(deneme,uint8_t*),strlen(deneme),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
     assert_string_equal(buffer->head_page->buf,"hamza");
     assert_int_equal(buffer->head_page->len,5);
@@ -46,7 +46,7 @@ static void buffer_init_add_big_string_success(void **start){
     memset(deneme,0,sizeof(deneme));
     for(int i=0;i<REBRICK_BUFFER_DEFAULT_MALLOC_SIZE+3;++i)
     deneme[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)deneme,sizeof(deneme));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)deneme,sizeof(deneme),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
     int32_t pagecount;
     rebrick_buffer_page_t *el;
@@ -106,7 +106,7 @@ static void buffer_init_add_remove_fromhead_success(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
     int32_t pagecount;
     rebrick_buffer_page_t *el;
@@ -135,7 +135,7 @@ static void buffer_init_add_remove_fromhead_success2(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -176,7 +176,7 @@ static void buffer_init_add_remove_fromhead_success3(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -217,7 +217,7 @@ static void buffer_init_add_remove_fromhead_success4(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -249,7 +249,7 @@ static void buffer_init_add_remove_fromcenter_success(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -292,7 +292,7 @@ static void buffer_init_add_remove_fromcenter_success2(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -339,7 +339,7 @@ static void buffer_init_add_remove_fromcenter_success3(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -382,7 +382,7 @@ static void buffer_init_add_remove_fromcenter_success4(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -421,7 +421,7 @@ static void buffer_total_len(void **start){
     memset(part1,0,sizeof(part1));
     for(int i=0;i<ssizeof(part1);++i)
     part1[i]=(i%28)+97;
-    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1));
+    int32_t result=rebrick_buffer_new(&buffer,(uint8_t*)part1,sizeof(part1),REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
     assert_int_equal(result,0);
 
 
@@ -465,4 +465,5 @@ int test_rebrick_buffer(void) {
     };
     return cmocka_run_group_tests(tests, setup, teardown);
 }
+
 

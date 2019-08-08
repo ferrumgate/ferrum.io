@@ -5,12 +5,12 @@
 #include "rebrick_log.h"
 #include "./lib/utlist.h"
 
-#define REBRICK_BUFFER_DEFAULT_MALLOC_SIZE 1024
+
 
 
 public_ typedef struct rebrick_buffer_page{
    base_object();
-   public_ readonly_ uint8_t buf[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE];
+   public_ readonly_ uint8_t *buf;
    public_ readonly_ size_t len;
    public_ readonly_ struct rebrick_buffer_page *next;
    public_ readonly_ struct rebrick_buffer_page *prev;
@@ -20,11 +20,12 @@ public_ typedef struct rebrick_buffer_page{
 public_ typedef struct rebrick_buffer{
    base_object();
    public_ readonly_ rebrick_buffer_page_t *head_page;
+   public_ readonly_ size_t malloc_size;
 
 }rebrick_buffer_t;
 
 
-int32_t rebrick_buffer_new(rebrick_buffer_t **buffer,uint8_t *buf,size_t len);
+int32_t rebrick_buffer_new(rebrick_buffer_t **buffer,uint8_t *buf,size_t len,size_t mallocsize);
 
 
 /**
@@ -68,6 +69,8 @@ int32_t rebrick_buffer_remove(rebrick_buffer_t *buffer,size_t start,size_t count
 int32_t rebrick_buffer_total_len(rebrick_buffer_t *buffer);
 
 
+
+int32_t rebrick_buffer_to_array(rebrick_buffer_t *buffer,char **array,size_t *arr_len);
 
 
 

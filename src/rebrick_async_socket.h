@@ -8,7 +8,7 @@ typedef int32_t (*rebrick_after_data_received_callback_t)(void *callback_data, c
 typedef int32_t (*rebrick_after_data_sended_callback_t)(void *callback_data, void *after_senddata, int status);
 
 #define base_socket() \
-                        \
+    base_object();                    \
     public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];\
     public_ readonly_ char bind_port[REBRICK_PORT_STR_LEN];\
                                 \
@@ -23,7 +23,6 @@ typedef int32_t (*rebrick_after_data_sended_callback_t)(void *callback_data, voi
     protected_ void *callback_data;
 
 public_ typedef struct rebrick_async_socket{
-    base_object();
     base_socket();
 }rebrick_async_socket_t;
 

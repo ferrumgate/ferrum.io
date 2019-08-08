@@ -84,11 +84,8 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
     }
 
     buf->base = malloc(suggested_size);
-    if (!buf)
-    {
-        rebrick_log_fatal("malloc problem at socket");
-        exit(1);
-    }
+    if_is_null_then_die(buf->base,"malloc problem\n");
+
     buf->len = suggested_size;
     fill_zero(buf->base, buf->len);
     rebrick_log_debug("malloc socket:%lu %p\n", buf->len, buf->base);

@@ -5,26 +5,36 @@
 
 struct rebrick_async_tcpsocket;
 
-typedef int32_t (*rebrick_after_connection_accepted_callback_t)(void *callback_data, const struct sockaddr *addr, struct rebrick_async_tcpsocket *client_handle);
+/**
+ * @brief
+ * @params callback_data
+ * @params addr
+ * @params client_handle if client_handle is null then error occured
+ */
+typedef int32_t (*rebrick_after_connection_accepted_callback_t)(void *callback_data, const struct sockaddr *addr, void *client_handle,int status);
 typedef int32_t (*rebrick_after_connection_closed_callback_t)(void *callback_data);
+
+
+/**
+ * @brief inheritance yapan sınıflar için kullanılacak child connection create method
+ *
+ */
+typedef struct rebrick_async_tcpsocket* (*rebrick_async_tcpsocket_create_client_t)();
+
+
+#define base_tcp_socket()  \
+    base_socket();\
+    private_ rebrick_after_connection_accepted_callback_t after_connection_accepted;\
+    private_ rebrick_after_connection_closed_callback_t after_connection_closed;\
+    private_ struct rebrick_async_tcpsocket *clients; \
+    private_ struct rebrick_async_tcpsocket *prev; \
+    private_ struct rebrick_async_tcpsocket *next; \
+    public_ readonly_ struct rebrick_async_tcpsocket *parent_socket;\
+    private_ rebrick_async_tcpsocket_create_client_t create_client;
 
 public_ typedef struct rebrick_async_tcpsocket
 {
-    base_object();
-    base_socket();
-
-    //for servers
-    private_ rebrick_after_connection_accepted_callback_t after_connection_accepted;
-    //for server
-    private_ rebrick_after_connection_closed_callback_t after_connection_closed;
-
-
-    // if this socket is server socket, then connected clients list
-    private_ struct rebrick_async_tcpsocket *clients;
-    private_ struct rebrick_async_tcpsocket *prev;
-    private_ struct rebrick_async_tcpsocket *next;
-    // server socket
-    public_ readonly_ struct rebrick_async_tcpsocket *parent_socket;
+    base_tcp_socket();
 
 } rebrick_async_tcpsocket_t;
 
@@ -44,6 +54,16 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket, rebrick_
                                     rebrick_after_connection_closed_callback_t after_connection_closed,
                                     rebrick_after_data_received_callback_t after_data_received,
                                     rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient);
+
+
+
+int32_t rebrick_async_tcpsocket_init(rebrick_async_tcpsocket_t *socket, rebrick_sockaddr_t addr, void *callback_data,
+                                    rebrick_after_connection_accepted_callback_t after_connection_accepted,
+                                    rebrick_after_connection_closed_callback_t after_connection_closed,
+                                    rebrick_after_data_received_callback_t after_data_received,
+                                    rebrick_after_data_sended_callback_t after_data_sended,
+                                    int32_t backlog_or_isclient,rebrick_async_tcpsocket_create_client_t create_client);
+
 
 int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket);
 int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer, size_t len, void *aftersend_data);

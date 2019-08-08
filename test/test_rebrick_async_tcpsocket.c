@@ -25,8 +25,9 @@ struct callbackdata
 };
 
 int client_connected = 0;
-static int32_t on_newclient_connection(void *callbackdata, const struct sockaddr *addr, rebrick_async_tcpsocket_t *client_handle)
+static int32_t on_newclient_connection(void *callbackdata, const struct sockaddr *addr, void *client_handle,int32_t status)
 {
+    unused(status);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
 
     data->client = client_handle;
@@ -97,10 +98,11 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
 }
 
 int connected_toserver = 0;
-static int32_t on_connection_accepted(void *callbackdata, const struct sockaddr *addr, rebrick_async_tcpsocket_t *client_handle)
+static int32_t on_connection_accepted(void *callbackdata, const struct sockaddr *addr, void *client_handle,int32_t status)
 {
     unused(callbackdata);
     unused(addr);
+    unused(status);
     unused(client_handle);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
