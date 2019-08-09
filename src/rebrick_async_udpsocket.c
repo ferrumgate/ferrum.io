@@ -15,8 +15,9 @@ static void on_send(uv_udp_send_t *req, int status)
         if (req->handle->data)
         {
             const rebrick_async_udpsocket_t *socket = cast(req->handle->data, rebrick_async_udpsocket_t *);
+
             if (socket->after_data_sended)
-                socket->after_data_sended(socket->callback_data,req->data, status);
+                socket->after_data_sended(cast_to_base_socket(socket),socket->callback_data,req->data, status);
         }
     free(req);
 }
@@ -53,6 +54,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     unused(flags);
     const rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
 
+
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
     if (nread <= 0) //burası silinirse,
     {
@@ -67,7 +69,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
         {
             //nread ssize_t olmasına karşın parametre olarak geçildi
             //neticed eğer nread<0 zaten buraya gelmiyor
-            socket->after_data_received(socket->callback_data, addr, rcvbuf->base, nread);
+            socket->after_data_received(cast_to_base_socket(socket),socket->callback_data, addr, rcvbuf->base, nread);
         }
 
     free(rcvbuf->base);

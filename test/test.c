@@ -123,7 +123,7 @@ int main()
 
 
 
-  /*  if (test_rebrick_util())
+ /*  if (test_rebrick_util())
     exit(1);
   if (test_rebrick_config())
     exit(1);

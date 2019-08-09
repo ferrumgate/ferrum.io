@@ -28,28 +28,35 @@ static int teardown(void **state)
 
 int32_t after_connected = 1;
 
-int32_t after_connection_accepted_callback(void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+int32_t after_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     after_connected = status;
     unused(callback_data);
     unused(addr);
     unused(client_handle);
+    unused(socket);
     return REBRICK_SUCCESS;
 }
-int32_t after_connection_closed_callback(void *callback_data)
+int32_t after_connection_closed=0;
+int32_t after_connection_closed_callback(rebrick_async_socket_t *socket,void *callback_data)
 {
     unused(callback_data);
+    unused(socket);
+    after_connection_closed=1;
+    rebrick_async_tlssocket_destroy(socket);
+
     return REBRICK_SUCCESS;
 }
 int32_t datareaded = 0;
 char readedbuffer[8192 * 4];
-static int32_t after_data_read_callback(void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
-
+    unused(socket);
     unused(addr);
     unused(buffer);
     unused(len);
+    unused(callback_data);
     datareaded = 1;
     memset(readedbuffer, 0, sizeof(readedbuffer));
     memcpy(readedbuffer, buffer, len);
@@ -70,12 +77,14 @@ static void ssl_client(void **start)
     assert_int_equal(result, 0);
     int counter = 100000;
     after_connected=1;
-    while (counter && after_connected)
+    after_connection_closed=0;
+    while (counter && after_connected && !after_connection_closed)
     {
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
     }
     assert_int_equal(after_connected, 0);
+    assert_int_equal(after_connection_closed,0);
 
     char *head = "GET / HTTP/1.0\r\n\
 Host: nodejs.org\r\n\
@@ -91,7 +100,7 @@ Accept: text/html\r\n\
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, NULL);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    } while (result != 0 && counter);
+    } while (result != 0 && counter && !after_connection_closed);
     assert_int_equal(result, 0);
     counter = 100000;
 
@@ -103,6 +112,7 @@ Accept: text/html\r\n\
 
     int check_header = memcmp("HTTP/1.1 302", readedbuffer, 12);
     assert_int_equal(check_header, 0);
+    if(!after_connection_closed)
     rebrick_async_tlssocket_destroy(tlsclient);
 }
 
@@ -112,16 +122,17 @@ Accept: text/html\r\n\
 
 int32_t after_serverconnected = 1;
 int32_t after_serverclientdisconnected=1;
-int32_t after_serverconnection_accepted_callback(void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+int32_t after_serverconnection_accepted_callback(rebrick_async_socket_t *socket,void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     after_serverconnected = status;
     unused(callback_data);
     unused(addr);
     unused(client_handle);
+    unused(socket);
     if(status)
     return status;
     rebrick_async_tlssocket_t *client=cast(client_handle,rebrick_async_tlssocket_t*);
-    const char *msg="HTTP/1.1 200 Ok\r\n\
+    char *msg="HTTP/1.1 200 Ok\r\n\
 content-type:text/html\r\n\
 content-length:52\r\n\
 \r\n\
@@ -135,20 +146,23 @@ content-length:52\r\n\
 
     return REBRICK_SUCCESS;
 }
-int32_t after_serverconnection_closed_callback(void *callback_data)
+int32_t after_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle,void *callback_data)
 {
     unused(callback_data);
-    rebrick_async_tlssocket_t *socket=cast(callback_data,rebrick_async_tlssocket_t *);
+    unused(socket);
+    rebrick_async_tlssocket_t *socket=cast(sockethandle,rebrick_async_tlssocket_t *);
     rebrick_async_tlssocket_destroy(socket);
     return REBRICK_SUCCESS;
 }
 int32_t datareadedserver = 0;
 char readedbufferserver[8192 * 4];
-static int32_t after_serverdata_read_callback(void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t after_serverdata_read_callback(rebrick_async_socket_t *socket,void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
     unused(addr);
     unused(buffer);
+    unused(socket);
+    unused(callback_data);
     unused(len);
     datareadedserver = 1;
     memset(readedbufferserver, 0, sizeof(readedbufferserver));
@@ -196,7 +210,7 @@ static void ssl_server(void **start)
 int test_rebrick_async_tlssocket(void)
 {
     const struct CMUnitTest tests[] = {
-    //cmocka_unit_test(ssl_client)
+    cmocka_unit_test(ssl_client),
     cmocka_unit_test(ssl_server)
 
     };

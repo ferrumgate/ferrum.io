@@ -23,9 +23,9 @@ static int teardown(void **state)
 static int32_t flag=0;
 char read_buffer[65536];
 const char *testdata="merhaba";
-static int32_t on_server_received(void *data,const struct sockaddr *addr, const char *buffer,size_t len){
+static int32_t on_server_received(rebrick_async_socket_t *socket, void *data,const struct sockaddr *addr, const char *buffer,size_t len){
     unused(addr);
-
+    unused(socket);
     assert_string_equal(data,testdata);
     flag=1;
     memset(read_buffer,0,512);
@@ -33,8 +33,9 @@ static int32_t on_server_received(void *data,const struct sockaddr *addr, const 
     return REBRICK_SUCCESS;
 }
 
-static int32_t on_server_send(void *data,void *after_senddata,int status){
+static int32_t on_server_send(rebrick_async_socket_t *socket,void *data,void *after_senddata,int status){
     unused(data);
+    unused(socket);
     unused(after_senddata);
     assert_string_equal(data,testdata);
     flag=2;

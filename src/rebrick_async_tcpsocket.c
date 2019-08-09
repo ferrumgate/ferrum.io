@@ -17,7 +17,7 @@ static void on_send(uv_write_t *req, int status)
             const rebrick_async_tcpsocket_t *socket = cast(req->handle->data, rebrick_async_tcpsocket_t *);
 
             if (socket->after_data_sended)
-                socket->after_data_sended(socket->callback_data, req->data, status);
+                socket->after_data_sended(cast_to_base_socket(socket), socket->callback_data, req->data, status);
         }
     free(req);
 }
@@ -70,7 +70,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     if (socket->after_data_received && nread > 0)
     {
 
-        socket->after_data_received(socket->callback_data, NULL, rcvbuf->base, nread);
+        socket->after_data_received(cast_to_base_socket(socket),socket->callback_data, NULL, rcvbuf->base, nread);
     }
 
     free(rcvbuf->base);
@@ -114,7 +114,7 @@ static void on_connect(uv_connect_t *connection, int status)
 
     if (serversocket->after_connection_accepted)
     {
-        serversocket->after_connection_accepted(serversocket->callback_data, NULL, serversocket,status);
+        serversocket->after_connection_accepted(cast_to_base_socket(serversocket),serversocket->callback_data, NULL, serversocket,status);
     }
 
     free(connection);
@@ -184,7 +184,7 @@ static void on_connection(uv_stream_t *server, int status)
     DL_APPEND(serversocket->clients, client);
     if (serversocket->after_connection_accepted)
     {
-        serversocket->after_connection_accepted(client->callback_data, &client->bind_addr.base, client,status);
+        serversocket->after_connection_accepted(cast_to_base_socket(serversocket),client->callback_data, &client->bind_addr.base, client,status);
     }
 
     //start reading client
@@ -287,8 +287,6 @@ int32_t rebrick_async_tcpsocket_init(rebrick_async_tcpsocket_t *socket, rebrick_
     if (result < 0)
     {
         rebrick_log_fatal("create socket failed bind at %s port:%s\n", socket->bind_ip, socket->bind_port);
-
-
         return result;
     }
 
@@ -335,7 +333,7 @@ static void on_close(uv_handle_t *handle)
             if (socket->after_connection_closed)
             {
                 rebrick_log_debug("handle closed\n");
-                socket->after_connection_closed(socket->callback_data);
+                socket->after_connection_closed(cast_to_base_socket(socket),socket->callback_data);
             }
             //client is closing
             if (socket->parent_socket)

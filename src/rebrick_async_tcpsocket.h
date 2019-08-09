@@ -6,13 +6,20 @@
 struct rebrick_async_tcpsocket;
 
 /**
- * @brief
- * @params callback_data
+ * @brief function declaration after server socket or client socket connection callback
+ * @params socket which socket used
+ * @params callback_data data when used with @see rebrick_async_tcpsocket_new(...)
  * @params addr
  * @params client_handle if client_handle is null then error occured
  */
-typedef int32_t (*rebrick_after_connection_accepted_callback_t)(void *callback_data, const struct sockaddr *addr, void *client_handle,int status);
-typedef int32_t (*rebrick_after_connection_closed_callback_t)(void *callback_data);
+typedef int32_t (*rebrick_after_connection_accepted_callback_t)(struct rebrick_async_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle,int status);
+
+/**
+ * @brief after socket is closed this function is called
+ * @param socket which socket is used
+ * @param callback_data , data when used with @see rebrick_async_tcpsocket_new(...);
+ */
+typedef int32_t (*rebrick_after_connection_closed_callback_t)(struct rebrick_async_socket *socket, void *callback_data);
 
 
 /**

@@ -5,12 +5,7 @@
 #include "rebrick_async_tcpsocket.h"
 #include "rebrick_buffer.h"
 
-/*
-public_ typedef struct rebrick_pending_bytes{
-    base_object();
-    rebrick_buffer_t *buffer;
-    struct rebrick_pending_bytes *prev,*next;
-}rebrick_pending_bytes_t; */
+
 
 
 public_ typedef struct rebrick_async_tlssocket

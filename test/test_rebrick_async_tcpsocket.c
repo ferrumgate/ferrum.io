@@ -25,9 +25,13 @@ struct callbackdata
 };
 
 int client_connected = 0;
-static int32_t on_newclient_connection(void *callbackdata, const struct sockaddr *addr, void *client_handle,int32_t status)
+static int32_t on_newclient_connection(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(status);
+    unused(socket);
+    unused(callbackdata);
+    unused(addr);
+    unused(client_handle);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
 
     data->client = client_handle;
@@ -36,9 +40,11 @@ static int32_t on_newclient_connection(void *callbackdata, const struct sockaddr
     return 0;
 }
 
-static int32_t on_read(void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t on_read(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
+    unused(socket);
+    unused(callback_data);
 
     struct callbackdata *data = cast(callback_data, struct callbackdata *);
     memset(data->buffer, 0, 1024);
@@ -98,30 +104,34 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
 }
 
 int connected_toserver = 0;
-static int32_t on_connection_accepted(void *callbackdata, const struct sockaddr *addr, void *client_handle,int32_t status)
+static int32_t on_connection_accepted(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(callbackdata);
     unused(addr);
     unused(status);
     unused(client_handle);
+    unused(socket);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
     connected_toserver = 1;
     return 0;
 }
 
-static int32_t on_connection_closed(void *callbackdata)
+static int32_t on_connection_closed(rebrick_async_socket_t *socket, void *callbackdata)
 {
+    unused(socket);
+    unused(callbackdata);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
     return 0;
 }
 static int datareceived_ok = 0;
-static int32_t on_datarecevied(void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t on_datarecevied(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(callback_data);
     unused(addr);
-    unused(buffer);
+
+    unused(socket);
 
     struct callbackdata *data = cast(callback_data, struct callbackdata *);
     memset(data->buffer, 0, 1024);
@@ -130,10 +140,11 @@ static int32_t on_datarecevied(void *callback_data, const struct sockaddr *addr,
     return 0;
 }
 
-static int32_t on_datasend(void *callback_data, void *after_senddata, int status)
+static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data, void *after_senddata, int status)
 {
     unused(callback_data);
     unused(after_senddata);
+    unused(socket);
     return status - status;
 }
 
@@ -165,14 +176,15 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     assert_int_equal(connected_toserver, 1);
     datareceived_ok = 0;
-    counter=10;
-    while(counter){
-        result=tcp_echo_send("deneme");
-        if(result>=0)
-        break;
+    counter = 10;
+    while (counter)
+    {
+        result = tcp_echo_send("deneme");
+        if (result >= 0)
+            break;
         counter--;
     }
-    counter=10;
+    counter = 10;
     while (counter)
     {
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
