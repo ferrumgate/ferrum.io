@@ -32,6 +32,7 @@ typedef struct rebrick_async_tcpsocket* (*rebrick_async_tcpsocket_create_client_
     public_ readonly_ struct rebrick_async_tcpsocket *parent_socket;\
     private_ rebrick_async_tcpsocket_create_client_t create_client;
 
+
 public_ typedef struct rebrick_async_tcpsocket
 {
     base_tcp_socket();

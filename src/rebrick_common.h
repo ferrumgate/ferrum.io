@@ -40,6 +40,8 @@
 #define REBRICK_ERR_TLS_ERR -22
 #define REBRICK_ERR_TLS_INIT_NOT_FINISHED -23
 
+#define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
+#define UV_ERR(result)  (result)-(REBRICK_ERR_UV)
 
 /*
 * @brief every struct has a typen name, sometimes we are using for detect memory leak

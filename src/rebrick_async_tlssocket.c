@@ -122,10 +122,13 @@ static int32_t check_ssl_init(rebrick_async_tlssocket_t *tlssocket)
             } while (n > 0);
         }
         if(status==SSLSTATUS_WANT_WRITE){
+            printf("ssl status wirte tls error\n");
            return REBRICK_ERR_TLS_ERR;
         }
-        if (status == SSLSTATUS_FAIL)
+        if (status == SSLSTATUS_FAIL){
+            printf("ssl status wirte tls error2\n");
             return REBRICK_ERR_TLS_ERR;
+        }
 
         if (!SSL_is_init_finished(tlssocket->tls->ssl))
             return REBRICK_ERR_TLS_INIT_NOT_FINISHED;
@@ -157,6 +160,12 @@ static int32_t local_after_connection_accepted_callback(void *callback_data, con
     unused(current_time_str);
     unused(addr);
     int32_t result;
+
+    if(status){
+        rebrick_log_fatal("connection accepted failed with error:%d\n",status);
+        return status;
+    }
+    printf("connected client\n");
     rebrick_async_tlssocket_t *tlsserver = cast(callback_data, rebrick_async_tlssocket_t *);
 
     if (!tlsserver)
@@ -187,8 +196,9 @@ static int32_t local_after_connection_accepted_callback(void *callback_data, con
     tlsclient->override_after_connection_closed = tlsserver->override_after_connection_closed;
     tlsclient->override_after_data_received = tlsserver->override_after_data_received;
     tlsclient->override_after_data_sended = tlsserver->override_after_data_sended;
-    tlsclient->override_callback_data = tlsclient;
-
+    tlsclient->override_callback_data = tlsserver->override_callback_data;
+    //bu satır önemlidir, zira buralda callback_data olarak client kendisi geçilir.
+    tlsclient->callback_data=tlsclient;
 
     status=check_ssl_init(tlsclient);
 
@@ -255,6 +265,8 @@ static int32_t local_after_connection_closed_callback(void *callback_data)
 
     if (tlssocket->override_after_connection_closed)
         tlssocket->override_after_connection_closed(tlssocket->override_callback_data);
+
+    //burası ilginç
 
     return REBRICK_SUCCESS;
 }
@@ -470,7 +482,8 @@ int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const re
                                           local_after_connection_closed_callback, local_after_data_received_callback, local_after_data_sended_callback, backlog_or_isclient, local_create_client);
     if (result)
     {
-        rebrick_log_fatal("tcpsocket create failed with result:%d\n", result);
+        int32_t uv_err=HAS_UV_ERR(result)?UV_ERR(result):0;
+        rebrick_log_fatal("tcpsocket create failed with result:%d %s\n", result,uv_strerror(uv_err));
         free(tlssocket);
         return result;
     }

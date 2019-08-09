@@ -178,6 +178,8 @@ static void on_connection(uv_stream_t *server, int status)
     client->after_data_sended = serversocket->after_data_sended;
     client->callback_data = serversocket->callback_data;
     client->parent_socket = serversocket;
+    client->loop=serversocket->loop;
+
 
     DL_APPEND(serversocket->clients, client);
     if (serversocket->after_connection_accepted)
@@ -271,7 +273,7 @@ int32_t rebrick_async_tcpsocket_init(rebrick_async_tcpsocket_t *socket, rebrick_
     rebrick_util_addr_to_ip_string(&socket->bind_addr, socket->bind_ip);
     rebrick_util_addr_to_port_string(&socket->bind_addr, socket->bind_port),
 
-        socket->after_data_received = after_data_received;
+    socket->after_data_received = after_data_received;
     socket->after_data_sended = after_data_sended;
     socket->after_connection_accepted = after_connection_accepted;
     socket->after_connection_closed = after_connection_closed;
