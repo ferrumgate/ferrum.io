@@ -181,6 +181,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         return REBRICK_ERR_TLS_INIT;
     }
 
+
     if (private_file)
         ctx->is_server = 1;
     if (certificate_file && SSL_CTX_use_certificate_file(ctx->tls_ctx, certificate_file, SSL_FILETYPE_PEM) <= 0)

@@ -76,6 +76,12 @@ static enum sslstatus get_sslstatus(SSL *ssl, int n)
     }
 }
 
+/**
+ * @brief checs ssl status
+ *
+ * @param tlssocket
+ * @return int32_t REBRICK_ERR_BAD_ARGUMENT,REBRICK_ERR_TLS_ERR,REBRICK_ERR_TLS_INIT_NOT_FINISHED,REBRICK_SUCCESS
+ */
 static int32_t check_ssl_init(rebrick_async_tlssocket_t *tlssocket)
 {
     char current_time_str[32] = {0};
@@ -87,7 +93,7 @@ static int32_t check_ssl_init(rebrick_async_tlssocket_t *tlssocket)
 
     if(!tlssocket->tls){
         rebrick_log_fatal("socket tls is null\n");
-    return REBRICK_ERR_BAD_ARGUMENT;
+       return REBRICK_ERR_BAD_ARGUMENT;
     }
 
     if (!SSL_is_init_finished(tlssocket->tls->ssl))
@@ -174,7 +180,7 @@ static int32_t local_after_connection_accepted_callback(rebrick_async_socket_t *
         rebrick_log_fatal("callback_data casting is null\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
-
+    //bağlandığında client yada server-client için yeni bir ssl oluşturulur
     rebrick_tls_ssl_t *tls_ssl;
     result = rebrick_tls_ssl_new(&tls_ssl, tlsserver->tls_context);
     if (result)
@@ -198,7 +204,7 @@ static int32_t local_after_connection_accepted_callback(rebrick_async_socket_t *
     tlsclient->override_after_data_received = tlsserver->override_after_data_received;
     tlsclient->override_after_data_sended = tlsserver->override_after_data_sended;
     tlsclient->override_callback_data = tlsserver->override_callback_data;
-    //bu satır önemlidir, zira buralda callback_data olarak client kendisi geçilir.
+    //tlsclient için callback_data kendisi geçilir.
     tlsclient->callback_data=tlsclient;
 
     status=check_ssl_init(tlsclient);
@@ -245,7 +251,7 @@ static int32_t local_after_connection_accepted_callback(rebrick_async_socket_t *
 static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *socket,void *callback_data)
 {
 
-    //TODO burası incelenmeli
+
     char current_time_str[32] = {0};
     unused(current_time_str);
     unused(callback_data);
@@ -269,7 +275,7 @@ static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *so
     if (tlssocket->override_after_connection_closed)
         tlssocket->override_after_connection_closed(cast_to_base_socket(tlssocket), tlssocket->override_callback_data);
 
-
+    //burada socket free yapılmamalı. bunu client code kendisi yapmalı
 
     return REBRICK_SUCCESS;
 }
@@ -284,6 +290,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
     int32_t n;
     enum sslstatus status;
     rebrick_async_tlssocket_t *tlssocket = cast(socket, rebrick_async_tlssocket_t *);
+     rebrick_async_tlssocket_t *parentsocket_or_self=tlssocket->parent_socket?cast(tlssocket->parent_socket,rebrick_async_tlssocket_t*) :tlssocket;
     char buftemp[8192];
     if (!tlssocket)
     {
@@ -319,11 +326,12 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         {
 
             rebrick_buffer_destroy(readedbuffer);
-            call_after_connection(tlssocket->parent_socket?tlssocket->parent_socket:tlssocket, tlssocket,result);
+
+            call_after_connection(parentsocket_or_self, tlssocket,result);
             return result;
         }
 
-        call_after_connection(tlssocket->parent_socket?tlssocket->parent_socket:tlssocket,tlssocket,result);
+        call_after_connection(parentsocket_or_self,tlssocket,result);
 
 
 
@@ -331,7 +339,6 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         {
 
             n = SSL_read(tlssocket->tls->ssl, buftemp, sizeof(buftemp));
-
             if (n > 0)
             {
 
@@ -419,14 +426,15 @@ int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *c
                     rebrick_buffer_new(&tlssocket->pending_write_list, (uint8_t *)holder->internal_data, (size_t)holder->internal_data_len,REBRICK_BUFFER_MALLOC_SIZE);
                 else
                     rebrick_buffer_add(tlssocket->pending_write_list, (uint8_t *)holder->internal_data, (size_t)holder->internal_data_len);
-        //flush_buffers(tlssocket);
+
     }
 
     if (holder && holder->internal_data)
         free(holder->internal_data);
 
-    if (tlssocket->override_after_data_sended)
-        tlssocket->override_after_data_sended(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, holder ? holder->client_data : NULL, status);
+    //burasına gerek yok
+    //if (tlssocket->override_after_data_sended)
+     //   tlssocket->override_after_data_sended(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, holder ? holder->client_data : NULL, status);
 
     return REBRICK_SUCCESS;
 }

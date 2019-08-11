@@ -44,7 +44,7 @@
 #define UV_ERR(result)  (result)-(REBRICK_ERR_UV)
 
 /*
-* @brief every struct has a typen name, sometimes we are using for detect memory leak
+* @brief every struct has a type name, sometimes we are using for detect memory leak
 */
 #define REBRICK_STRUCT_NAME_LEN 32
 
@@ -56,6 +56,7 @@
 #define REBRICK_PORT_STR_LEN 8
 
 #define REBRICK_TLS_KEY_LEN 128
+#define REBRICK_CA_VERIFY_PATH_MAX_LEN 1024
 
 
 /* @brief allocation methods */

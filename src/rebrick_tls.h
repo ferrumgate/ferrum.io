@@ -54,6 +54,7 @@ typedef struct rebrick_tls_context{
     private_ char key[REBRICK_TLS_KEY_LEN];
     public_ readonly_  SSL_CTX * tls_ctx;
     public_ readonly_ int32_t is_server;
+    private_ const char ca_verify_path[REBRICK_CA_VERIFY_PATH_MAX_LEN];
 
 }rebrick_tls_context_t;
 
@@ -64,6 +65,7 @@ typedef struct rebrick_tls_context{
  *
  * @param context
  * @param key hash key
+ * @param ca verify path
  * @param ssl_verify  SSL_VERIFY_NONE,SSL_VERIFY_PEER,SSL_VERIFY_FAIL_IF_NO_PEER_CERT,SSL_VERIFY_CLIENT_ONCE,SSL_VERIFY_POST_HANDSHAKE
  * @param session_mode  SSL_SESS_CACHE_OFF, SSL_SESS_CACHE_CLIENT,SSL_SESS_CACHE_SERVER,SSL_SESS_CACHE_BOTH
  * @param options SSL_OP_ALL, or vs... vs...
@@ -71,7 +73,7 @@ typedef struct rebrick_tls_context{
  * @param private_file NULL for client
  * @return int32_t return REBRICK_SUCCESS,  <0 means error
  */
-int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key, int32_t ssl_verify,int32_t session_mode,int32_t options,const char *certificate_file,const char *private_file);
+int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key,int32_t ssl_verify,int32_t session_mode,int32_t options,const char *certificate_file,const char *private_file);
 int32_t rebrick_tls_context_destroy(rebrick_tls_context_t *context);
 
 /**

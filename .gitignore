@@ -56,4 +56,4 @@ moraldnsserver
 .nyc_output
 output
 out
-
+*.ignore.txt
