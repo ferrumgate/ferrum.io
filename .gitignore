@@ -57,3 +57,5 @@ moraldnsserver
 output
 out
 *.ignore.txt
+bind_data
+core-test-*

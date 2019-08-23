@@ -1,7 +1,7 @@
 CFLAGS = -Wall -W -O0 -g -ggdb -std=gnu11  -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG
 LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto
 
-CFLAGSTEST = -std=c99 -Wall -W -O0 -g -ggdb -std=gnu11  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG2
+CFLAGSTEST = -std=c99 -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu11  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG2
 LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl -lcrypto
 
 

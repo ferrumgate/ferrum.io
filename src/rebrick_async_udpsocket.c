@@ -25,6 +25,7 @@ int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_
 {
 
     char current_time_str[32] = {0};
+    unused(current_time_str);
     char dst_ip[REBRICK_IP_STR_LEN];
     char dst_port[REBRICK_PORT_STR_LEN];
     int32_t result;
@@ -178,6 +179,7 @@ static void on_close(uv_handle_t *handle)
 int32_t rebrick_async_udpsocket_destroy(rebrick_async_udpsocket_t *socket)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     if (socket)
     {
         //close if server is ready

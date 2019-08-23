@@ -80,6 +80,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
 {
     unused(client);
     char current_time_str[32] = {0};
+    unused(current_time_str);
     if (suggested_size <= 0)
     {
         rebrick_log_info("socket suggested_size is 0 from \n");

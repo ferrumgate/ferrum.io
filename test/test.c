@@ -123,7 +123,7 @@ int main()
 
 
 
- /*  if (test_rebrick_util())
+  if (test_rebrick_util())
     exit(1);
   if (test_rebrick_config())
     exit(1);
@@ -135,15 +135,18 @@ int main()
   if (test_rebrick_buffer())
     exit(1);
 
+
   if (test_rebrick_async_udpsocket())
     exit(1);
+   // kill(getpid(), SIGSEGV);
   if (test_rebrick_async_tcpsocket())
     exit(1);
 
-  if (test_rebrick_tls())
-    exit(1);*/
-  if(test_rebrick_async_tlssocket())
+
+ /*  if (test_rebrick_tls())
     exit(1);
+  if(test_rebrick_async_tlssocket())
+    exit(1);*/
 
   return 0;
 }
