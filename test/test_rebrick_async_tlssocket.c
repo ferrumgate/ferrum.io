@@ -68,7 +68,7 @@ static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *ca
     memset(readedbuffer, 0, sizeof(readedbuffer));
     memcpy(readedbuffer, buffer, len);
      totalreaded_len += len;
-    printf("totalreaded len:%d\n",totalreaded_len);
+    //printf("totalreaded len:%d\n",totalreaded_len);
     return 0;
 }
 
@@ -236,10 +236,16 @@ static void ssl_client_verify(void **start)
     rebrick_async_tlssocket_destroy(tlsclient);
 }
 
+
+/**
+ * @brief docker nginx /10m.ignore.txt dosyası download edilecek
+ *
+ * @param start
+ */
 static void ssl_client_download_data(void **start)
 {
     //bu projeyi çalıştırmadan önce
-    //docker_ssl   ngix_data altında 10m.ignore.txt 100m.ignore.txt 1000m.ignore.txt
+    //docker_ssl   ngix_data altında 10m.ignore.txt 100m.ignore.txt 1000m.ignore.txt olmalı
     unused(start);
     int32_t result;
 
@@ -292,21 +298,32 @@ Accept: text/html\r\n\
         usleep(100);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     }
-    //assert_is_true_equal(totalreaded_len,10485760);
+    printf("%d\n",totalreaded_len);
+    //assert_int_equal(totalreaded_len,10486033);
 
 }
 
 static void ssl_client_memory_test(void **state){
-    int counter=10000;
+    printf("enter for continue\n");
+    getchar();
+    int counter=1;
     while(counter){
         ssl_client_download_data(state);
         counter--;
+       // usleep(1000000);
     }
+
+
+
+    printf("enter for exit\n");
+    getchar();
+    printf("enter for exit\n");
+    getchar();
 }
 
 int test_rebrick_async_tlssocket(void)
 {
-    getchar();
+
     const struct CMUnitTest tests[] = {
        /*  cmocka_unit_test(ssl_client),*/
        /* cmocka_unit_test(ssl_server),*/

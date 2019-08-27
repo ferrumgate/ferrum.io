@@ -217,7 +217,7 @@ static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket,
     unused(socket);
 
     connected_to_memorytest = 1;
-    connected_client=cast(client_handle,rebrick_async_tcpsocket_t*);
+    connected_client = cast(client_handle, rebrick_async_tcpsocket_t *);
     return 0;
 }
 
@@ -232,18 +232,19 @@ static int32_t on_connection_closed_memorytest(rebrick_async_socket_t *socket, v
 }
 static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
-static char datareceived_ok_total_memorytest=0;
+static int datareceived_ok_total_memorytest = 0;
 static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(callback_data);
     unused(addr);
 
     unused(socket);
-    memset(memorytestdata,0,sizeof(memorytestdata));
+    //memset(memorytestdata,0,sizeof(memorytestdata));
     memcpy(memorytestdata, buffer, len);
-    printf("%s\n",memorytestdata);
+    //printf("%s\n",memorytestdata);
+
     datareceived_ok_memorytest = len;
-    datareceived_ok_total_memorytest+=len;
+    datareceived_ok_total_memorytest += len;
     return 0;
 }
 
@@ -285,11 +286,9 @@ Accept: text/html\r\n\
 
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("testing %d\n",i);
+        printf("testing %d\n", i);
         int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
-
-
 
         //check a little
         int counter = 1000;
@@ -322,14 +321,18 @@ Accept: text/html\r\n\
         rebrick_async_tcpsocket_destroy(client);
     }
 
-     printf("enter for exit\n");
+    printf("enter for exit\n");
     getchar();
 }
-
 
 /**
  * @brief create a http server
  * komut satırından
+ * for i in {1..1000}
+ * do
+ * curl http://localhost:8585
+ * done
+ *
  * @param start
  */
 static void rebrick_async_tcpsocket_asserver_memory(void **start)
@@ -363,20 +366,18 @@ Accept-Ranges: bytes\r\n\
         </h1>\r\n\
     </body>\r\n\
 </html>";
-
+#undef COUNTER
 #define COUNTER 1000
 
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("testing %d\n",i);
+        printf("testing %d\n", i);
         int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 10);
         assert_int_equal(result, REBRICK_SUCCESS);
 
-
-
         //check a little
         int counter = 100000;
-        connected_to_memorytest=0;
+        connected_to_memorytest = 0;
         while (--counter && !connected_to_memorytest)
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
@@ -386,7 +387,6 @@ Accept-Ranges: bytes\r\n\
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
 
-
         counter = 1000;
         while (--counter && !datareceived_ok_memorytest)
         {
@@ -395,7 +395,7 @@ Accept-Ranges: bytes\r\n\
         }
         assert_true(datareceived_ok_memorytest > 0);
 
-        result = rebrick_async_tcpsocket_send(connected_client , html, strlen(html) + 1, NULL);
+        result = rebrick_async_tcpsocket_send(connected_client, html, strlen(html) + 1, NULL);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -405,13 +405,13 @@ Accept-Ranges: bytes\r\n\
         }
         assert_int_equal(datasended_memorytest, 10); //this value is used above
 
-
         rebrick_async_tcpsocket_destroy(client);
     }
 
-     printf("enter for exit\n");
+    printf("enter for exit\n");
     getchar();
 }
+
 
 int test_rebrick_async_tcpsocket(void)
 {
@@ -419,8 +419,9 @@ int test_rebrick_async_tcpsocket(void)
         cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
         //cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
-        cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory),
+        //cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory),
 
-        };
+
+    };
     return cmocka_run_group_tests(tests, setup, teardown);
 }

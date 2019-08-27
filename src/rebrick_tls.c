@@ -60,8 +60,10 @@ int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket)
 
     DL_FOREACH_SAFE(tls_after_io_checklist->head, el, tmp)
     {
-        if (el->socket == socket)
+        if (el->socket == socket){
             DL_DELETE(tls_after_io_checklist->head, el);
+            free(el);
+        }
     }
 
     return REBRICK_SUCCESS;
@@ -105,8 +107,10 @@ int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket)
 
     DL_FOREACH_SAFE(tls_before_io_checklist->head, el, tmp)
     {
-        if (el->socket == socket)
+        if (el->socket == socket){
             DL_DELETE(tls_before_io_checklist->head, el);
+            free(el);
+        }
     }
 
     return REBRICK_SUCCESS;
@@ -321,7 +325,10 @@ int32_t rebrick_tls_ssl_destroy(rebrick_tls_ssl_t *tls)
     {
         if (tls->ssl)
         {
+
+            SSL_clear(tls->ssl);
             SSL_free(tls->ssl);
+
         }
         free(tls);
     }
