@@ -135,7 +135,7 @@ int main()
    if (test_rebrick_buffer())
     exit(1);
 
-
+kill(getpid(), SIGSEGV);
   if (test_rebrick_async_udpsocket())
     exit(1);
    // kill(getpid(), SIGSEGV);
@@ -148,7 +148,7 @@ int main()
   if(test_rebrick_async_tlssocket())
     exit(1);
     getchar();
-    kill(getpid(), SIGSEGV);
+
 
   return 0;
 }

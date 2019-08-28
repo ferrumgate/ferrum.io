@@ -390,7 +390,7 @@ static void buffer_check_memory(void **start)
     unused(start);
 
     unused(start);
-#define LIST_SIZE 1000000
+#define LIST_SIZE 10000000
 
     //big string full page
     uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE + 32];
@@ -417,7 +417,7 @@ static void buffer_check_memory2(void **start)
     unused(start);
     unused(start);
     #undef LIST_SIZE
-    #define LIST_SIZE 100000
+    #define LIST_SIZE 10000
 
     //big string full page
     uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE + 32];
@@ -430,7 +430,7 @@ static void buffer_check_memory2(void **start)
         rebrick_buffer_t *tmp;
         int32_t result = rebrick_buffer_new(&tmp, part1, sizeof(part1), REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
         assert_int_equal(result, 0);
-        int counter = 100;
+        int counter = 5795;
         while (counter--)
         {
             result = rebrick_buffer_add(tmp, part1, sizeof(part1));
@@ -457,8 +457,8 @@ int test_rebrick_buffer(void)
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success3),
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success4),
         cmocka_unit_test(buffer_total_len),
-     /*    cmocka_unit_test(buffer_check_memory),
-        cmocka_unit_test(buffer_check_memory2), */
+       // cmocka_unit_test(buffer_check_memory),
+        cmocka_unit_test(buffer_check_memory2),
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

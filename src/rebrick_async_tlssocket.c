@@ -7,7 +7,8 @@
  * ve callback fonksiyona geçiyor.
  *
  */
-#define REBRICK_BUFFER_MALLOC_SIZE 8192
+#define REBRICK_BUFFER_MALLOC_SIZE 4096
+#define BUF_SIZE 4096
 
 private_ typedef struct send_data_holder
 {
@@ -94,7 +95,7 @@ static int32_t check_ssl_init(rebrick_async_tlssocket_t *tlssocket)
     int32_t result;
     int32_t n;
     enum sslstatus status;
-    char buftemp[4096];
+    char buftemp[BUF_SIZE];
 
     if (!tlssocket->tls)
     {
@@ -527,7 +528,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
     int32_t result;
     int32_t n;
     unused(result);
-    char buftemp[8192 * 2];
+    char buftemp[BUF_SIZE];
     result = check_ssl_init(socket);
     if (result != REBRICK_SUCCESS)
     {

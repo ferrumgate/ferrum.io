@@ -306,10 +306,12 @@ Accept: text/html\r\n\
 static void ssl_client_memory_test(void **state){
     printf("enter for continue\n");
     getchar();
-    int counter=1;
+    int counter=100;
     while(counter){
         ssl_client_download_data(state);
         counter--;
+        printf("enter for continue\n");
+        getchar();
        // usleep(1000000);
     }
 
