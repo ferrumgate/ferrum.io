@@ -150,6 +150,7 @@ static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data, 
 
 static void rebrick_async_tcpsocket_asclient_communication(void **start)
 {
+
     unused(start);
     const char *port = "9998";
     rebrick_async_tcpsocket_t *client;
@@ -160,7 +161,9 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
     assert_int_equal(result, 0);
     fill_zero(&data, sizeof(struct callbackdata));
     connected_toserver = 0;
+
     result = tcp_echo_listen();
+
     result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend, 0);
 
     //check a little
@@ -197,6 +200,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     assert_string_equal(data.buffer, "deneme");
     rebrick_async_tcpsocket_send(client, "valla", 6, NULL);
+
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
     char recvbuf[1024];
@@ -233,6 +237,7 @@ static int32_t on_connection_closed_memorytest(rebrick_async_socket_t *socket, v
 static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
 static int datareceived_ok_total_memorytest = 0;
+
 static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(callback_data);
@@ -319,6 +324,70 @@ Accept: text/html\r\n\
         assert_true(datareceived_ok_memorytest > 0);
 
         rebrick_async_tcpsocket_destroy(client);
+    }
+
+    printf("enter for exit\n");
+    getchar();
+}
+
+static void rebrick_tcp_client_download_data(void **start)
+{
+
+    unused(start);
+    const char *port = "80";
+    rebrick_async_tcpsocket_t *client;
+    rebrick_sockaddr_t addr;
+    rebrick_util_ip_port_to_addr("127.0.0.1", port, &addr);
+    struct callbackdata data;
+
+    fill_zero(&data, sizeof(struct callbackdata));
+    printf("enter for continue tcp\n");
+    getchar();
+
+    char *head = "GET /10m.ignore.txt HTTP/1.0\r\n\
+Host: nodejs.org\r\n\
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
+Accept: text/html\r\n\
+\r\n";
+#define COUNTER 10000
+
+    for (int i = 0; i < COUNTER; ++i)
+    {
+        //printf("testing %d\n", i);
+        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
+        assert_int_equal(result, REBRICK_SUCCESS);
+
+        //check a little
+        int counter = 1000;
+        while (--counter && !connected_to_memorytest)
+        {
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            usleep(1000);
+        }
+
+        datasended_memorytest = 0;
+        datareceived_ok_memorytest = 0;
+        connection_closed_memorytest=0;
+        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, NULL);
+
+        counter = 100000;
+        datareceived_ok_total_memorytest = 1;
+        while (counter && !connection_closed_memorytest)
+        {
+            usleep(100);
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            counter--;
+        }
+
+        rebrick_async_tcpsocket_destroy(client);
+        while (!connection_closed_memorytest)
+        {
+            usleep(100);
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        }
+
+
+        printf("%d\n", datareceived_ok_total_memorytest);
     }
 
     printf("enter for exit\n");
@@ -412,7 +481,6 @@ Accept-Ranges: bytes\r\n\
     getchar();
 }
 
-
 int test_rebrick_async_tcpsocket(void)
 {
     const struct CMUnitTest tests[] = {
@@ -420,7 +488,7 @@ int test_rebrick_async_tcpsocket(void)
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
         //cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
         //cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory),
-
+        //cmocka_unit_test(rebrick_tcp_client_download_data)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

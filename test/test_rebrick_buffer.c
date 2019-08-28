@@ -457,7 +457,7 @@ int test_rebrick_buffer(void)
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success3),
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success4),
         cmocka_unit_test(buffer_total_len),
-    /*     cmocka_unit_test(buffer_check_memory),
+     /*    cmocka_unit_test(buffer_check_memory),
         cmocka_unit_test(buffer_check_memory2), */
 
     };

@@ -132,7 +132,7 @@ int main()
   if (test_rebrick_context())
     exit(1);
 
-  if (test_rebrick_buffer())
+   if (test_rebrick_buffer())
     exit(1);
 
 
@@ -147,6 +147,7 @@ int main()
     exit(1);
   if(test_rebrick_async_tlssocket())
     exit(1);
+    getchar();
     kill(getpid(), SIGSEGV);
 
   return 0;
