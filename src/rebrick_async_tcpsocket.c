@@ -179,10 +179,12 @@ static void on_connection(uv_stream_t *server, int status)
     client->after_data_sended = serversocket->after_data_sended;
     client->callback_data = serversocket->callback_data;
     client->parent_socket = serversocket;
+
     client->loop=serversocket->loop;
 
+    rebrick_async_tcpsocket_t *head=serversocket->clients;
 
-    DL_APPEND(serversocket->clients, client);
+    DL_APPEND(head, client);
     if (serversocket->after_connection_accepted)
     {
         serversocket->after_connection_accepted(cast_to_base_socket(serversocket),client->callback_data, &client->bind_addr.base, client,status);
@@ -327,27 +329,37 @@ static void on_close(uv_handle_t *handle)
 
     char current_time_str[32] = {0};
     unused(current_time_str);
-    if (handle && uv_is_closing(handle))
-        if (handle->data)
+    if (handle)
+        if (handle->data && uv_is_closing(handle))
         {
             rebrick_async_tcpsocket_t *socket = cast(handle->data, rebrick_async_tcpsocket_t *);
-
+            handle->data=NULL;
 
             if (socket->after_connection_closed)
             {
                 rebrick_log_debug("handle closed\n");
                 socket->after_connection_closed(cast_to_base_socket(socket),socket->callback_data);
             }
-            //client is closing
-            if (socket->parent_socket)
-            {
-                printf("client socket is closing\n");
-                DL_DELETE(socket->parent_socket->clients, socket);
+            //server is closing
+            if(!socket->parent_socket){
+
+                struct rebrick_async_tcpsocket *el, *tmp,*head=socket->clients;
+                DL_FOREACH(head, el)
+                {
+                        DL_DELETE(head, el);
+                        el->parent_socket=NULL;
+                        //rebrick_async_tcpsocket_destroy(el);
+
+                }
             }else{
-                printf("server socket is closing\n");
+                struct rebrick_async_tcpsocket *el, *tmp,*head=socket->parent_socket->clients;
+                if(head)
+                DL_DELETE(head,socket);
             }
+
             free(socket);
-            handle->data=NULL;
+
+
 
         }
 
@@ -365,18 +377,18 @@ int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
         if (!uv_is_closing(handle))
         {
             //server is closing
-            if (!socket->parent_socket)
-            {
+           // if (!socket->parent_socket)
+            //{
 
                 //server socket is closing
-                struct rebrick_async_tcpsocket *el, *tmp;
+               /*  struct rebrick_async_tcpsocket *el, *tmp;
                 DL_FOREACH_SAFE(socket->clients, el, tmp)
                 {
-
+                        DL_DELETE(socket->clients, el);
                         rebrick_async_tcpsocket_destroy(el);
 
-                }
-            }
+                } */
+            //}
             rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
             uv_close(handle, on_close);
         }

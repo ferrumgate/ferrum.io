@@ -251,6 +251,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 ////////////////////////// memory tests /////////////////////////////////////
 
 int connected_to_memorytest = 0;
+int connected_to_memorytest_counter=0;
 rebrick_async_tcpsocket_t *connected_client;
 static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
@@ -261,6 +262,7 @@ static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket,
     unused(socket);
 
     connected_to_memorytest = 1;
+    connected_to_memorytest_counter++;
     connected_client = cast(client_handle, rebrick_async_tcpsocket_t *);
     return 0;
 }
@@ -475,7 +477,7 @@ Accept-Ranges: bytes\r\n\
     </body>\r\n\
 </html>";
 #undef COUNTER
-#define COUNTER 1
+#define COUNTER 100
     rebrick_async_tcpsocket_t *server;
 
     for (int i = 0; i < COUNTER; ++i)
@@ -487,6 +489,7 @@ Accept-Ranges: bytes\r\n\
         //check a little
         int counter = 1000;
         connected_to_memorytest = 0;
+        connected_to_memorytest_counter=0;
         while (--counter && !connected_to_memorytest)
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
@@ -497,6 +500,7 @@ Accept-Ranges: bytes\r\n\
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
         connection_closed_memorytestcounter=0;
+
         counter = 1000;
         while (--counter && !datareceived_ok_memorytest)
         {
@@ -512,6 +516,7 @@ Accept-Ranges: bytes\r\n\
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             usleep(1000);
+
         }
         assert_int_equal(datasended_memorytest, 10); //this value is used above
 
@@ -533,10 +538,10 @@ Accept-Ranges: bytes\r\n\
 int test_rebrick_async_tcpsocket(void)
 {
     const struct CMUnitTest tests[] = {
-       /*  cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
+        cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
-        cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
-        cmocka_unit_test(rebrick_tcp_client_download_data), */
+         cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
+        cmocka_unit_test(rebrick_tcp_client_download_data),
         cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory)
 
     };
