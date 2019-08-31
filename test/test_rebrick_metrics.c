@@ -52,6 +52,7 @@ static void metrics_tostring(void **start){
     forward_error_total:6\n\
     forward_success_total:7\n";
     assert_string_equal(buffer,mustbuffer);
+    rebrick_metrics_destroy(metrics);
 
 
 }

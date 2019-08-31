@@ -306,12 +306,13 @@ Accept: text/html\r\n\
 static void ssl_client_memory_test(void **state){
     printf("enter for continue\n");
     getchar();
-    int counter=100;
+    int counter=10000;
     while(counter){
         ssl_client_download_data(state);
         counter--;
-        printf("enter for continue\n");
-        getchar();
+
+        /* printf("enter for continue\n");
+        getchar(); */
        // usleep(1000000);
     }
 
@@ -319,8 +320,7 @@ static void ssl_client_memory_test(void **state){
 
     printf("enter for exit\n");
     getchar();
-    printf("enter for exit\n");
-    getchar();
+
 }
 
 int test_rebrick_async_tlssocket(void)

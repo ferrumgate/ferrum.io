@@ -125,8 +125,9 @@ int main()
 
   if (test_rebrick_util())
     exit(1);
-  if (test_rebrick_config())
+   if (test_rebrick_config())
     exit(1);
+
   if (test_rebrick_metrics())
     exit(1);
   if (test_rebrick_context())
@@ -135,19 +136,20 @@ int main()
    if (test_rebrick_buffer())
     exit(1);
 
-kill(getpid(), SIGSEGV);
+
   if (test_rebrick_async_udpsocket())
     exit(1);
-   // kill(getpid(), SIGSEGV);
+
   if (test_rebrick_async_tcpsocket())
     exit(1);
 
 
-  if (test_rebrick_tls())
+ /* if (test_rebrick_tls())
     exit(1);
   if(test_rebrick_async_tlssocket())
-    exit(1);
-    getchar();
+    exit(1); */
+  //kill(getpid(), SIGSEGV);
+//    getchar();
 
 
   return 0;

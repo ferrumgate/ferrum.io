@@ -26,22 +26,26 @@ static void linked_items_success(void **start){
     list=rebrick_util_create_linked_items(str,".");
     assert_true(list);
     assert_true(rebrick_util_linked_item_count(list)==1);
+    rebrick_util_linked_item_destroy(list);
 
     str="";
     printf("\tstring:%s\n",str);
     list=rebrick_util_create_linked_items(str,".");
     assert_true(!list);
+    rebrick_util_linked_item_destroy(list);
 
     str=".";
     printf("\tstring:%s.\n",str);
     list=rebrick_util_create_linked_items(str,".");
     assert_true(!list);
+    rebrick_util_linked_item_destroy(list);
 
 
     str="..";
     printf("\tstring:%s\n",str);
     list=rebrick_util_create_linked_items(str,".");
     assert_true(!list);
+    rebrick_util_linked_item_destroy(list);
 
 
     str=".,";
@@ -49,6 +53,7 @@ static void linked_items_success(void **start){
     list=rebrick_util_create_linked_items(str,".");
     assert_true(list);
     assert_true(rebrick_util_linked_item_count(list)==1);
+    rebrick_util_linked_item_destroy(list);
 
 
     str=".,.";
@@ -56,14 +61,17 @@ static void linked_items_success(void **start){
     list=rebrick_util_create_linked_items(str,".");
     assert_true(list);
     assert_true(rebrick_util_linked_item_count(list)==1);
+    rebrick_util_linked_item_destroy(list);
 
 
     str=".,.";
     printf("\tstring:%s\n",str);
     list=rebrick_util_create_linked_items(str,",");
 
+
     assert_true(list);
     assert_true(rebrick_util_linked_item_count(list)==2);
+    rebrick_util_linked_item_destroy(list);
 
 
 

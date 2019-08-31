@@ -385,12 +385,12 @@ static void buffer_total_len(void **start)
 
 static void buffer_check_memory(void **start)
 {
-    printf("press enter for continue\n");
-    getchar();
+   /*  printf("press enter for continue\n");
+    getchar(); */
     unused(start);
 
     unused(start);
-#define LIST_SIZE 10000000
+#define LIST_SIZE 1000
 
     //big string full page
     uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE + 32];
@@ -406,41 +406,42 @@ static void buffer_check_memory(void **start)
         rebrick_buffer_destroy(tmp);
     }
 
-    printf("for exit press enter");
-    getchar();
+    /* printf("for exit press enter");
+    getchar(); */
 }
 
 static void buffer_check_memory2(void **start)
 {
-    printf("press enter for continue\n");
-    getchar();
+  /*   printf("press enter for continue\n");
+    getchar(); */
     unused(start);
     unused(start);
-    #undef LIST_SIZE
-    #define LIST_SIZE 10000
+#undef LIST_SIZE
+#define LIST_SIZE 100
 
     //big string full page
-    uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE + 32];
+    uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE+32];
     memset(part1, 0, sizeof(part1));
     for (int i = 0; i < ssizeof(part1); ++i)
         part1[i] = (i % 28) + 97;
-   // size_t totalbuflen = 0;
+    // size_t totalbuflen = 0;
     for (int a = 0; a < LIST_SIZE; ++a)
     {
         rebrick_buffer_t *tmp;
         int32_t result = rebrick_buffer_new(&tmp, part1, sizeof(part1), REBRICK_BUFFER_DEFAULT_MALLOC_SIZE);
         assert_int_equal(result, 0);
-        int counter = 5795;
+        int counter = 57;
         while (counter--)
         {
             result = rebrick_buffer_add(tmp, part1, sizeof(part1));
             assert_int_equal(result, 0);
         }
         rebrick_buffer_destroy(tmp);
+
     }
 
-    printf("for exit press enter");
-    getchar();
+  /*   printf("for exit press enter");
+    getchar(); */
 }
 
 int test_rebrick_buffer(void)
@@ -457,7 +458,7 @@ int test_rebrick_buffer(void)
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success3),
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success4),
         cmocka_unit_test(buffer_total_len),
-       // cmocka_unit_test(buffer_check_memory),
+         cmocka_unit_test(buffer_check_memory),
         cmocka_unit_test(buffer_check_memory2),
 
     };

@@ -23,6 +23,7 @@ static void context_object_create(void **start){
     assert_non_null(context);
     assert_non_null(context->config);
     assert_non_null(context->metrics);
+    rebrick_context_destroy(context);
 
 
 }

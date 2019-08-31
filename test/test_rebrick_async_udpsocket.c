@@ -17,12 +17,13 @@ static int teardown(void **state)
 {
     unused(state);
     udp_echo_close();
+    uv_loop_close(uv_default_loop());
     return 0;
 }
 
 static int32_t flag = 0;
-char read_buffer[65536];
-const char *testdata = "merhaba";
+static char read_buffer[65536] = {'\0'};
+static const char *testdata = "merhaba";
 static int32_t on_server_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
@@ -70,8 +71,7 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
 
     const char *msg = "hello world";
-    char *buffer = new (sizeof(msg));
-    strcpy(buffer, msg);
+
     flag = 0;
     udp_echo_send2(msg, &localhost.v4);
     //loop again
@@ -84,13 +84,13 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         max_check--;
     }
+    //free(buffer);
     assert_int_not_equal(max_check, 0);
     assert_string_equal(msg, read_buffer);
     flag = 0;
     char *reply = "got it";
-    char *bufferreplay = new (sizeof(reply));
-    strcpy(bufferreplay, reply);
-    result = rebrick_async_udpsocket_send(server, &client, bufferreplay, sizeof(bufferreplay), NULL);
+
+    result = rebrick_async_udpsocket_send(server, &client, reply, strlen(reply) + 1, NULL);
     assert_int_equal(result, 0);
     // uv_run(uv_default_loop(),UV_RUN_NOWAIT);
 
@@ -101,6 +101,7 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
         usleep(10000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         max_check--;
+
         result = udp_echo_recv(read_buffer);
         if (result > 0)
             break;
@@ -110,6 +111,13 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
 
     result = rebrick_async_udpsocket_destroy(server);
     assert_int_equal(result, 0);
+    max_check = 100;
+    while (max_check--)
+    {
+        usleep(1000);
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    }
 }
 
 static int32_t received_count = 0;
@@ -135,9 +143,7 @@ static int32_t on_dnsclient_send(rebrick_async_socket_t *socket, void *data, voi
     return REBRICK_SUCCESS + status - status;
 }
 
-
 /////////////////////// memory tests ///////////////////////////////////////////////
-
 
 /**
  * @brief create socket, send a packet, then destory socket
@@ -172,12 +178,11 @@ static void test_rebrick_async_udpsocket_check_memory(void **state)
     rebrick_util_to_socket(&bindaddr, "0.0.0.0", "0");
     rebrick_async_udpsocket_t *dnsclient;
 
-    printf("press enter for continue\n");
-    getchar();
-#define COUNTER 250000
+
+#define COUNTER 250
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("execting %d\n", i);
+
         result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, on_dnsclient_send);
         assert_int_equal(result, 0);
 
@@ -185,20 +190,31 @@ static void test_rebrick_async_udpsocket_check_memory(void **state)
         received_count = 0;
 
         rebrick_async_udpsocket_send(dnsclient, &destination, testdata, datalen, NULL);
-        int counter = 10000;
-        while (counter && !sended_count)
+        int counter = 1000;
+        while (counter-- && !sended_count){
+            usleep(100);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        }
         assert_int_equal(sended_count, 1);
         //data sended
 
         counter = 1000;
-        while (counter && !received_count)
+        while (counter-- && !received_count){
+            usleep(1000);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        }
         assert_int_equal(received_count, 1);
         rebrick_async_udpsocket_destroy(dnsclient);
+        counter = 100;
+        while (counter)
+        {
+            usleep(100);
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            counter--;
+        }
     }
-    printf("press enter for exit\n");
-    getchar();
+    free(testdata);
+
 }
 
 /**
@@ -240,34 +256,42 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
     assert_int_equal(result, 0);
 
 
-
-    printf("press enter for continue\n");
-    getchar();
-#define COUNTER 250000
+#define COUNTER 250
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("execting %d\n", i);
-         sended_count = 0;
-    received_count = 0;
+
+        sended_count = 0;
+        received_count = 0;
         rebrick_async_udpsocket_send(dnsclient, &destination, testdata, datalen, NULL);
 
         int counter = 10000;
-        while (counter && !sended_count)
+        while (counter-- && !sended_count)
+        {
+            usleep(100);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        }
         assert_int_equal(sended_count, 1);
         //data sended
 
         counter = 1000;
-        while (counter && !received_count)
+        while (counter-- && !received_count)
+        {
+            usleep(1000);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        assert_int_equal(received_count, 1);
-
+        }
+        assert_true(received_count> 0);
     }
     rebrick_async_udpsocket_destroy(dnsclient);
-    printf("press enter for exit\n");
-    getchar();
-}
+    int32_t counter = 100;
+    while (counter)
+    {
+        usleep(1000);
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        counter--;
+    }
+    free(testdata);
 
+}
 
 /**
  * @brief create a udp server and send packets with hping3
@@ -277,9 +301,7 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
 static void test_rebrick_async_udpsocket_check_memory3(void **state)
 {
     //create a udp server
-    //and send packets
-
-
+    //and send packets with hping3
 
     unused(state);
     rebrick_sockaddr_t bindaddr;
@@ -290,34 +312,35 @@ static void test_rebrick_async_udpsocket_check_memory3(void **state)
     assert_int_equal(result, 0);
 
 
-
-    printf("press enter for continue\n");
-    getchar();
     received_count = 0;
-#define COUNTER2 2500000
+    //istenirse burası ile memory test yapılabilir
+#define COUNTER2 250
     for (int i = 0; i < COUNTER2; ++i)
     {
-       // printf("executing %d\n", i);
-         sended_count = 0;
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
 
-
+        sended_count = 0;
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     }
-    assert_true(received_count>0);
+
     rebrick_async_udpsocket_destroy(dnsclient);
-    printf("press enter for exit\n");
-    getchar();
+    int32_t counter = 100;
+    while (counter)
+    {
+        usleep(1000);
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        counter--;
+    }
+    //assert_true(received_count > 0);
+
 }
-
-
 
 int test_rebrick_async_udpsocket(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_async_udpsocket_asserver_communication),
-        //cmocka_unit_test(test_rebrick_async_udpsocket_check_memory),
-       // cmocka_unit_test(test_rebrick_async_udpsocket_check_memory2),
-      //  cmocka_unit_test(test_rebrick_async_udpsocket_check_memory3)
-        };
+        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory),
+        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory2),
+        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory3)
+    };
     return cmocka_run_group_tests(tests, setup, teardown);
 }

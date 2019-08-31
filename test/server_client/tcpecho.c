@@ -14,7 +14,7 @@
 
 static int server_fd, client_fd=-1;
 int err;
-struct sockaddr_in server, client;
+static struct sockaddr_in server, client;
 static int is_server = 0;
 int on_error(const char *msg)
 {
@@ -64,14 +64,14 @@ int tcp_echo_start(int port, int isserver)
     return 0;
 }
 static pthread_t thread;
-
+static int work=1;
 static void *threaded_listen(void *data)
 {
     (void)data;
     client_fd=-1;
     socklen_t client_len = sizeof(client);
     int clientfd_tmp;
-    while (client_fd==-1)
+    while (client_fd==-1 && work)
     {
         clientfd_tmp = accept(server_fd, (struct sockaddr *)&client, &client_len);
         //printf("client_fd is %d\n",clientfd_tmp);
@@ -86,14 +86,21 @@ static void *threaded_listen(void *data)
 }
 int tcp_echo_listen()
 {
-
+    work=1;
     pthread_create(&thread, NULL, threaded_listen, NULL);
     return 0;
+}
+int tcp_echo_stop(){
+    work=0;
+    void *ret;
+    pthread_join(thread,&ret);
+    return 0;
+
 }
 int tcp_echo_recv(char buf[ECHO_BUF_SIZE])
 {
     int read;
-
+    memset(buf,0,ECHO_BUF_SIZE);
     read = recv(client_fd, buf, ECHO_BUF_SIZE, 0);
 
     return read;

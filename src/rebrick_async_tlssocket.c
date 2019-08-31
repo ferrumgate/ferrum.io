@@ -7,8 +7,8 @@
  * ve callback fonksiyona geçiyor.
  *
  */
-#define REBRICK_BUFFER_MALLOC_SIZE 4096
-#define BUF_SIZE 4096
+#define REBRICK_BUFFER_MALLOC_SIZE 8192
+#define BUF_SIZE 8192
 
 private_ typedef struct send_data_holder
 {

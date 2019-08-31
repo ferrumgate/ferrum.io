@@ -43,6 +43,8 @@ rebrick : $(OBJS)
 
 check:clean
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrun
+checkvalgrind:clean
+	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrunvalgrind
 buildtest:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile test
 
@@ -50,6 +52,8 @@ test : $(OBJSTEST)
 	$(CC) -o test  $(OBJSTEST) $(LDFLAGSTEST)
 testrun: test
 	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6  ./test
+testrunvalgrind: test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6 valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all ./test
 
 
 

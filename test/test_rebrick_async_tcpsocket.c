@@ -8,13 +8,14 @@ static int setup(void **state)
 {
     unused(state);
     fprintf(stdout, "****  %s ****\n", __FILE__);
+
     return 0;
 }
 
 static int teardown(void **state)
 {
     unused(state);
-
+    uv_loop_close(uv_default_loop());
     return 0;
 }
 struct callbackdata
@@ -69,7 +70,13 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
 
     result = tcp_echo_start(atoi(port), 0);
     //check loop
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+    int32_t counter = 20;
+    while (counter-- && !client_connected)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+
     assert_int_equal(result, 0);
     usleep(100);
     assert_int_equal(client_connected, 1);
@@ -79,8 +86,13 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
     char *hello = "hello";
     tcp_echo_send(hello);
     //check loop
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
+    counter = 20;
+    while (counter--)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+
     assert_string_equal(data.buffer, hello);
 
     char *world = "world";
@@ -88,19 +100,37 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
     assert_int_equal(result, 0);
 
     //check loop
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
-    char readed[1024] = {'\0'};
+    counter = 20;
+    while (counter--)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+
+    char readed[ECHO_BUF_SIZE] = {'\0'};
     result = tcp_echo_recv(readed);
     assert_int_equal(result, 5);
 
     assert_string_equal(readed, world);
     rebrick_async_tcpsocket_destroy(data.client);
 
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
+    counter = 100;
+    while (counter--)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(100);
+    }
+
+    rebrick_async_tcpsocket_destroy(server);
+
+    counter = 100;
+    while (counter--)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(100);
+    }
+
+    tcp_echo_stop();
 }
 
 int connected_toserver = 0;
@@ -203,9 +233,19 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
-    char recvbuf[1024];
+    char recvbuf[ECHO_BUF_SIZE] = {'\0'};
+
     tcp_echo_recv(recvbuf);
     assert_string_equal(recvbuf, "valla");
+    rebrick_async_tcpsocket_destroy(client);
+    counter = 100;
+    while (counter--)
+    {
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(100);
+    }
+
+    tcp_echo_stop();
 }
 
 ////////////////////////// memory tests /////////////////////////////////////
@@ -226,12 +266,14 @@ static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket,
 }
 
 int connection_closed_memorytest = 0;
+int connection_closed_memorytestcounter=0;
 static int32_t on_connection_closed_memorytest(rebrick_async_socket_t *socket, void *callbackdata)
 {
     unused(socket);
     unused(callbackdata);
 
     connection_closed_memorytest = 1;
+    connection_closed_memorytestcounter++;
     return 0;
 }
 static int datareceived_ok_memorytest = 0;
@@ -279,19 +321,17 @@ static void rebrick_async_tcpsocket_asclient_memory(void **start)
     struct callbackdata data;
 
     fill_zero(&data, sizeof(struct callbackdata));
-    printf("enter for continue\n");
-    getchar();
 
     char *head = "GET / HTTP/1.0\r\n\
 Host: nodejs.org\r\n\
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
 Accept: text/html\r\n\
 \r\n";
-#define COUNTER 10000
+#define COUNTER 100
 
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("testing %d\n", i);
+
         int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
@@ -305,6 +345,7 @@ Accept: text/html\r\n\
 
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
+        connection_closed_memorytest = 0;
         result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, NULL);
 
         counter = 1000;
@@ -324,10 +365,14 @@ Accept: text/html\r\n\
         assert_true(datareceived_ok_memorytest > 0);
 
         rebrick_async_tcpsocket_destroy(client);
+        counter = 1000;
+        while (--counter && !connection_closed_memorytest)
+        {
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            usleep(1000);
+        }
+        assert_true(connection_closed_memorytest != 0);
     }
-
-    printf("enter for exit\n");
-    getchar();
 }
 
 static void rebrick_tcp_client_download_data(void **start)
@@ -341,19 +386,17 @@ static void rebrick_tcp_client_download_data(void **start)
     struct callbackdata data;
 
     fill_zero(&data, sizeof(struct callbackdata));
-    printf("enter for continue tcp\n");
-    getchar();
 
     char *head = "GET /10m.ignore.txt HTTP/1.0\r\n\
 Host: nodejs.org\r\n\
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
 Accept: text/html\r\n\
 \r\n";
-#define COUNTER 10000
+#define COUNTER 100
 
     for (int i = 0; i < COUNTER; ++i)
     {
-        //printf("testing %d\n", i);
+
         int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
@@ -367,7 +410,7 @@ Accept: text/html\r\n\
 
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
-        connection_closed_memorytest=0;
+        connection_closed_memorytest = 0;
         result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, NULL);
 
         counter = 100000;
@@ -378,20 +421,18 @@ Accept: text/html\r\n\
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             counter--;
         }
-
-        rebrick_async_tcpsocket_destroy(client);
-        while (!connection_closed_memorytest)
+        if (!connection_closed_memorytest)
         {
-            usleep(100);
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            rebrick_async_tcpsocket_destroy(client);
+
+            while (counter-- && !connection_closed_memorytest)
+            {
+                usleep(100);
+                uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            }
         }
-
-
-        printf("%d\n", datareceived_ok_total_memorytest);
+        assert_true(connection_closed_memorytest != 0);
     }
-
-    printf("enter for exit\n");
-    getchar();
 }
 
 /**
@@ -409,14 +450,12 @@ static void rebrick_async_tcpsocket_asserver_memory(void **start)
 
     unused(start);
     const char *port = "8585";
-    rebrick_async_tcpsocket_t *client;
+
     rebrick_sockaddr_t addr;
     rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
     struct callbackdata data;
 
     fill_zero(&data, sizeof(struct callbackdata));
-    printf("enter for continue\n");
-    getchar();
 
     char *html = "HTTP/1.1 200 OK\r\n\
 Server: nginx\r\n\
@@ -436,16 +475,17 @@ Accept-Ranges: bytes\r\n\
     </body>\r\n\
 </html>";
 #undef COUNTER
-#define COUNTER 1000
+#define COUNTER 1
+    rebrick_async_tcpsocket_t *server;
 
     for (int i = 0; i < COUNTER; ++i)
     {
-        printf("testing %d\n", i);
-        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 10);
+
+        int32_t result = rebrick_async_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 10);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
-        int counter = 100000;
+        int counter = 1000;
         connected_to_memorytest = 0;
         while (--counter && !connected_to_memorytest)
         {
@@ -455,7 +495,8 @@ Accept-Ranges: bytes\r\n\
 
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
-
+        connection_closed_memorytest = 0;
+        connection_closed_memorytestcounter=0;
         counter = 1000;
         while (--counter && !datareceived_ok_memorytest)
         {
@@ -474,21 +515,29 @@ Accept-Ranges: bytes\r\n\
         }
         assert_int_equal(datasended_memorytest, 10); //this value is used above
 
-        rebrick_async_tcpsocket_destroy(client);
+        rebrick_async_tcpsocket_destroy(server);
+        counter = 1000;
+        while (--counter && connection_closed_memorytestcounter!=2)
+        {
+            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+            usleep(100);
+        }
+
+
+        //assert_true(connected_to_memorytest!=0);
     }
 
-    printf("enter for exit\n");
-    getchar();
+    //getchar();
 }
 
 int test_rebrick_async_tcpsocket(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
+       /*  cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
-        //cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
-        //cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory),
-        //cmocka_unit_test(rebrick_tcp_client_download_data)
+        cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
+        cmocka_unit_test(rebrick_tcp_client_download_data), */
+        cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

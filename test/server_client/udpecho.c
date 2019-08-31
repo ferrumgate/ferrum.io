@@ -12,15 +12,15 @@
 
 
 
-int sockfd;
+static int sockfd;
 
-    char *hello = "Hello from server";
-    struct sockaddr_in servaddr, cliaddr;
+//static    char *hello = "Hello from server";
+
 
 // Driver code
 int udp_echo_start(int port) {
 
-
+    struct sockaddr_in servaddr, cliaddr;
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
@@ -58,10 +58,15 @@ int udp_echo_recv(char buf[ECHO_BUF_SIZE]){
 
     socklen_t len;
     int n;
+
     memset(buf,0,ECHO_BUF_SIZE);
-    n = recvfrom(sockfd, (char *)buf, ECHO_BUF_SIZE-1,
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr,
+
+
+
+    n = recvfrom(sockfd, buf, ECHO_BUF_SIZE-1,
+                MSG_WAITALL, NULL,
                 &len);
+
     //printf("udp received %d %s\n",n,buf);
     if(n<0)
     return n;
@@ -71,7 +76,10 @@ int udp_echo_recv(char buf[ECHO_BUF_SIZE]){
 }
 
 int udp_echo_send(const char *msg){
-   // int len=strlen(msg);
+
+   struct sockaddr_in6 cliaddr;
+    memset(&cliaddr,0,sizeof(cliaddr));
+
     sendto(sockfd, (const char *)msg, strlen(msg),
         MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
             sizeof(struct sockaddr_in));

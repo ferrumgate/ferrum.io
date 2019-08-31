@@ -136,6 +136,7 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
 {
 
     char current_time_str[32] = {0};
+    unused(current_time_str);
     int32_t result;
     rebrick_async_udpsocket_t *tmp = new (rebrick_async_udpsocket_t);
     constructor(tmp, rebrick_async_udpsocket_t);
@@ -173,6 +174,7 @@ static void on_close(uv_handle_t *handle)
         {
             rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
             free(socket);
+
         }
 }
 
@@ -190,6 +192,7 @@ int32_t rebrick_async_udpsocket_destroy(rebrick_async_udpsocket_t *socket)
 
             rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
             uv_close(handle, on_close);
+
         }
     }
     return REBRICK_SUCCESS;

@@ -140,7 +140,7 @@ static void on_connection(uv_stream_t *server, int status)
     unused(current_time_str);
 
     int32_t result;
-    int32_t temp;
+    int32_t temp=0;
     if (status == -1)
     {
         rebrick_log_debug("error on_new_connection\n");
@@ -324,12 +324,14 @@ int32_t rebrick_async_tcpsocket_new(rebrick_async_tcpsocket_t **socket,
 
 static void on_close(uv_handle_t *handle)
 {
+
     char current_time_str[32] = {0};
     unused(current_time_str);
-    if (handle)
+    if (handle && uv_is_closing(handle))
         if (handle->data)
         {
             rebrick_async_tcpsocket_t *socket = cast(handle->data, rebrick_async_tcpsocket_t *);
+
 
             if (socket->after_connection_closed)
             {
@@ -339,10 +341,16 @@ static void on_close(uv_handle_t *handle)
             //client is closing
             if (socket->parent_socket)
             {
+                printf("client socket is closing\n");
                 DL_DELETE(socket->parent_socket->clients, socket);
+            }else{
+                printf("server socket is closing\n");
             }
             free(socket);
+            handle->data=NULL;
+
         }
+
 }
 
 int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
@@ -353,6 +361,7 @@ int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
     {
         //close if server is ready
         uv_handle_t *handle = cast(&socket->handle.tcp, uv_handle_t *);
+
         if (!uv_is_closing(handle))
         {
             //server is closing
@@ -363,7 +372,9 @@ int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket)
                 struct rebrick_async_tcpsocket *el, *tmp;
                 DL_FOREACH_SAFE(socket->clients, el, tmp)
                 {
-                    rebrick_async_tcpsocket_destroy(el);
+
+                        rebrick_async_tcpsocket_destroy(el);
+
                 }
             }
             rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
