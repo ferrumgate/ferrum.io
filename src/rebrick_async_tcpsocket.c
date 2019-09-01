@@ -182,9 +182,10 @@ static void on_connection(uv_stream_t *server, int status)
 
     client->loop=serversocket->loop;
 
-    rebrick_async_tcpsocket_t *head=serversocket->clients;
+    //rebrick_async_tcpsocket_t **head=&serversocket->clients;
 
-    DL_APPEND(head, client);
+    DL_APPEND((serversocket->clients), client);
+
     if (serversocket->after_connection_accepted)
     {
         serversocket->after_connection_accepted(cast_to_base_socket(serversocket),client->callback_data, &client->bind_addr.base, client,status);
@@ -343,18 +344,19 @@ static void on_close(uv_handle_t *handle)
             //server is closing
             if(!socket->parent_socket){
 
-                struct rebrick_async_tcpsocket *el, *tmp,*head=socket->clients;
-                DL_FOREACH(head, el)
+                struct rebrick_async_tcpsocket *el, *tmp;
+                DL_FOREACH_SAFE((socket->clients), el,tmp)
                 {
-                        DL_DELETE(head, el);
+                        DL_DELETE((socket->clients), el);
                         el->parent_socket=NULL;
-                        //rebrick_async_tcpsocket_destroy(el);
+                        rebrick_async_tcpsocket_destroy(el);
 
                 }
             }else{
-                struct rebrick_async_tcpsocket *el, *tmp,*head=socket->parent_socket->clients;
-                if(head)
-                DL_DELETE(head,socket);
+
+
+                if(socket->parent_socket->clients)
+                DL_DELETE((socket->parent_socket->clients),socket);
             }
 
             free(socket);
