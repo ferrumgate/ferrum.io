@@ -541,9 +541,9 @@ int test_rebrick_async_tcpsocket(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
-         cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
+       /*   cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
         cmocka_unit_test(rebrick_tcp_client_download_data),
-        cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory)
+        cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory) */
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

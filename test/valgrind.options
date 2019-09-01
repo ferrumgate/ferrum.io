@@ -1,0 +1,5 @@
+{
+   Ignore OpenSSL Cond
+   Memcheck:Cond
+   obj:*libcrypto*
+}

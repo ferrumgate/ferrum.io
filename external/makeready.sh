@@ -38,6 +38,7 @@ cd $CURRENTFOLDER
 cp openssl-1.1.1c.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
+
 tar xvf openssl-1.1.1c.tar.gz
 ./config --prefix=$DESTFOLDER shared
 make depend

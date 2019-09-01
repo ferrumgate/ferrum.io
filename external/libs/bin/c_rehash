@@ -13,7 +13,7 @@
 # and add symbolic links to their hash values.
 
 my $dir = "";
-my $prefix = "/home/hframe/Desktop/rebrick.io/external/libs";
+my $prefix = "/home/hframe/Desktop/rebrick.io/external/libs/";
 
 my $errorcount = 0;
 my $openssl = $ENV{OPENSSL} || "openssl";
