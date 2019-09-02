@@ -145,9 +145,9 @@ int main()
 
 
   if (test_rebrick_tls())
-    exit(1);
- /* if(test_rebrick_async_tlssocket())
-    exit(1); */
+   exit(1);
+ if(test_rebrick_async_tlssocket())
+   exit(1);
   //kill(getpid(), SIGSEGV);
 //    getchar();
 

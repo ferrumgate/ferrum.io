@@ -16,10 +16,15 @@ static int teardown(void **state)
     unused(state);
     return 0;
 }
+static void x(char *ss){
+  ss[0]=10;
+  ss[9]=0;
+}
 
 static void tls_context_object_create_destroy_success(void **start)
 {
     unused(start);
+
     rebrick_tls_context_t *context=NULL;
     char pwd[PATH_MAX];
     getcwd(pwd, sizeof(pwd));
@@ -36,6 +41,8 @@ static void tls_context_object_create_destroy_success(void **start)
     rebrick_tls_context_destroy(context);
 
 }
+
+
 
 static void tls_context_object_create_fail(void **start)
 {

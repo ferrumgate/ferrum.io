@@ -1,5 +1,27 @@
 {
    Ignore OpenSSL Cond
    Memcheck:Cond
-   obj:*libcrypto*
+   ...
+   obj:*/libcrypto*
 }
+{
+   Ignore OpenSSL Cond2
+   Memcheck:Cond
+   ...
+   obj:*/libssl*
+}
+{
+   Ignore OpenSSL Val8
+   Memcheck:Value8
+   ...
+   obj:*/libcrypto*
+}
+{
+   Ignore OpenSSL Val8-2
+   Memcheck:Value8
+   ...
+   obj:*/libssl*
+
+}
+
+

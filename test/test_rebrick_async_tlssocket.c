@@ -55,7 +55,7 @@ int32_t after_connection_closed_callback(rebrick_async_socket_t *socket, void *c
 }
 int32_t is_datareaded = 0;
 int32_t totalreaded_len = 0;
-char readedbuffer[65536 * 2];
+char readedbuffer[65536 * 2]={'\0'};
 static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
@@ -327,11 +327,11 @@ int test_rebrick_async_tlssocket(void)
 {
 
     const struct CMUnitTest tests[] = {
-       /*  cmocka_unit_test(ssl_client),*/
+       cmocka_unit_test(ssl_client),
        /* cmocka_unit_test(ssl_server),*/
        /* cmocka_unit_test(ssl_client_verify),*/
        /* cmocka_unit_test(ssl_client_download_data)*/
-       cmocka_unit_test(ssl_client_memory_test)
+       //cmocka_unit_test(ssl_client_memory_test)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);
