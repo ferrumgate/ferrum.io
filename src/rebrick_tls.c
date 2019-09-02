@@ -116,6 +116,7 @@ int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket)
     return REBRICK_SUCCESS;
 }
 
+static uv_check_t check;
 int32_t rebrick_tls_init()
 {
     if (!tls_init_finished)
@@ -134,16 +135,36 @@ int32_t rebrick_tls_init()
          tls_before_io_checklist=new(rebrick_tls_checkitem_list_t);
         constructor(tls_before_io_checklist,rebrick_tls_checkitem_list_t);
 
-        uv_check_t *check = new (uv_check_t);
-        if_is_null_then_die(check, "malloc problem\n");
+       /*  check = new (uv_check_t);
+        if_is_null_then_die(check, "malloc problem\n"); */
 
-        uv_check_init(uv_default_loop(), check);
-        check->data = tls_after_io_checklist;
-        uv_check_start(check, after_io);
+        uv_check_init(uv_default_loop(), &check);
+        check.data = tls_after_io_checklist;
+        uv_check_start(&check, after_io);
+
 
         tls_init_finished = 1;
     }
 
+    return REBRICK_SUCCESS;
+}
+
+
+
+int32_t rebrick_tls_cleanup(){
+    if(tls_init_finished){
+        OPENSSL_cleanup();
+        if(tls_after_io_checklist)
+        free(tls_after_io_checklist);
+        if(tls_before_io_checklist)
+        free(tls_before_io_checklist);
+
+        uv_check_stop(&check);
+
+        uv_close(cast(&check,uv_handle_t*),NULL);
+
+        tls_init_finished=0;
+    }
     return REBRICK_SUCCESS;
 }
 
@@ -192,6 +213,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     {
         rebrick_log_fatal("ssl cerfiticate file %s loading failed\n", certificate_file);
         ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx->tls_ctx);
         free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
@@ -200,6 +222,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     {
         rebrick_log_fatal("ssl private file %s loading failed\n", private_file);
         ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx->tls_ctx);
         free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }

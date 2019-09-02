@@ -44,6 +44,7 @@ int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket);
  * @return int32_t REBRICK_SUCCESS
  */
 int32_t rebrick_tls_init();
+int32_t rebrick_tls_cleanup();
 
 
 

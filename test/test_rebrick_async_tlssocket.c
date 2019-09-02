@@ -29,6 +29,7 @@ static int teardown(void **state)
     context_verify = NULL;
     context_server = NULL;
     context_verify_none = NULL;
+    rebrick_tls_cleanup();
     return 0;
 }
 

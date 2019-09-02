@@ -8,18 +8,29 @@ static int setup(void **state)
 {
     unused(state);
     fprintf(stdout, "****  %s ****\n", __FILE__);
+
+    rebrick_tls_init();
     return 0;
 }
 
 static int teardown(void **state)
 {
     unused(state);
+
+
+    rebrick_tls_cleanup();
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+    uv_loop_close(uv_default_loop());
+
+
+
     return 0;
 }
-static void x(char *ss){
-  ss[0]=10;
-  ss[9]=0;
-}
+
 
 static void tls_context_object_create_destroy_success(void **start)
 {
@@ -39,6 +50,11 @@ static void tls_context_object_create_destroy_success(void **start)
     assert_non_null(out);
     assert_ptr_equal(out,context);
     rebrick_tls_context_destroy(context);
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
 
 }
 
@@ -55,6 +71,11 @@ static void tls_context_object_create_fail(void **start)
     assert_int_not_equal(result, 0);
     assert_null(context);
     rebrick_tls_context_destroy(context);
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
 
 }
 
@@ -68,6 +89,12 @@ static void tls_context_object_create_for_client(void **start)
     int32_t result = rebrick_tls_context_new(&context, "deneme2", 0, 0, 0, NULL, NULL);
     assert_int_equal(result, 0);
     assert_non_null(context);
+    rebrick_tls_context_destroy(context);
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
 
 }
 
@@ -89,6 +116,12 @@ static void tls_ssl_object_create(void **start){
     assert_non_null(tls);
     assert_non_null(tls->ssl);
     rebrick_tls_ssl_destroy(tls);
+    rebrick_tls_context_destroy(context);
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
 }
 
 
@@ -97,9 +130,9 @@ int test_rebrick_tls(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(tls_context_object_create_destroy_success),
-        /* cmocka_unit_test(tls_context_object_create_fail),
+        cmocka_unit_test(tls_context_object_create_fail),
         cmocka_unit_test(tls_context_object_create_for_client),
-        cmocka_unit_test(tls_ssl_object_create) */
+        cmocka_unit_test(tls_ssl_object_create)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);
