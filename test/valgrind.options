@@ -23,5 +23,57 @@
    obj:*/libssl*
 
 }
-
+{
+   openssl uninitialized copy
+   Memcheck:Cond
+   fun:values_equal_display_error
+   fun:_assert_int_equal
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_async_tlssocket
+   fun:main
+}
+{
+   test_code_bug
+   Memcheck:Cond
+   fun:bcmp
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_async_tlssocket
+   fun:main
+}
+{
+   openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_async_tcpsocket_send
+   fun:flush_buffers
+   fun:local_after_connection_accepted_callback
+   fun:on_connect
+   fun:uv__stream_connect
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+}
+{
+   openssl uninitialized copy
+   Memcheck:Cond
+   fun:_assert_int_equal
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_async_tlssocket
+   fun:main
+}
 

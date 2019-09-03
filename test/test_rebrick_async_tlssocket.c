@@ -2,10 +2,11 @@
 #include "rebrick_async_tlssocket.h"
 #include "cmocka.h"
 #include <unistd.h>
+#include <string.h>
 
-static rebrick_tls_context_t *context_verify_none;
-static rebrick_tls_context_t *context_server;
-static rebrick_tls_context_t *context_verify;
+static rebrick_tls_context_t *context_verify_none=NULL;
+static rebrick_tls_context_t *context_server=NULL;
+static rebrick_tls_context_t *context_verify=NULL;
 
 static int setup(void **state)
 {
@@ -30,6 +31,12 @@ static int teardown(void **state)
     context_server = NULL;
     context_verify_none = NULL;
     rebrick_tls_cleanup();
+     int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+    uv_loop_close(uv_default_loop());
     return 0;
 }
 
@@ -56,7 +63,7 @@ int32_t after_connection_closed_callback(rebrick_async_socket_t *socket, void *c
 }
 int32_t is_datareaded = 0;
 int32_t totalreaded_len = 0;
-char readedbuffer[65536 * 2]={'\0'};
+static char readedbuffer[131072]={0};
 static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
     unused(addr);
@@ -66,21 +73,28 @@ static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *ca
     unused(len);
     unused(callback_data);
     is_datareaded = 1;
-    memset(readedbuffer, 0, sizeof(readedbuffer));
+    fill_zero(readedbuffer, sizeof(readedbuffer));
+
     memcpy(readedbuffer, buffer, len);
+
      totalreaded_len += len;
     //printf("totalreaded len:%d\n",totalreaded_len);
     return 0;
 }
 
+
+
+
+
 static void ssl_client(void **start)
 {
     unused(start);
     int32_t result;
+    int32_t tempresult=0;
     //curl -XGET https://postman-echo.com/get
     rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("104.20.22.46", "443", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_async_tlssocket_t *tlsclient;
     result = rebrick_async_tlssocket_new(&tlsclient, context_verify_none, destination, NULL, after_connection_accepted_callback, NULL, after_data_read_callback, NULL, 0);
@@ -88,6 +102,7 @@ static void ssl_client(void **start)
     int counter = 100000;
     is_connected = 1;
     is_connection_closed = 0;
+    totalreaded_len=0;
     while (counter && is_connected && !is_connection_closed)
     {
         usleep(1000);
@@ -96,34 +111,45 @@ static void ssl_client(void **start)
     assert_int_equal(is_connected, 0);
     assert_int_equal(is_connection_closed, 0);
 
-    char *head = "GET / HTTP/1.0\r\n\
-Host: nodejs.org\r\n\
+     char *head = "GET / HTTP/1.0\r\n\
+Host: localhost\r\n\
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
 Accept: text/html\r\n\
 \r\n";
     counter = 10000;
+
     is_datareaded = 0;
-    do
-    {
+
+
         counter--;
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, NULL);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    } while (result != 0 && counter && !is_connection_closed);
-    assert_int_equal(result, 0);
-    counter = 100000;
 
-    while (counter && !is_datareaded)
+    assert_int_equal(result, 0);
+    counter = 1000;
+
+    while (counter-- && !is_datareaded)
     {
+        memset(readedbuffer,0,sizeof(readedbuffer));
         usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     }
 
-    int check_header = memcmp("HTTP/1.1 302", readedbuffer, 12);
-    assert_int_equal(check_header, 0);
+
+    tempresult=memcmp("HTTP/1.1 200",readedbuffer,12);
+    assert_int_equal(tempresult,0);
+
+
     if (!is_connection_closed)
         rebrick_async_tlssocket_destroy(tlsclient);
+     counter=100;
+    while(counter--){
+
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
 }
 
 int32_t server_connection_status = 1;
@@ -162,7 +188,7 @@ int32_t after_serverconnection_closed_callback(rebrick_async_socket_t *sockethan
     return REBRICK_SUCCESS;
 }
 int32_t datareadedserver = 0;
-char readedbufferserver[65536*2];
+static char readedbufferserver[65536*2]={0};
 
 static int32_t after_serverdata_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len)
 {
@@ -327,7 +353,7 @@ static void ssl_client_memory_test(void **state){
 int test_rebrick_async_tlssocket(void)
 {
 
-    const struct CMUnitTest tests[] = {
+   const struct CMUnitTest tests[] = {
        cmocka_unit_test(ssl_client),
        /* cmocka_unit_test(ssl_server),*/
        /* cmocka_unit_test(ssl_client_verify),*/
@@ -336,4 +362,5 @@ int test_rebrick_async_tlssocket(void)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);
+
 }

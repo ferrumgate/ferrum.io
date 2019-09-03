@@ -10,6 +10,23 @@ static int setup(void **state)
     fprintf(stdout, "****  %s ****\n", __FILE__);
 
     rebrick_tls_init();
+    int32_t counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+    rebrick_tls_cleanup();
+    counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
+    rebrick_tls_init();
+    counter=100;
+    while(counter--){
+        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        usleep(1000);
+    }
     return 0;
 }
 

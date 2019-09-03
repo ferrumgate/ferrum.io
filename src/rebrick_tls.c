@@ -123,8 +123,7 @@ int32_t rebrick_tls_init()
     {
         char current_time_str[32] = {0};
         unused(current_time_str);
-        SSL_library_init();
-        OpenSSL_add_all_algorithms();
+        OPENSSL_init_ssl(0,NULL);
         OpenSSL_add_all_digests();
         SSL_load_error_strings();
         ERR_load_crypto_strings();
@@ -153,7 +152,16 @@ int32_t rebrick_tls_init()
 
 int32_t rebrick_tls_cleanup(){
     if(tls_init_finished){
-        OPENSSL_cleanup();
+        //OPENSSL_cleanup();
+
+        EVP_cleanup();
+        ENGINE_cleanup();
+        CONF_modules_unload(1);
+EVP_cleanup();
+CRYPTO_cleanup_all_ex_data();
+//ERR_remove_state(uv_os_getpid());
+ERR_free_strings();
+
         if(tls_after_io_checklist)
         free(tls_after_io_checklist);
         if(tls_before_io_checklist)
