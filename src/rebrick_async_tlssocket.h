@@ -5,7 +5,12 @@
 #include "rebrick_async_tcpsocket.h"
 #include "rebrick_buffer.h"
 
-
+protected_ typedef struct pending_data{
+    base_object();
+    rebrick_buffer_t *data;
+    void *callback_data;
+    struct pending_data *prev,*next;
+}pending_data_t;
 
 
 public_ typedef struct rebrick_async_tlssocket
@@ -19,9 +24,10 @@ public_ typedef struct rebrick_async_tlssocket
     private_ rebrick_after_data_sended_callback_t   override_after_data_sended;
     private_ void *override_callback_data;
 
-    private_ rebrick_buffer_t *pending_write_list;
-    private_ rebrick_buffer_t *pending_read_list;
+    private_ pending_data_t *pending_write_list;
+
     private_ int32_t called_override_after_connection_accepted;
+    private_ int32_t sslhandshake_initted;
 
 
 

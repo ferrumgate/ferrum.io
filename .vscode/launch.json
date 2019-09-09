@@ -50,7 +50,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/test/test",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test",
             "environment": [{"name": "LISTEN_PORT","value": "9090"},
                 {"name": "LISTEN_FAMILY","value": "IPV4_IPV6"},

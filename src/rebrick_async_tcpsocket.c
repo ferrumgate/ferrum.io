@@ -28,6 +28,9 @@ int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *bu
     char current_time_str[32] = {0};
 
     int32_t result;
+    if(uv_is_closing(cast(&socket->handle.tcp,uv_handle_t*))){
+        return REBRICK_ERR_IO_CLOSED;
+    }
 
     uv_write_t *request = new (uv_write_t);
     if_is_null_then_die(request, "malloc problem\n");
@@ -108,11 +111,11 @@ static void on_connect(uv_connect_t *connection, int status)
     if (status == -1)
     {
         rebrick_log_debug("error on_new_connection\n");
-        return;
+       // return;
     }
 
     rebrick_async_tcpsocket_t *serversocket = cast(connection->data, rebrick_async_tcpsocket_t *);
-
+    if(serversocket)
     if (serversocket->after_connection_accepted)
     {
         serversocket->after_connection_accepted(cast_to_base_socket(serversocket),serversocket->callback_data, NULL, serversocket,status);
@@ -141,14 +144,23 @@ static void on_connection(uv_stream_t *server, int status)
 
     int32_t result;
     int32_t temp=0;
-    if (status == -1)
-    {
-        rebrick_log_debug("error on_new_connection\n");
+    if(!server){
+        rebrick_log_fatal("server parameter is null\n");
         return;
     }
 
+
+
     uv_tcp_t *tcp = cast(server, uv_tcp_t *);
     rebrick_async_tcpsocket_t *serversocket = cast(tcp->data, rebrick_async_tcpsocket_t *);
+
+     if (status == -1)
+    {
+        rebrick_log_debug("error on_new_connection\n");
+        if(server && serversocket->after_connection_accepted)
+        serversocket->after_connection_accepted(cast_to_base_socket(serversocket),serversocket->callback_data,NULL,NULL,status);
+        return;
+    }
 
     //burayı override etmeyi başarsak//ssl için yol açmış oluruz
 
@@ -166,8 +178,10 @@ static void on_connection(uv_stream_t *server, int status)
         //TODO burada extra bir şey lazımmı
         return;
     }
+    temp=sizeof(struct sockaddr_storage);
+    result=uv_tcp_getpeername(&client->handle.tcp, &client->bind_addr.base, &temp);
 
-    uv_tcp_getsockname(&serversocket->handle.tcp, &client->bind_addr.base, &temp);
+
 
     rebrick_util_addr_to_ip_string(&client->bind_addr, client->bind_ip);
     rebrick_util_addr_to_port_string(&client->bind_addr, client->bind_port);
@@ -186,14 +200,16 @@ static void on_connection(uv_stream_t *server, int status)
 
     DL_APPEND(serversocket->clients, client);
 
-    if (serversocket->after_connection_accepted)
-    {
-        serversocket->after_connection_accepted(cast_to_base_socket(serversocket),client->callback_data, &client->bind_addr.base, client,status);
-    }
+
 
     //start reading client
     uv_stream_t *tmp = cast(&client->handle.tcp, uv_stream_t *);
     uv_read_start(tmp, on_alloc, on_recv);
+
+    if (serversocket->after_connection_accepted)
+    {
+        serversocket->after_connection_accepted(cast_to_base_socket(serversocket),client->callback_data, &client->bind_addr.base, client,status);
+    }
     //burada kaldım.
 }
 

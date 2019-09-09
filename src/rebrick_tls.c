@@ -57,7 +57,7 @@ int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket)
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_tls_checkitem_t *tmp, *el;
-
+    if(tls_after_io_checklist)
     DL_FOREACH_SAFE(tls_after_io_checklist->head, el, tmp)
     {
         if (el->socket == socket){
@@ -76,6 +76,7 @@ int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebric
     rebrick_tls_checkitem_t *tmp;
 
     int32_t founded = 0;
+
     DL_FOREACH(tls_before_io_checklist->head, tmp)
     {
         if (tmp->socket == socket)
@@ -104,7 +105,7 @@ int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket)
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_tls_checkitem_t *tmp, *el;
-
+    if(tls_before_io_checklist)
     DL_FOREACH_SAFE(tls_before_io_checklist->head, el, tmp)
     {
         if (el->socket == socket){
@@ -166,6 +167,9 @@ ERR_free_strings();
         free(tls_after_io_checklist);
         if(tls_before_io_checklist)
         free(tls_before_io_checklist);
+
+        tls_after_io_checklist=NULL;
+        tls_before_io_checklist=NULL;
 
         uv_check_stop(&check);
 

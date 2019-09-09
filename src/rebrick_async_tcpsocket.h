@@ -47,6 +47,8 @@ public_ typedef struct rebrick_async_tcpsocket
 
 } rebrick_async_tcpsocket_t;
 
+#define cast_to_tcp_socket(x)  cast((x),rebrick_async_tcpsocket_t*)
+
 /**
  * @brief
  *

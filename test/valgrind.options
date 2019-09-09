@@ -67,6 +67,60 @@
 }
 {
    openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_async_tcpsocket_send
+   fun:check_ssl_status
+   fun:local_after_connection_accepted_callback
+   fun:on_connect
+   fun:uv__stream_connect
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+}
+{
+   openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_async_tcpsocket_send
+   fun:check_ssl_status
+   fun:flush_buffers
+   fun:after_io
+   fun:uv__run_check
+   fun:uv_run
+   fun:ssl_server
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+}
+{
+   libuv on_connection getpeername
+   Memcheck:Param
+   socketcall.getpeername(name)
+   fun:getpeername
+   fun:uv__getsockpeername
+   fun:on_connection
+   fun:uv__server_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:rebrick_async_tcpsocket_asserver_communication
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_async_tcpsocket
+   fun:main
+}
+{
+   openssl uninitialized copy
    Memcheck:Cond
    fun:_assert_int_equal
    fun:ssl_client
