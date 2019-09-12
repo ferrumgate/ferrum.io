@@ -24,14 +24,16 @@ static int teardown(void **state)
 static int32_t flag = 0;
 static char read_buffer[65536] = {'\0'};
 static const char *testdata = "merhaba";
-static int32_t on_server_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t on_server_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
+    if(len>0){
     assert_string_equal(data, testdata);
     flag = 1;
     memset(read_buffer, 0, 512);
     memcpy(read_buffer, buffer, len < 65536 ? len : 65536);
+    }
     return REBRICK_SUCCESS;
 }
 
@@ -121,13 +123,14 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
 }
 
 static int32_t received_count = 0;
-static int32_t on_dnsclient_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, size_t len)
+static int32_t on_dnsclient_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
     unused(data);
     unused(buffer);
     unused(len);
+    if(len>0)
     received_count++;
     return REBRICK_SUCCESS;
 }

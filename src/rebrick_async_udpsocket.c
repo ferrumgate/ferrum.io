@@ -57,19 +57,22 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
 
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-    if (nread <= 0) //burası silinirse,
+   /*  if (nread <= 0) //burası silinirse,
     {
 
         rebrick_log_debug("nread is <=0 from %s port %s\n", socket->bind_ip, socket->bind_port);
+
         free(rcvbuf->base);
         return;
-    }
+    } */
 
     if (socket)
-        if (socket->after_data_received && nread > 0)
+        if (socket->after_data_received)
         {
             //nread ssize_t olmasına karşın parametre olarak geçildi
             //neticed eğer nread<0 zaten buraya gelmiyor
+            if(nread<0)
+            nread+=REBRICK_ERR_UV;
             socket->after_data_received(cast_to_base_socket(socket),socket->callback_data, addr, rcvbuf->base, nread);
         }
 
@@ -109,7 +112,7 @@ static int32_t create_socket(rebrick_async_udpsocket_t *socket)
         return REBRICK_ERR_UV + result;
     }
 
-    result = uv_udp_bind(&socket->handle.udp, &socket->bind_addr.base, 0);
+    result = uv_udp_bind(&socket->handle.udp, &socket->bind_addr.base, UV_UDP_REUSEADDR);
     if (result < 0)
     {
         rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
@@ -173,6 +176,7 @@ static void on_close(uv_handle_t *handle)
         if (handle->data)
         {
             rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
+            if(socket)
             free(socket);
 
         }

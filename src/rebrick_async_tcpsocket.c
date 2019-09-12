@@ -59,7 +59,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     const rebrick_async_tcpsocket_t *socket = cast(handle->data, rebrick_async_tcpsocket_t *);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-    if (nread <= 0) //burası silinirse,
+   /*  if (nread <= 0) //burası silinirse,
     {
 
         rebrick_log_debug("nread is %zd <=0  from %s port %s\n", nread, socket->bind_ip, socket->bind_port);
@@ -67,12 +67,13 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
         uv_handle_t *tmp = cast(&socket->handle.tcp, uv_handle_t *);
         uv_close(tmp, on_close);
         return;
-    }
+    } */
 
-    //nread >0 is safeguard, it is almost above
-    if (socket->after_data_received && nread > 0)
+
+    if (socket->after_data_received)
     {
-
+        if(nread<0)
+        nread+=REBRICK_ERR_UV;
         socket->after_data_received(cast_to_base_socket(socket),socket->callback_data, NULL, rcvbuf->base, nread);
     }
 

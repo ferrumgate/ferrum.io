@@ -35,6 +35,7 @@
 #define REBRICK_ERR_CLIENT_CREATE -9
 #define REBRICK_ERR_IO_CLOSED -10
 #define REBRICK_ERR_IO_CLOSING -11
+#define REBRICK_ERR_IO_ERR -12
 
 
 #define REBRICK_ERR_TLS_INIT -20
@@ -43,6 +44,7 @@
 #define REBRICK_ERR_TLS_INIT_NOT_FINISHED -23
 #define REBRICK_ERR_TLS_READ -24
 #define REBRICK_ERR_TLS_WRITE -25
+#define REBRICK_ERR_CLOSE -26
 
 #define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
 #define UV_ERR(result)  (result)-(REBRICK_ERR_UV)

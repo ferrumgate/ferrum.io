@@ -13,7 +13,7 @@ struct rebrick_async_socket;
  * @param buffer data
  * @param len buffer lenght
  */
-typedef int32_t (*rebrick_after_data_received_callback_t)(struct rebrick_async_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, size_t len);
+typedef int32_t (*rebrick_after_data_received_callback_t)(struct rebrick_async_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
 
 
 /**

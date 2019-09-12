@@ -133,7 +133,7 @@ int main()
   if (test_rebrick_async_udpsocket())
     exit(1);
 
-  if (test_rebrick_async_tcpsocket())
+   if (test_rebrick_async_tcpsocket())
     exit(1);
 
   if (test_rebrick_tls())
