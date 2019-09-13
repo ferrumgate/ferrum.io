@@ -97,7 +97,8 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
     assert_string_equal(data.buffer, hello);
 
     char *world = "world";
-    result = rebrick_async_tcpsocket_send(data.client, world, strlen(world), NULL);
+    rebrick_clean_func_t clean={};
+    result = rebrick_async_tcpsocket_send(data.client, world, strlen(world), clean);
     assert_int_equal(result, 0);
 
     //check loop
@@ -172,10 +173,10 @@ static int32_t on_datarecevied(rebrick_async_socket_t *socket, void *callback_da
     return 0;
 }
 
-static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data, void *after_senddata, int status)
+static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
-    unused(after_senddata);
+    unused(source);
     unused(socket);
     return status - status;
 }
@@ -231,7 +232,8 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
     assert_int_equal(datareceived_ok, 1);
 
     assert_string_equal(data.buffer, "deneme");
-    rebrick_async_tcpsocket_send(client, "valla", 6, NULL);
+    rebrick_clean_func_t cleanfunc={};
+    rebrick_async_tcpsocket_send(client, "valla", 6, cleanfunc);
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
@@ -304,10 +306,10 @@ static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *
 }
 
 static int datasended_memorytest = 0;
-static int32_t on_datasend_memorytest(rebrick_async_socket_t *socket, void *callback_data, void *after_senddata, int status)
+static int32_t on_datasend_memorytest(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
-    unused(after_senddata);
+    unused(source);
     unused(socket);
     datasended_memorytest = 10 - status;
     return status - status;
@@ -354,7 +356,8 @@ Accept: text/html\r\n\
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
-        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, NULL);
+        rebrick_clean_func_t cleanfunc={};
+        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -419,8 +422,8 @@ connection_closed_memorytest = 0;
 
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
-
-        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, NULL);
+        rebrick_clean_func_t cleanfunc={};
+        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         datareceived_ok_total_memorytest = 1;
@@ -517,9 +520,10 @@ Accept-Ranges: bytes\r\n\
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             usleep(100);
         }
+        rebrick_clean_func_t cleanfunc={};
         //assert_true(datareceived_ok_memorytest > 0);
         if(connected_client)
-        result = rebrick_async_tcpsocket_send(connected_client, html, strlen(html) + 1, NULL);
+        result = rebrick_async_tcpsocket_send(connected_client, html, strlen(html) + 1, cleanfunc);
 
         counter = 100;
         while (--counter && !datasended_memorytest)
@@ -550,7 +554,7 @@ int test_rebrick_async_tcpsocket(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
-        cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
+         cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
         cmocka_unit_test(rebrick_tcp_client_download_data),
         cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory)
 

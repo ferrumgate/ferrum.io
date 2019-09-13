@@ -1,5 +1,6 @@
 #ifndef __REBRICK_ASYNC_SOCKET_H__
 #define __REBRICK_ASYNC_SOCKET_H__
+
 #include "rebrick_common.h"
 #include "rebrick_log.h"
 #include "./lib/utlist.h"
@@ -16,6 +17,37 @@ struct rebrick_async_socket;
 typedef int32_t (*rebrick_after_data_received_callback_t)(struct rebrick_async_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
 
 
+
+
+
+typedef void (*rebrick_clean_func_ptr_t)(void *ptr);
+
+typedef struct rebrick_clean_func{
+    base_object();
+    //free function
+    public_ rebrick_clean_func_ptr_t func;
+    //ptr for free
+    public_ void *ptr;
+    //any data for you
+    union{
+        int32_t source;
+        void *ptr;
+    }anydata;
+
+
+}rebrick_clean_func_t;
+
+
+
+
+#define rebrick_clean_func_clone(x,y) \
+rebrick_clean_func_t *newptr=new(rebrick_clean_func_t);\
+constructor(newptr,rebrick_clean_func_t);\
+newptr->func=(x)->func;\
+newptr->ptr=(x)->ptr;\
+(y)=newptr;
+
+
 /**
  * @brief after data sended this function is called
  * @param socket which socket used
@@ -23,7 +55,7 @@ typedef int32_t (*rebrick_after_data_received_callback_t)(struct rebrick_async_s
  * @param after_sendata,  this parameters will be sended to this function
  * @param status, result of operation, if status=0 SUCCESS otherwise ERROR
  */
-typedef int32_t (*rebrick_after_data_sended_callback_t)(struct rebrick_async_socket *socket, void *callback_data, void *after_senddata, int status);
+typedef int32_t (*rebrick_after_data_sended_callback_t)(struct rebrick_async_socket *socket, void *callback_data,void *source,int status);
 
 #define base_socket() \
     base_object();                    \

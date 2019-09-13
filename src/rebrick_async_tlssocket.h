@@ -8,27 +8,29 @@
 protected_ typedef struct pending_data{
     base_object();
     rebrick_buffer_t *data;
-    void *callback_data;
+    rebrick_clean_func_t *clean_func;
     struct pending_data *prev,*next;
 }pending_data_t;
 
 
+#define base_ssl_socket()   \
+        base_tcp_socket(); \
+        private_ const rebrick_tls_context_t *tls_context; \
+        private_ rebrick_tls_ssl_t *tls; \
+        private_ rebrick_after_connection_accepted_callback_t override_after_connection_accepted; \
+        private_ rebrick_after_connection_closed_callback_t override_after_connection_closed; \
+        private_ rebrick_after_data_received_callback_t override_after_data_received; \
+        private_ rebrick_after_data_sended_callback_t   override_after_data_sended; \
+        private_ void *override_callback_data; \
+        private_ pending_data_t *pending_write_list; \
+        private_ int32_t called_override_after_connection_accepted; \
+        private_ int32_t sslhandshake_initted;
+
+
+
 public_ typedef struct rebrick_async_tlssocket
 {
-    base_tcp_socket();
-    private_ const rebrick_tls_context_t *tls_context;
-    private_ rebrick_tls_ssl_t *tls;
-    private_ rebrick_after_connection_accepted_callback_t override_after_connection_accepted;
-    private_ rebrick_after_connection_closed_callback_t override_after_connection_closed;
-    private_ rebrick_after_data_received_callback_t override_after_data_received;
-    private_ rebrick_after_data_sended_callback_t   override_after_data_sended;
-    private_ void *override_callback_data;
-
-    private_ pending_data_t *pending_write_list;
-
-    private_ int32_t called_override_after_connection_accepted;
-    private_ int32_t sslhandshake_initted;
-
+    base_ssl_socket()
 
 
 } rebrick_async_tlssocket_t;
@@ -51,5 +53,5 @@ int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const re
                                     rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient);
 
 int32_t rebrick_async_tlssocket_destroy(rebrick_async_tlssocket_t *socket);
-int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, void *aftersend_data);
+int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 #endif

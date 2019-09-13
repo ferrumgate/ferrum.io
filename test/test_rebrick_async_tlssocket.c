@@ -128,7 +128,8 @@ Accept: text/html\r\n\
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     }
-    result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, NULL);
+    rebrick_clean_func_t clean={};
+    result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
     assert_int_equal(result, 0);
     counter = 100;
     while (counter--)
@@ -186,7 +187,8 @@ content-length:52\r\n\
 \r\n\
 <html><body><h1>server is working</h1></body></html>";
     int32_t counter = 10;
-    rebrick_async_tlssocket_send(client, msg, strlen(msg), NULL);
+    rebrick_clean_func_t clean={};
+    rebrick_async_tlssocket_send(client, msg, strlen(msg), clean);
     while (counter--)
     {
         usleep(10);
@@ -320,7 +322,8 @@ User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Geck
 Accept: text/html\r\n\
 \r\n";
 
-    result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, NULL);
+rebrick_clean_func_t clean={};
+    result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
 
     counter = 100;
     assert_int_equal(result, REBRICK_ERR_TLS_ERR);
@@ -376,12 +379,13 @@ Accept: text/html\r\n\
 \r\n";
     counter = 10000;
     is_datareaded = 0;
+    rebrick_clean_func_t clean={};
     do
     {
         counter--;
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, NULL);
+        result = rebrick_async_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     } while (result != 0 && counter && !is_connection_closed);
     assert_int_equal(result, 0);
@@ -423,7 +427,7 @@ int test_rebrick_async_tlssocket(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(ssl_client),
         cmocka_unit_test(ssl_server),
-        cmocka_unit_test(ssl_client_verify),
+         cmocka_unit_test(ssl_client_verify),
         cmocka_unit_test(ssl_client_download_data),
         cmocka_unit_test(ssl_client_memory_test)
 

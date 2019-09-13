@@ -77,6 +77,6 @@ int32_t rebrick_async_tcpsocket_init(rebrick_async_tcpsocket_t *socket, rebrick_
 
 
 int32_t rebrick_async_tcpsocket_destroy(rebrick_async_tcpsocket_t *socket);
-int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer, size_t len, void *aftersend_data);
+int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 #endif

@@ -16,7 +16,7 @@ OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_async_udpsocket.o 
 OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebrick_util.o \
 			 test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
 			 test_rebrick_tls.o \
-			test_rebrick_async_udpsocket.o test_rebrick_async_tcpsocket.o test_rebrick_async_tlssocket.o  test_rebrick_buffer.o \
+			test_rebrick_async_udpsocket.o test_rebrick_async_tcpsocket.o test_rebrick_async_tlssocket.o   test_rebrick_buffer.o \
 			../src/rebrick_config.o ../src/rebrick_util.o  ../src/rebrick_context.o ../src/rebrick_metrics.o \
 			../src/rebrick_async_udpsocket.o ../src/rebrick_async_tcpsocket.o ../src/rebrick_buffer.o\
 			../src/lib/b64/encode.o ../src/lib/b64/decode.o \

@@ -16,7 +16,7 @@
 private_ typedef struct send_data_holder
 {
     base_object();
-    private_ void *client_data;
+    private_ rebrick_clean_func_t *client_data;
     private_ void *internal_data;
     private_ size_t internal_data_len;
 } send_data_holder_t;
@@ -63,6 +63,21 @@ char * getOpenSSLError()
     return sslerror;
 }
 
+static void clean_send_data_holder(void *ptr){
+    send_data_holder_t *senddata=cast(ptr,send_data_holder_t*);
+    if(senddata && senddata->internal_data)
+    free(senddata->internal_data);
+    if(senddata && senddata->client_data)
+    {
+
+        if(senddata->client_data->func)
+        senddata->client_data->func(senddata->client_data->ptr);
+        free(senddata->client_data);
+    }
+    if(senddata)
+    free(senddata);
+}
+
 static int32_t check_ssl_status(rebrick_async_tlssocket_t *tlssocket, int32_t n)
 {
     char current_time_str[32] = {0};
@@ -97,7 +112,8 @@ static int32_t check_ssl_status(rebrick_async_tlssocket_t *tlssocket, int32_t n)
                 holder->internal_data_len = n;
                 holder->client_data = NULL;
 
-                result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(tlssocket), buftemp, n, holder);
+                rebrick_clean_func_t cleanfunc={.func=clean_send_data_holder,.ptr=holder};
+                result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(tlssocket), buftemp, n, cleanfunc);
 
                 if (result < 0)
                 {
@@ -168,7 +184,9 @@ void flush_buffers(struct rebrick_async_tlssocket *tlssocket)
                     error_occured=1;
                     free(tmpbuffer);
                     if(tlssocket->after_data_sended)
-                    tlssocket->after_data_sended(cast_to_base_socket(tlssocket),tlssocket->override_callback_data,el->callback_data,REBRICK_ERR_TLS_ERR);
+                    tlssocket->after_data_sended(cast_to_base_socket(tlssocket),tlssocket->override_callback_data,NULL, REBRICK_ERR_TLS_ERR);
+                    //TODO burası üzerinde çalışmak lazım
+
 
                     break;
 
@@ -196,9 +214,12 @@ void flush_buffers(struct rebrick_async_tlssocket *tlssocket)
                             constructor(holder, send_data_holder_t);
                             holder->internal_data = tmpbuffer;
                             holder->internal_data_len = len;
-                            holder->client_data = el->callback_data;
+                            holder->client_data = el->clean_func;
 
-                            result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(tlssocket), buftemp, n, holder);
+                            rebrick_clean_func_t cleanfunc={.func=clean_send_data_holder,.ptr=holder};
+                            //client datası olduğunu belirtmek için source 1 yapılıyor
+                            cleanfunc.anydata.source=1;
+                            result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(tlssocket), buftemp, n, cleanfunc);
                             if (result < 0)
                             {
                                 free(holder);
@@ -396,8 +417,6 @@ static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *so
     }
     rebrick_after_io_list_remove(tlssocket);
 
-
-
     rebrick_tls_ssl_destroy(tlssocket->tls);
 
     tlssocket->tls = NULL;
@@ -407,10 +426,16 @@ static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *so
     {
         rebrick_buffer_destroy(el->data);
         DL_DELETE(tlssocket->pending_write_list, el);
-        void *deletedata=el->callback_data;
+        rebrick_clean_func_t  *deletedata=el->clean_func;
         free(el);
-        if(tlssocket->override_after_data_sended)
-        tlssocket->override_after_data_sended(cast_to_base_socket(tlssocket),tlssocket->override_callback_data,deletedata,REBRICK_ERR_IO_CLOSING);
+        if(deletedata){
+            if(deletedata->func){
+
+                deletedata->func(deletedata->ptr);
+            }
+            free(deletedata);
+        }
+
 
     }
 
@@ -530,7 +555,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
     return REBRICK_SUCCESS;
 }
 
-int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data, void *after_senddata, int status)
+int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
 {
 
     char current_time_str[32] = {0};
@@ -546,16 +571,13 @@ int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *c
 
     //burası önemli, flush_ssl_buffer yaptığımızda
 
-    send_data_holder_t *holder = cast(after_senddata, send_data_holder_t *);
 
-    if(holder)
+
+    if(source)//eğer gönderilen data client datası ise
     if (tlssocket->override_after_data_sended)
-        tlssocket->override_after_data_sended(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, holder ? holder->client_data : NULL, status);
+        tlssocket->override_after_data_sended(cast_to_base_socket(tlssocket), tlssocket->override_callback_data,NULL,status);
 
-    if (holder && holder->internal_data)
-        free(holder->internal_data);
-    if (holder)
-        free(holder);
+
 
     return REBRICK_SUCCESS;
 }
@@ -653,7 +675,7 @@ int32_t rebrick_async_tlssocket_destroy(rebrick_async_tlssocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, void *aftersend_data)
+int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfuncs)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -702,7 +724,10 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
             pending_data_t *data = new (pending_data_t);
             constructor(data, pending_data_t);
             rebrick_buffer_new(&data->data, (uint8_t *)(buffer + writen_len), (size_t)(temp_len - writen_len), REBRICK_BUFFER_MALLOC_SIZE);
-            data->callback_data = aftersend_data;
+
+            rebrick_clean_func_clone(&cleanfuncs,data->clean_func);
+
+
             DL_APPEND(socket->pending_write_list, data);
             break;
         }
@@ -725,9 +750,12 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
             constructor(holder, send_data_holder_t);
             holder->internal_data = tmpbuffer;
             holder->internal_data_len = len;
-            holder->client_data = aftersend_data;
+            rebrick_clean_func_clone(&cleanfuncs,holder->client_data);
 
-            result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(socket), tmpbuffer, tmplen, holder);
+            rebrick_clean_func_t cleanfunc={.func=clean_send_data_holder,.ptr=holder};
+            //client datası olduğunu belirtmek için source 1 yapılıyor
+            cleanfunc.anydata.source=1;
+            result = rebrick_async_tcpsocket_send(cast_to_tcp_socket(socket), tmpbuffer, tmplen, cleanfunc);
             if (result < 0)
             {
                 free(holder);
@@ -739,8 +767,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
 
     flush_buffers(socket);
 
-  /*   if (socket->override_after_data_sended)
-        socket->override_after_data_sended(cast_to_base_socket(socket), socket->override_callback_data, aftersend_data, 0); */
+
 
     return REBRICK_SUCCESS;
 }

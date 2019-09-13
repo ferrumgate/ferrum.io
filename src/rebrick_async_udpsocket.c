@@ -1,7 +1,5 @@
 #include "rebrick_async_udpsocket.h"
 
-
-
 static void on_send(uv_udp_send_t *req, int status)
 {
     // TODO: status a göre işlem yapılmalı
@@ -11,17 +9,28 @@ static void on_send(uv_udp_send_t *req, int status)
     unused(current_time_str);
     rebrick_log_debug("socket on send called and status:%d\n", status);
 
-    if (req->handle)
-        if (req->handle->data)
-        {
-            const rebrick_async_udpsocket_t *socket = cast(req->handle->data, rebrick_async_udpsocket_t *);
+    rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
+    void *source=clean_func?clean_func->anydata.ptr:NULL;
+    if (req->handle && req->handle->data)
+    {
 
-            if (socket->after_data_sended)
-                socket->after_data_sended(cast_to_base_socket(socket),socket->callback_data,req->data, status);
+        const rebrick_async_udpsocket_t *socket = cast(req->handle->data, rebrick_async_udpsocket_t *);
+
+        if (socket->after_data_sended)
+            socket->after_data_sended(cast_to_base_socket(socket), socket->callback_data,source,status);
+    }
+
+    if (clean_func)
+    {
+        if (clean_func->func)
+        {
+            clean_func->func(clean_func->ptr);
         }
+        free(clean_func);
+    }
     free(req);
 }
-int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, char *buffer, size_t len,void *after_sendata)
+int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, char *buffer, size_t len, rebrick_clean_func_t func)
 {
 
     char current_time_str[32] = {0};
@@ -33,7 +42,9 @@ int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_
     uv_udp_send_t *request = new (uv_udp_send_t);
     fill_zero(request, sizeof(uv_udp_send_t));
     uv_buf_t buf = uv_buf_init(buffer, len);
-    request->data=after_sendata;
+
+    rebrick_clean_func_clone(&func, request->data);
+
     result = uv_udp_send(request, &socket->handle.udp, &buf, 1, &dstaddr->base, on_send);
     rebrick_util_addr_to_ip_string(dstaddr, dst_ip);
     rebrick_util_addr_to_port_string(dstaddr, dst_port);
@@ -55,9 +66,8 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     unused(flags);
     const rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
 
-
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-   /*  if (nread <= 0) //burası silinirse,
+    /*  if (nread <= 0) //burası silinirse,
     {
 
         rebrick_log_debug("nread is <=0 from %s port %s\n", socket->bind_ip, socket->bind_port);
@@ -71,9 +81,9 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
         {
             //nread ssize_t olmasına karşın parametre olarak geçildi
             //neticed eğer nread<0 zaten buraya gelmiyor
-            if(nread<0)
-            nread+=REBRICK_ERR_UV;
-            socket->after_data_received(cast_to_base_socket(socket),socket->callback_data, addr, rcvbuf->base, nread);
+            if (nread < 0)
+                nread += REBRICK_ERR_UV;
+            socket->after_data_received(cast_to_base_socket(socket), socket->callback_data, addr, rcvbuf->base, nread);
         }
 
     free(rcvbuf->base);
@@ -90,7 +100,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
     }
 
     buf->base = malloc(suggested_size);
-    if_is_null_then_die(buf->base,"malloc problem\n");
+    if_is_null_then_die(buf->base, "malloc problem\n");
 
     buf->len = suggested_size;
     fill_zero(buf->base, buf->len);
@@ -144,8 +154,6 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
     rebrick_async_udpsocket_t *tmp = new (rebrick_async_udpsocket_t);
     constructor(tmp, rebrick_async_udpsocket_t);
 
-
-
     //burası önemli,callback data
     tmp->callback_data = callback_data;
 
@@ -155,7 +163,6 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
 
         tmp->after_data_received = after_data_received;
     tmp->after_data_sended = after_data_sended;
-
 
     result = create_socket(tmp);
     if (result < 0)
@@ -176,9 +183,8 @@ static void on_close(uv_handle_t *handle)
         if (handle->data)
         {
             rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
-            if(socket)
-            free(socket);
-
+            if (socket)
+                free(socket);
         }
 }
 
@@ -196,7 +202,6 @@ int32_t rebrick_async_udpsocket_destroy(rebrick_async_udpsocket_t *socket)
 
             rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
             uv_close(handle, on_close);
-
         }
     }
     return REBRICK_SUCCESS;

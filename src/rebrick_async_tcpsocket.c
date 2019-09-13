@@ -11,18 +11,31 @@ static void on_send(uv_write_t *req, int status)
     unused(current_time_str);
     rebrick_log_debug("socket on send called and status:%d\n", status);
 
-    if (req->handle)
-        if (req->handle->data)
+    rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
+    void *source=clean_func?clean_func->anydata.ptr:NULL;
+    if (req->handle && req->handle->data)
+
         {
             const rebrick_async_tcpsocket_t *socket = cast(req->handle->data, rebrick_async_tcpsocket_t *);
 
             if (socket->after_data_sended)
-                socket->after_data_sended(cast_to_base_socket(socket), socket->callback_data, req->data, status);
+                socket->after_data_sended(cast_to_base_socket(socket), socket->callback_data,source, status);
         }
+
+
+    if (clean_func)
+    {
+        if (clean_func->func)
+        {
+            clean_func->func(clean_func->ptr);
+        }
+        free(clean_func);
+    }
+
     free(req);
 }
 
-int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer, size_t len, void *aftersend_data)
+int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
 
     char current_time_str[32] = {0};
@@ -37,7 +50,8 @@ int32_t rebrick_async_tcpsocket_send(rebrick_async_tcpsocket_t *socket, char *bu
     fill_zero(request, sizeof(uv_write_t));
     uv_buf_t buf = uv_buf_init(buffer, len);
 
-    request->data = aftersend_data;
+    rebrick_clean_func_clone(&cleanfunc,request->data);
+
 
     result = uv_write(request, cast(&socket->handle.tcp, uv_stream_t *), &buf, 1, on_send);
     if (result < 0)
