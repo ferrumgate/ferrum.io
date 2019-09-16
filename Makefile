@@ -10,8 +10,8 @@ LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl 
 OUTPUT = rebrick
 SRC = src
 TEST = test
-OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_async_udpsocket.o rebrick_async_tcpsocket.o rebrick_tls.o rebrick_async_tlssocket.o  \
- 		rebrick_context.o rebrick_metrics.o rebrick_buffer.o ./lib/b64/decode.o ./lib/b64/encode.o   \
+OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_async_udpsocket.o rebrick_async_tcpsocket.o rebrick_tls.o rebrick_async_tlssocket.o rebrick_async_httpsocket.o \
+ 		rebrick_context.o rebrick_metrics.o rebrick_buffer.o ./lib/b64/decode.o ./lib/b64/encode.o ./lib/picohttpparser.o   \
 
 OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebrick_util.o \
 			 test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
@@ -19,7 +19,7 @@ OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebri
 			test_rebrick_async_udpsocket.o test_rebrick_async_tcpsocket.o test_rebrick_async_tlssocket.o   test_rebrick_buffer.o \
 			../src/rebrick_config.o ../src/rebrick_util.o  ../src/rebrick_context.o ../src/rebrick_metrics.o \
 			../src/rebrick_async_udpsocket.o ../src/rebrick_async_tcpsocket.o ../src/rebrick_buffer.o\
-			../src/lib/b64/encode.o ../src/lib/b64/decode.o \
+			../src/lib/b64/encode.o ../src/lib/b64/decode.o ../src/lib/picohttpparser.o \
 			../src/rebrick_tls.o ../src/rebrick_async_tlssocket.o
 
 

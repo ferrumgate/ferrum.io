@@ -35,6 +35,10 @@ public_ typedef struct rebrick_async_tlssocket
 
 } rebrick_async_tlssocket_t;
 
+
+
+#define cast_to_tls_socket(x) cast(x, rebrick_async_tlssocket_t *)
+
 /**
  * @brief
  *
@@ -47,6 +51,12 @@ public_ typedef struct rebrick_async_tlssocket
  * @return int32_t
  */
 int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+                                    rebrick_after_connection_accepted_callback_t after_connection_accepted,
+                                    rebrick_after_connection_closed_callback_t after_connection_closed,
+                                    rebrick_after_data_received_callback_t after_data_received,
+                                    rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient);
+
+int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_after_connection_accepted_callback_t after_connection_accepted,
                                     rebrick_after_connection_closed_callback_t after_connection_closed,
                                     rebrick_after_data_received_callback_t after_data_received,

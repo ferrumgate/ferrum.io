@@ -555,7 +555,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
     return REBRICK_SUCCESS;
 }
 
-int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
+static int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
 {
 
     char current_time_str[32] = {0};
@@ -595,7 +595,9 @@ static struct rebrick_async_tcpsocket *local_create_client()
     return cast(client, rebrick_async_tcpsocket_t *);
 }
 
-int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+
+
+int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *tlssocket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_after_connection_accepted_callback_t after_connection_accepted,
                                     rebrick_after_connection_closed_callback_t after_connection_closed,
                                     rebrick_after_data_received_callback_t after_data_received,
@@ -623,8 +625,7 @@ int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const re
         return REBRICK_ERR_BAD_ARGUMENT;
     }
 
-    rebrick_async_tlssocket_t *tlssocket = new (rebrick_async_tlssocket_t);
-    constructor(tlssocket, rebrick_async_tlssocket_t);
+
     tlssocket->override_after_connection_accepted = after_connection_accepted;
     tlssocket->override_after_connection_closed = after_connection_closed;
     tlssocket->override_after_data_received = after_data_received;
@@ -640,10 +641,34 @@ int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const re
     {
         int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
         rebrick_log_fatal("tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
-        free(tlssocket);
         return result;
     }
-    *socket = tlssocket;
+
+    return REBRICK_SUCCESS;
+}
+
+
+int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+                                    rebrick_after_connection_accepted_callback_t after_connection_accepted,
+                                    rebrick_after_connection_closed_callback_t after_connection_closed,
+                                    rebrick_after_data_received_callback_t after_data_received,
+                                    rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient)
+{
+
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+
+     rebrick_async_tlssocket_t *tlssocket = new (rebrick_async_tlssocket_t);
+    constructor(tlssocket, rebrick_async_tlssocket_t);
+    result=rebrick_async_tlssocket_init(tlssocket,tls_context,addr,callback_data,after_connection_accepted,after_connection_closed,after_data_received,after_data_sended,backlog_or_isclient);
+    if(result<0){
+        free(tlssocket);
+        rebrick_log_error("tls socket init failed with:%d\n",result);
+        return result;
+    }
+
+     *socket = tlssocket;
     return REBRICK_SUCCESS;
 }
 
