@@ -2,7 +2,15 @@
 
 #define REBRICK_HTTP_BUFFER_MALLOC 8192
 
-static int32_t local_after_connection_accepted_callback(rebrick_async_socket_t *serversocket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+
+static int32_t local_on_error_occured_callback(rebrick_async_socket_t *socket,void *callbackdata,int error){
+    unused(socket);
+    unused(callbackdata);
+    unused(error);
+    return REBRICK_SUCCESS;
+}
+
+static int32_t local_on_connection_accepted_callback(rebrick_async_socket_t *serversocket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
 
     unused(serversocket);
@@ -18,14 +26,14 @@ static int32_t local_after_connection_accepted_callback(rebrick_async_socket_t *
     rebrick_async_httpsocket_t *httpsocket = cast(socket, rebrick_async_httpsocket_t *);
     if (httpsocket)
     {
-        if (httpsocket->override_override_after_connection_accepted)
-            httpsocket->override_override_after_connection_accepted(serversocket, httpsocket->override_override_callback_data, addr, client_handle, status);
+        if (httpsocket->override_override_on_connection_accepted)
+            httpsocket->override_override_on_connection_accepted(serversocket, httpsocket->override_override_callback_data, addr, client_handle, status);
     }
 
     return REBRICK_SUCCESS;
 }
 
-static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
+static int32_t local_on_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
 {
     unused(socket);
     unused(callback_data);
@@ -42,14 +50,14 @@ static int32_t local_after_connection_closed_callback(rebrick_async_socket_t *so
         if (httpsocket->header)
             free(httpsocket->header);
 
-        if (httpsocket->override_override_after_connection_closed)
-            httpsocket->override_after_connection_closed(socket, httpsocket->override_override_callback_data);
+        if (httpsocket->override_override_on_connection_closed)
+            httpsocket->override_on_connection_closed(socket, httpsocket->override_override_callback_data);
     }
 
     return REBRICK_SUCCESS;
 }
 
-static int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data, void *source, int status)
+static int32_t local_on_data_sended_callback(rebrick_async_socket_t *socket, void *callback_data, void *source, int status)
 {
     unused(socket);
     unused(callback_data);
@@ -63,10 +71,10 @@ static int32_t local_after_data_sended_callback(rebrick_async_socket_t *socket, 
     return REBRICK_SUCCESS;
 }
 
-#define call_received_error(httpsocket,addr,buffer,len) \
-    if (httpsocket->override_override_after_data_received) \
+#define call_received_error(httpsocket,error) \
+    if (httpsocket->override_override_on_error_occured) \
         {\
-            httpsocket->override_override_after_data_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr, buffer, len);\
+            httpsocket->override_override_on_error_occured(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, error);\
         }
 
 static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
@@ -85,12 +93,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         return REBRICK_ERR_BAD_ARGUMENT;
 
     rebrick_async_httpsocket_t *httpsocket = cast_to_http_socket(socket);
-    if (len <= 0)
-    {
 
-        call_received_error(httpsocket,addr,buffer,len);
-        return len;
-    }
 
     if (!httpsocket->is_header_parsed)
     {
@@ -103,7 +106,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 
         if(result<0){
 
-            call_received_error(httpsocket,addr,NULL,result);
+            call_received_error(httpsocket,result);
             return result;
         }
 
@@ -113,7 +116,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         result = rebrick_buffer_to_array(httpsocket->tmp_buffer, &tmparray, &tmparray_len);
         if (result < 0)
         {
-           call_received_error(httpsocket,addr,NULL,result);
+           call_received_error(httpsocket,result);
             return len;
         }
 
@@ -125,12 +128,13 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 }
 
 int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
-                                      rebrick_after_connection_accepted_callback_t after_connection_accepted,
-                                      rebrick_after_connection_closed_callback_t after_connection_closed,
-                                      rebrick_after_data_received_callback_t after_data_received,
-                                      rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient,
-                                      rebrick_after_http_request_received_callback_t after_http_request_received,
-                                      rebrick_after_http_body_received_callback_t after_http_body_received)
+                                      rebrick_on_connection_accepted_callback_t on_connection_accepted,
+                                      rebrick_on_connection_closed_callback_t on_connection_closed,
+                                      rebrick_on_data_received_callback_t on_data_received,
+                                      rebrick_on_data_sended_callback_t on_data_sended,
+                                      rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                                      rebrick_on_http_request_received_callback_t after_http_request_received,
+                                      rebrick_on_http_body_received_callback_t after_http_body_received)
 
 {
     char current_time_str[32] = {0};
@@ -140,11 +144,11 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
     httpsocket->override_override_tls_context = tls_context;
     if (tls_context)
     {
-        result = rebrick_async_tlssocket_init(cast_to_tls_socket(socket), tls_context, addr, NULL, local_after_connection_accepted_callback, local_after_connection_closed_callback, local_after_data_received_callback, local_after_data_sended_callback, backlog_or_isclient);
+        result = rebrick_async_tlssocket_init(cast_to_tls_socket(socket), tls_context, addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient);
     }
     else
     {
-        result = rebrick_async_tcpsocket_init(cast_to_tcp_socket(socket), addr, NULL, local_after_connection_accepted_callback, local_after_connection_closed_callback, local_after_data_received_callback, local_after_data_sended_callback, backlog_or_isclient, NULL);
+        result = rebrick_async_tcpsocket_init(cast_to_tcp_socket(socket), addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient, NULL);
     }
     if (result < 0)
     {
@@ -152,10 +156,11 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
 
         return result;
     }
-    httpsocket->override_override_after_connection_accepted = after_connection_accepted;
-    httpsocket->override_override_after_connection_closed = after_connection_closed;
-    httpsocket->override_after_data_received = after_data_received;
-    httpsocket->override_after_data_sended = after_data_sended;
+    httpsocket->override_override_on_connection_accepted = on_connection_accepted;
+    httpsocket->override_override_on_connection_closed = on_connection_closed;
+    httpsocket->override_override_on_data_received = on_data_received;
+    httpsocket->override_override_on_data_sended = on_data_sended;
+    httpsocket->override_override_on_error_occured=on_error_occured;
     httpsocket->override_override_callback_data = callback_data;
     httpsocket->after_http_header_received = after_http_request_received;
     httpsocket->after_http_body_received = after_http_body_received;
@@ -164,12 +169,13 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
 }
 
 int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
-                                     rebrick_after_connection_accepted_callback_t after_connection_accepted,
-                                     rebrick_after_connection_closed_callback_t after_connection_closed,
-                                     rebrick_after_data_received_callback_t after_data_received,
-                                     rebrick_after_data_sended_callback_t after_data_sended, int32_t backlog_or_isclient,
-                                     rebrick_after_http_request_received_callback_t after_http_request_received,
-                                     rebrick_after_http_body_received_callback_t after_http_body_received)
+                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
+                                     rebrick_on_connection_closed_callback_t on_connection_closed,
+                                     rebrick_on_data_received_callback_t on_data_received,
+                                     rebrick_on_data_sended_callback_t on_data_sended,
+                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                                     rebrick_on_http_request_received_callback_t after_http_request_received,
+                                     rebrick_on_http_body_received_callback_t after_http_body_received)
 {
 
     char current_time_str[32] = {0};
@@ -180,7 +186,7 @@ int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket, rebric
     constructor(httpsocket, rebrick_async_httpsocket_t);
 
     result = rebrick_async_httpsocket_init(httpsocket, tls_context, addr,
-                                           callback_data, after_connection_accepted, after_connection_closed, after_data_received, after_data_sended, backlog_or_isclient,
+                                           callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended,on_error_occured, backlog_or_isclient,
                                            after_http_request_received, after_http_body_received);
     if (result < 0)
     {

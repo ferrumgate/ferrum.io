@@ -24,20 +24,28 @@ static int teardown(void **state)
 static int32_t flag = 0;
 static char read_buffer[65536] = {'\0'};
 static const char *testdata = "merhaba";
+
+static int32_t on_error_occured(rebrick_async_socket_t *socket, void *data, int error)
+{
+    unused(socket);
+    unused(data);
+    unused(error);
+    return REBRICK_SUCCESS;
+}
 static int32_t on_server_received(rebrick_async_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
-    if(len>0){
+
     assert_string_equal(data, testdata);
     flag = 1;
     memset(read_buffer, 0, 512);
     memcpy(read_buffer, buffer, len < 65536 ? len : 65536);
-    }
+
     return REBRICK_SUCCESS;
 }
 
-static int32_t on_server_send(rebrick_async_socket_t *socket, void *data,void *source, int status)
+static int32_t on_server_send(rebrick_async_socket_t *socket, void *data, void *source, int status)
 {
     unused(data);
     unused(socket);
@@ -67,7 +75,7 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
     rebrick_sockaddr_t client;
     rebrick_util_to_socket(&client, dest_ip, dest_port);
 
-    int32_t result = rebrick_async_udpsocket_new(&server, bind, cast(testdata, void *), on_server_received, on_server_send);
+    int32_t result = rebrick_async_udpsocket_new(&server, bind, cast(testdata, void *), on_server_received, on_server_send, on_error_occured);
     assert_int_equal(result, 0);
     //check loop
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
@@ -91,7 +99,7 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
     assert_string_equal(msg, read_buffer);
     flag = 0;
     char *reply = "got it";
-    rebrick_clean_func_t clean={};
+    rebrick_clean_func_t clean = {};
     result = rebrick_async_udpsocket_send(server, &client, reply, strlen(reply) + 1, clean);
     assert_int_equal(result, 0);
     // uv_run(uv_default_loop(),UV_RUN_NOWAIT);
@@ -118,8 +126,16 @@ static void rebrick_async_udpsocket_asserver_communication(void **start)
     {
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-
     }
+}
+
+static int32_t on_dnsclient_error_occured(rebrick_async_socket_t *socket, void *data, int32_t error)
+{
+
+    unused(socket);
+    unused(data);
+    unused(error);
+    return REBRICK_SUCCESS;
 }
 
 static int32_t received_count = 0;
@@ -130,12 +146,12 @@ static int32_t on_dnsclient_received(rebrick_async_socket_t *socket, void *data,
     unused(data);
     unused(buffer);
     unused(len);
-    if(len>0)
+
     received_count++;
     return REBRICK_SUCCESS;
 }
 static int32_t sended_count = 0;
-static int32_t on_dnsclient_send(rebrick_async_socket_t *socket, void *data,void *source, int status)
+static int32_t on_dnsclient_send(rebrick_async_socket_t *socket, void *data, void *source, int status)
 {
     unused(data);
     unused(socket);
@@ -181,20 +197,20 @@ static void test_rebrick_async_udpsocket_check_memory(void **state)
     rebrick_util_to_socket(&bindaddr, "0.0.0.0", "0");
     rebrick_async_udpsocket_t *dnsclient;
 
-
 #define COUNTER 250
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, on_dnsclient_send);
+        result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, on_dnsclient_send, on_dnsclient_error_occured);
         assert_int_equal(result, 0);
 
         sended_count = 0;
         received_count = 0;
-        rebrick_clean_func_t clean={};
+        rebrick_clean_func_t clean = {};
         rebrick_async_udpsocket_send(dnsclient, &destination, testdata, datalen, clean);
         int counter = 1000;
-        while (counter-- && !sended_count){
+        while (counter-- && !sended_count)
+        {
             usleep(100);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         }
@@ -202,10 +218,11 @@ static void test_rebrick_async_udpsocket_check_memory(void **state)
         //data sended
 
         counter = 1000;
-        while (counter-- && !received_count){
+        while (counter-- && !received_count)
+        {
 
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-             usleep(1000);
+            usleep(1000);
         }
         assert_int_equal(received_count, 1);
         rebrick_async_udpsocket_destroy(dnsclient);
@@ -218,7 +235,6 @@ static void test_rebrick_async_udpsocket_check_memory(void **state)
         }
     }
     free(testdata);
-
 }
 
 /**
@@ -256,9 +272,8 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
     rebrick_util_to_socket(&bindaddr, "0.0.0.0", "0");
     rebrick_async_udpsocket_t *dnsclient;
 
-    result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, on_dnsclient_send);
+    result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, on_dnsclient_send, on_dnsclient_error_occured);
     assert_int_equal(result, 0);
-
 
 #define COUNTER 250
     for (int i = 0; i < COUNTER; ++i)
@@ -266,7 +281,7 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
 
         sended_count = 0;
         received_count = 0;
-        rebrick_clean_func_t clean={};
+        rebrick_clean_func_t clean = {};
         rebrick_async_udpsocket_send(dnsclient, &destination, testdata, datalen, clean);
 
         int counter = 10000;
@@ -284,7 +299,7 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
             usleep(1000);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         }
-        assert_true(received_count> 0);
+        assert_true(received_count > 0);
     }
     rebrick_async_udpsocket_destroy(dnsclient);
     int32_t counter = 100;
@@ -295,7 +310,6 @@ static void test_rebrick_async_udpsocket_check_memory2(void **state)
         counter--;
     }
     free(testdata);
-
 }
 
 /**
@@ -313,9 +327,8 @@ static void test_rebrick_async_udpsocket_check_memory3(void **state)
     rebrick_util_to_socket(&bindaddr, "0.0.0.0", "9595");
     rebrick_async_udpsocket_t *dnsclient;
 
-    int32_t result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, NULL);
+    int32_t result = rebrick_async_udpsocket_new(&dnsclient, bindaddr, NULL, on_dnsclient_received, NULL, on_dnsclient_error_occured);
     assert_int_equal(result, 0);
-
 
     received_count = 0;
     //istenirse burası ile memory test yapılabilir
@@ -336,16 +349,14 @@ static void test_rebrick_async_udpsocket_check_memory3(void **state)
         counter--;
     }
     //assert_true(received_count > 0);
-
 }
 
 int test_rebrick_async_udpsocket(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_async_udpsocket_asserver_communication),
-       cmocka_unit_test(test_rebrick_async_udpsocket_check_memory),
+        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory),
         cmocka_unit_test(test_rebrick_async_udpsocket_check_memory2),
-        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory3)
-    };
+        cmocka_unit_test(test_rebrick_async_udpsocket_check_memory3)};
     return cmocka_run_group_tests(tests, setup, teardown);
 }

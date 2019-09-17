@@ -67,7 +67,7 @@ int udp_echo_recv(char buf[ECHO_BUF_SIZE]){
                 MSG_WAITALL, NULL,
                 &len);
 
-    //printf("udp received %d %s\n",n,buf);
+
     if(n<0)
     return n;
     buf[n]='\0';

@@ -2,7 +2,6 @@
 
 static void on_send(uv_udp_send_t *req, int status)
 {
-    // TODO: status a göre işlem yapılmalı
 
     char current_time_str[32] = {0};
 
@@ -10,14 +9,22 @@ static void on_send(uv_udp_send_t *req, int status)
     rebrick_log_debug("socket on send called and status:%d\n", status);
 
     rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
-    void *source=clean_func?clean_func->anydata.ptr:NULL;
+    void *source = clean_func ? clean_func->anydata.ptr : NULL;
+
     if (req->handle && req->handle->data)
     {
 
         const rebrick_async_udpsocket_t *socket = cast(req->handle->data, rebrick_async_udpsocket_t *);
-
-        if (socket->after_data_sended)
-            socket->after_data_sended(cast_to_base_socket(socket), socket->callback_data,source,status);
+        if (status >= 0)
+        {
+            if (socket->on_data_sended)
+                socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source, status);
+        }
+        else
+        {
+            if (socket->on_error_occured)
+                socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
+        }
     }
 
     if (clean_func)
@@ -67,24 +74,20 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     const rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-    /*  if (nread <= 0) //burası silinirse,
-    {
 
-        rebrick_log_debug("nread is <=0 from %s port %s\n", socket->bind_ip, socket->bind_port);
-
-        free(rcvbuf->base);
-        return;
-    } */
 
     if (socket)
-        if (socket->after_data_received)
+    {
+        if (nread <= 0)//error or closed
         {
-            //nread ssize_t olmasına karşın parametre olarak geçildi
-            //neticed eğer nread<0 zaten buraya gelmiyor
-            if (nread < 0)
-                nread += REBRICK_ERR_UV;
-            socket->after_data_received(cast_to_base_socket(socket), socket->callback_data, addr, rcvbuf->base, nread);
+            if (socket->on_error_occured)
+                socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_IO_CLOSED);
         }
+        else if (socket->on_data_received)
+        {
+            socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, addr, rcvbuf->base, nread);
+        }
+    }
 
     free(rcvbuf->base);
 }
@@ -144,8 +147,9 @@ static int32_t create_socket(rebrick_async_udpsocket_t *socket)
 int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
                                     rebrick_sockaddr_t bind_addr,
                                     void *callback_data,
-                                    rebrick_after_data_received_callback_t after_data_received,
-                                    rebrick_after_data_sended_callback_t after_data_sended)
+                                    rebrick_on_data_received_callback_t on_data_received,
+                                    rebrick_on_data_sended_callback_t on_data_sended,
+                                    rebrick_on_error_occured_callback_t on_error_occured)
 {
 
     char current_time_str[32] = {0};
@@ -161,8 +165,9 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
     rebrick_util_addr_to_ip_string(&tmp->bind_addr, tmp->bind_ip);
     rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port),
 
-        tmp->after_data_received = after_data_received;
-    tmp->after_data_sended = after_data_sended;
+        tmp->on_data_received = on_data_received;
+    tmp->on_data_sended = on_data_sended;
+    tmp->on_error_occured=on_error_occured;
 
     result = create_socket(tmp);
     if (result < 0)

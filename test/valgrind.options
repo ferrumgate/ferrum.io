@@ -56,7 +56,7 @@
    fun:uv_write2
    fun:rebrick_async_tcpsocket_send
    fun:flush_buffers
-   fun:local_after_connection_accepted_callback
+   fun:local_on_connection_accepted_callback
    fun:on_connect
    fun:uv__stream_connect
    fun:uv__stream_io
@@ -75,7 +75,7 @@
    fun:uv_write2
    fun:rebrick_async_tcpsocket_send
    fun:check_ssl_status
-   fun:local_after_connection_accepted_callback
+   fun:local_on_connection_accepted_callback
    fun:on_connect
    fun:uv__stream_connect
    fun:uv__stream_io

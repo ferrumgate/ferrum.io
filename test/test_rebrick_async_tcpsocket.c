@@ -25,6 +25,14 @@ struct callbackdata
     char buffer[1024];
 };
 
+
+static int32_t on_error_occured(rebrick_async_socket_t *socket,void *callbackdata,int32_t error){
+    unused(socket);
+    unused(callbackdata);
+    unused(error);
+    return REBRICK_SUCCESS;
+}
+
 int client_connected = 0;
 static int32_t on_newclient_connection(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
@@ -46,11 +54,11 @@ static int32_t on_read(rebrick_async_socket_t *socket, void *callback_data, cons
     unused(addr);
     unused(socket);
     unused(callback_data);
-    if(len>0){
+
     struct callbackdata *data = cast(callback_data, struct callbackdata *);
     memset(data->buffer, 0, 1024);
     memcpy(data->buffer, buffer, len);
-    }
+
     return 0;
 }
 
@@ -64,7 +72,7 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
     int32_t result = rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
     assert_int_equal(result, 0);
 
-    result = rebrick_async_tcpsocket_new(&server, addr, &data, on_newclient_connection, NULL, on_read, NULL, 10);
+    result = rebrick_async_tcpsocket_new(&server, addr, &data, on_newclient_connection, NULL, on_read, NULL,on_error_occured, 10);
     assert_int_equal(result, 0);
 
     client_connected = 0;
@@ -197,7 +205,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     result = tcp_echo_listen();
 
-    result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend, 0);
+    result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured, 0);
 
     //check a little
     int counter = 10;
@@ -254,6 +262,14 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
 ////////////////////////// memory tests /////////////////////////////////////
 
+static int32_t on_error_occured_memorytest(rebrick_async_socket_t *socket,void *callbackdata,int32_t error){
+    unused(socket);
+    unused(callbackdata);
+    unused(error);
+    rebrick_async_tcpsocket_destroy(cast(socket,rebrick_async_tcpsocket_t*));
+    return REBRICK_SUCCESS;
+}
+
 int connected_to_memorytest = 0;
 int connected_to_memorytest_counter=0;
 rebrick_async_tcpsocket_t *connected_client;
@@ -292,16 +308,13 @@ static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *
     unused(addr);
 
     unused(socket);
-    if(len>0){
-    //memset(memorytestdata,0,sizeof(memorytestdata));
     memcpy(memorytestdata, buffer, len);
-    //printf("%s\n",memorytestdata);
 
     datareceived_ok_memorytest = len;
     datareceived_ok_total_memorytest += len;
-    }else{
-        rebrick_async_tcpsocket_destroy(cast(socket,rebrick_async_tcpsocket_t*));
-    }
+
+
+
     return 0;
 }
 
@@ -342,7 +355,7 @@ Accept: text/html\r\n\
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
+        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -409,7 +422,7 @@ Accept: text/html\r\n\
     {
 
 connection_closed_memorytest = 0;
-        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 0);
+        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -444,7 +457,7 @@ connection_closed_memorytest = 0;
                 uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             }
         }
-        printf("connection closed%d\n",connection_closed_memorytest);
+
         assert_true(connection_closed_memorytest != 0);
     }
 }
@@ -496,7 +509,7 @@ Accept-Ranges: bytes\r\n\
     {
 
         connected_client=NULL;
-        int32_t result = rebrick_async_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest, 10);
+        int32_t result = rebrick_async_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 10);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little

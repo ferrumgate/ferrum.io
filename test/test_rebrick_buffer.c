@@ -385,8 +385,7 @@ static void buffer_total_len(void **start)
 
 static void buffer_check_memory(void **start)
 {
-   /*  printf("press enter for continue\n");
-    getchar(); */
+
     unused(start);
 
     unused(start);
@@ -406,14 +405,12 @@ static void buffer_check_memory(void **start)
         rebrick_buffer_destroy(tmp);
     }
 
-    /* printf("for exit press enter");
-    getchar(); */
+
 }
 
 static void buffer_check_memory2(void **start)
 {
-  /*   printf("press enter for continue\n");
-    getchar(); */
+
     unused(start);
     unused(start);
 #undef LIST_SIZE
@@ -440,8 +437,7 @@ static void buffer_check_memory2(void **start)
 
     }
 
-  /*   printf("for exit press enter");
-    getchar(); */
+
 }
 
 int test_rebrick_buffer(void)

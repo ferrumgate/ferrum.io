@@ -41,9 +41,18 @@ static int teardown(void **state)
     return 0;
 }
 
+
+int32_t on_error_occured_callback(rebrick_async_socket_t *socket,void *callback,int error){
+    unused(socket);
+    unused(callback);
+    unused(error);
+    rebrick_async_tlssocket_destroy(cast(socket, rebrick_async_tlssocket_t *));
+    return REBRICK_SUCCESS;
+}
+
 int32_t is_connected = 1;
 
-int32_t after_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     is_connected = status;
     unused(callback_data);
@@ -53,7 +62,7 @@ int32_t after_connection_accepted_callback(rebrick_async_socket_t *socket, void 
     return REBRICK_SUCCESS;
 }
 int32_t is_connection_closed = 0;
-int32_t after_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
+int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
@@ -64,7 +73,7 @@ int32_t after_connection_closed_callback(rebrick_async_socket_t *socket, void *c
 int32_t is_datareaded = 0;
 int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -72,20 +81,15 @@ static int32_t after_data_read_callback(rebrick_async_socket_t *socket, void *ca
     unused(buffer);
     unused(len);
     unused(callback_data);
-    if (len > 0)
-    {
+
         is_datareaded = 1;
         fill_zero(readedbuffer, sizeof(readedbuffer));
 
         memcpy(readedbuffer, buffer, len);
 
         totalreaded_len += len;
-    }
-    else
-    {
-        rebrick_async_tlssocket_destroy(cast(socket, rebrick_async_tlssocket_t *));
-    }
-    //printf("totalreaded len:%d\n",totalreaded_len);
+
+
     return 0;
 }
 
@@ -100,7 +104,7 @@ static void ssl_client(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_async_tlssocket_t *tlsclient;
-    result = rebrick_async_tlssocket_new(&tlsclient, context_verify_none, destination, NULL, after_connection_accepted_callback, after_connection_closed_callback, after_data_read_callback, NULL, 0);
+    result = rebrick_async_tlssocket_new(&tlsclient, context_verify_none, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_error_occured_callback, 0);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -162,20 +166,24 @@ Accept: text/html\r\n\
     }
 }
 
+int32_t on_serverconnection_error_occured_callback(rebrick_async_socket_t *socket,void *callbackdata,int error){
+    unused(socket);
+    unused(callbackdata);
+    unused(error);
+    rebrick_async_tlssocket_destroy(cast(socket, rebrick_async_tlssocket_t *));
+
+    return REBRICK_SUCCESS;
+}
 int32_t server_connection_status = 1;
 int32_t client_count = 0;
-int32_t after_serverconnection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+int32_t on_serverconnection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     server_connection_status = status;
     unused(callback_data);
     unused(addr);
     unused(client_handle);
     unused(socket);
-    if (status)
-    {
-        printf("status problem\n");
-        return status;
-    }
+
     assert_non_null(client_handle);
 
     client_count++;
@@ -204,7 +212,7 @@ content-length:52\r\n\
     }
     return REBRICK_SUCCESS;
 }
-int32_t after_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle, void *callback_data)
+int32_t on_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle, void *callback_data)
 {
     unused(callback_data);
 
@@ -220,7 +228,7 @@ int32_t after_serverconnection_closed_callback(rebrick_async_socket_t *sockethan
 int32_t datareadedserver = 0;
 static char readedbufferserver[65536 * 2] = {0};
 
-static int32_t after_serverdata_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_serverdata_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(addr);
@@ -228,18 +236,13 @@ static int32_t after_serverdata_read_callback(rebrick_async_socket_t *socket, vo
     unused(socket);
     unused(callback_data);
     unused(len);
-    if (len > 0)
-    {
+
         datareadedserver = 1;
         memset(readedbufferserver, 0, sizeof(readedbufferserver));
         memcpy(readedbufferserver, buffer, len);
         totalreaded_len += len;
-    }
-    else
-    {
-        rebrick_async_tlssocket_destroy(cast(socket, rebrick_async_tlssocket_t *));
-    }
-    //printf("totalreaded len:%d\n",totalreaded_len);
+
+
     return 0;
 }
 
@@ -258,7 +261,7 @@ static void ssl_server(void **start)
     rebrick_util_ip_port_to_addr("0.0.0.0", "9797", &listen);
     client_count = 0;
     rebrick_async_tlssocket_t *tlsserver;
-    result = rebrick_async_tlssocket_new(&tlsserver, context_server, listen, NULL, after_serverconnection_accepted_callback, after_serverconnection_closed_callback, after_serverdata_read_callback, NULL, 100);
+    result = rebrick_async_tlssocket_new(&tlsserver, context_server, listen, NULL, on_serverconnection_accepted_callback, on_serverconnection_closed_callback, on_serverdata_read_callback, NULL,on_serverconnection_error_occured_callback, 100);
     assert_int_equal(result, 0);
     int counter = 10000;
     server_connection_status = 1;
@@ -300,7 +303,7 @@ static void ssl_client_verify(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_async_tlssocket_t *tlsclient;
-    result = rebrick_async_tlssocket_new(&tlsclient, context_verify, destination, NULL, after_connection_accepted_callback, after_connection_closed_callback, after_data_read_callback, NULL, 0);
+    result = rebrick_async_tlssocket_new(&tlsclient, context_verify, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_serverconnection_error_occured_callback, 0);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -359,7 +362,7 @@ static void ssl_client_download_data(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_async_tlssocket_t *tlsclient;
-    result = rebrick_async_tlssocket_new(&tlsclient, context_verify_none, destination, NULL, after_connection_accepted_callback, after_connection_closed_callback, after_data_read_callback, NULL, 0);
+    result = rebrick_async_tlssocket_new(&tlsclient, context_verify_none, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_error_occured_callback, 0);
     assert_int_equal(result, 0);
     int counter = 100;
     is_connected = 1;

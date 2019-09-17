@@ -74,7 +74,7 @@ static void *threaded_listen(void *data)
     while (client_fd==-1 && work)
     {
         clientfd_tmp = accept(server_fd, (struct sockaddr *)&client, &client_len);
-        //printf("client_fd is %d\n",clientfd_tmp);
+
         if (clientfd_tmp > 0)
         {
             fcntl(clientfd_tmp, F_SETFL, O_NONBLOCK);
