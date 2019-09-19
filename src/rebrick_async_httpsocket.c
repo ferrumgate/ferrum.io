@@ -98,10 +98,10 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
     if (!httpsocket->is_header_parsed)
     {
         if (httpsocket->tmp_buffer)
-            result=rebrick_buffer_add(httpsocket->tmp_buffer, cast(buffer, uint8_t *), len);
+            result=rebrick_buffers_add(httpsocket->tmp_buffer, cast(buffer, uint8_t *), len);
         else
         {
-            result=rebrick_buffer_new(&httpsocket->tmp_buffer, cast(buffer, uint8_t *), len, REBRICK_HTTP_BUFFER_MALLOC);
+            result=rebrick_buffers_new(&httpsocket->tmp_buffer, cast(buffer, uint8_t *), len, REBRICK_HTTP_BUFFER_MALLOC);
         }
 
         if(result<0){
@@ -113,12 +113,13 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 
         char *tmparray;
         size_t tmparray_len;
-        result = rebrick_buffer_to_array(httpsocket->tmp_buffer, &tmparray, &tmparray_len);
+        result = rebrick_buffers_to_array(httpsocket->tmp_buffer, &tmparray, &tmparray_len);
         if (result < 0)
         {
-           call_received_error(httpsocket,result);
+            call_received_error(httpsocket,result);
             return len;
         }
+
 
 
         free(tmparray);

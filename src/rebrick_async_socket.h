@@ -22,7 +22,7 @@ typedef int32_t (*rebrick_on_data_received_callback_t)(struct rebrick_async_sock
  * @param socket which socket used
  * @param callback_data,  this parameter is setted when called rebrick_async_xxxsocket_new(......,callback_data,.......)
  * @param after_sendata,  this parameters will be sended to this function
- * @param status, result of operation, if status=0 SUCCESS otherwise ERROR
+ * @param status,  status=0 SUCCESS
  */
 typedef int32_t (*rebrick_on_data_sended_callback_t)(struct rebrick_async_socket *socket, void *callback_data,void *source,int status);
 

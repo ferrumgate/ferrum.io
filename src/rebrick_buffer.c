@@ -1,214 +1,125 @@
 #include "rebrick_buffer.h"
 
-int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len,size_t malloc_size)
+int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len, size_t malloc_size)
 {
+
     char current_time_str[32] = {0};
     unused(current_time_str);
     if (!buffer || !buf || !len)
         return REBRICK_ERR_BAD_ARGUMENT;
-
-    if(!malloc_size)
-    malloc_size=(size_t)1024;
+    if (!malloc_size)
+        malloc_size = (size_t)1024;
 
     rebrick_buffer_t *buf_tmp = new (rebrick_buffer_t);
     constructor(buf_tmp, rebrick_buffer_t);
+    buf_tmp->malloc_size = malloc_size;
 
-    buf_tmp->head_page = NULL;
-    buf_tmp->malloc_size=malloc_size;
-    int32_t default_malloc_size=malloc_size;
-    int32_t copied_size;
-    int32_t remain_size = len;
-    int32_t total_size = 0;
-    while (remain_size > 0)
+    size_t m_len = 0;
+
+    if (buf_tmp->malloc_len - buf_tmp->len < len)
     {
-        rebrick_buffer_page_t *tmp = new (rebrick_buffer_page_t);
-        constructor(tmp, rebrick_buffer_page_t);
-        tmp->buf=malloc(default_malloc_size);
-        if_is_null_then_die(tmp->buf,"malloc problem\n");
-        memset(tmp->buf,0,default_malloc_size);
+        m_len = ((len + malloc_size - 1) / malloc_size) * malloc_size;
 
-        copied_size = remain_size > default_malloc_size ? default_malloc_size : remain_size;
-        memcpy(tmp->buf, buf + total_size, copied_size);
-        total_size += copied_size;
-        remain_size -= copied_size;
-        tmp->len = copied_size;
-
-        DL_APPEND(buf_tmp->head_page, tmp);
+        buf_tmp->buf = realloc(buf_tmp->buf, m_len);
+        if_is_null_then_die(buf_tmp->buf, "malloc problem\n");
     }
+    memcpy(buf_tmp->buf + buf_tmp->len, buf, len);
+    buf_tmp->len += len;
+    buf_tmp->malloc_len += m_len;
+
     *buffer = buf_tmp;
     return REBRICK_SUCCESS;
 }
 
+/**
+ * @brief destroys a buffer
+ *
+ * @param buffer
+ * @return int32_t return REBRICK_SUCCESS otherwise error
+ */
 int32_t rebrick_buffer_destroy(rebrick_buffer_t *buffer)
 {
+    char current_time_str[32] = {0};
+    unused(current_time_str);
     if (buffer)
     {
-
-        char current_time_str[32] = {0};
-        unused(current_time_str);
-        if (buffer->head_page)
-        {
-            rebrick_buffer_page_t *elt, *tmp;
-            DL_FOREACH_SAFE(buffer->head_page, elt, tmp)
-            {
-                DL_DELETE(buffer->head_page, elt);
-                if(elt->buf)
-                free(elt->buf);
-                free(elt);
-            }
-        }
+        if (buffer->buf)
+            free(buffer->buf);
         free(buffer);
     }
     return REBRICK_SUCCESS;
 }
 
+/**
+ * @brief add a new buffer to head of buffers
+ *
+ * @param buffer
+ * @param buf
+ * @param len
+ * @return int32_t
+ */
 int32_t rebrick_buffer_add(rebrick_buffer_t *buffer, uint8_t *buf, size_t len)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
-
     if (!buffer || !buf || !len)
         return REBRICK_ERR_BAD_ARGUMENT;
 
-    rebrick_buffer_page_t *last_elm = buffer->head_page->prev;
-    if (!last_elm)
-        last_elm = buffer->head_page;
+    size_t m_len = 0;
+    size_t malloc_size = buffer->malloc_size;
 
-    size_t default_malloc_size=buffer->malloc_size;
-    int32_t space_len;
-
-    int32_t copied_size;
-    int32_t remain_size = len;
-    int32_t total_size = 0;
-    while (remain_size > 0)
+    if (buffer->malloc_len - buffer->len < len)
     {
-        space_len = default_malloc_size - last_elm->len;
-        copied_size = remain_size > space_len ? space_len : remain_size;
-        if (copied_size == 0)
-        {
-            rebrick_buffer_page_t *tmp = new (rebrick_buffer_page_t);
-            constructor(tmp, rebrick_buffer_page_t);
-            tmp->buf=malloc(default_malloc_size);
-            if_is_null_then_die(tmp->buf,"malloc problem\n");
-            memset(tmp->buf,0,default_malloc_size);
-            last_elm = tmp;
-            DL_APPEND(buffer->head_page, tmp);
-            space_len = default_malloc_size - last_elm->len;
-            copied_size = remain_size > space_len ? space_len : remain_size;
-        }
-        memcpy(last_elm->buf + last_elm->len, buf + total_size, copied_size);
-        total_size += copied_size;
-        remain_size -= copied_size;
-        last_elm->len += copied_size;
+        m_len = ((abs(buffer->malloc_len-buffer->len-len) + malloc_size - 1) / malloc_size) * malloc_size+buffer->malloc_len;
+
+        buffer->buf = realloc(buffer->buf, m_len);
+        if_is_null_then_die(buffer->buf, "malloc problem\n");
+        m_len=m_len-buffer->malloc_len;
     }
+    memcpy(buffer->buf + buffer->len, buf, len);
+    buffer->len += len;
+    buffer->malloc_len += m_len;
 
     return REBRICK_SUCCESS;
 }
 
+/**
+ * @brief removes a part of buffer
+ *
+ * @param buffer
+ * @param start
+ * @param count
+ * @return int32_t
+ */
 int32_t rebrick_buffer_remove(rebrick_buffer_t *buffer, size_t start, size_t count)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
-    if (!buffer || !buffer->head_page || !buffer->head_page->buf || !count)
+    if (!buffer || !count)
         return REBRICK_ERR_BAD_ARGUMENT;
-    int32_t default_malloc_size=buffer->malloc_size;
-    rebrick_buffer_page_t *head = buffer->head_page;
-    rebrick_buffer_page_t *start_page = head;
-    rebrick_buffer_page_t *del_point;
-    //int32_t s_len=0;
-    int32_t s_count = count;
-    int32_t s_removelen = 0;
-    int32_t offset = 0;
-    //find start page
-    while (offset + start_page->len <= start)
-    {
-        offset += start_page->len;
-        start_page = start_page->next;
-    }
-    //bulunan page te başlama noktası
-    offset = start - offset;
-    while (s_count > 0 && start_page)
-    {
-        s_removelen = s_count > default_malloc_size ? default_malloc_size : s_count;
-        if (s_removelen == (int32_t)start_page->len)
-        { //page tamamem silinecek demektir
-            s_count -= start_page->len;
-            del_point = start_page;
-            start_page = start_page->next;
-            DL_DELETE(head, del_point);
-            if(del_point->buf)
-            free(del_point->buf);
-            free(del_point);
-            buffer->head_page = head;
-        }
-        else
-        {
-            uint8_t tmp[default_malloc_size];// = {0};
-            if (offset)
-            {
-                memcpy(tmp, start_page->buf, offset);
-                memcpy(tmp + offset, start_page->buf + offset+s_removelen, start_page->len - offset - s_removelen);
-            }
-            else
-            {
-                memcpy(tmp, start_page->buf + offset + s_removelen, start_page->len - offset - s_removelen);
-            }
 
-            memcpy(start_page->buf, tmp, default_malloc_size);
-            s_count -= start_page->len;
-            start_page->len -= s_removelen;
-        }
+    if (start >= buffer->len)
+        return REBRICK_ERR_BAD_ARGUMENT;
+    if (start + count >= buffer->len)
+    {
+        count = buffer->len - start;
+    }
+    if (!count)
+        return REBRICK_ERR_BAD_ARGUMENT;
+    size_t size = buffer->len - count;
+    if(start+count<buffer->len)
+    memmove(buffer->buf + start, buffer->buf + start + count, size);
+    buffer->len -= count;
+
+    size_t total_len_must_be = ((buffer->len + (buffer->malloc_size - 1)) / buffer->malloc_size) * buffer->malloc_size;
+    if(total_len_must_be==0)
+    total_len_must_be=buffer->malloc_size;
+
+    if (total_len_must_be != buffer->malloc_len)
+    {
+        buffer->buf = realloc(buffer->buf, total_len_must_be);
+        buffer->malloc_len = total_len_must_be;
     }
 
     return REBRICK_SUCCESS;
-}
-
-int32_t rebrick_buffer_total_len(rebrick_buffer_t *buffer)
-{
-    char current_time_str[32] = {0};
-    unused(current_time_str);
-    if (!buffer)
-        return REBRICK_ERR_BAD_ARGUMENT;
-    if (!buffer->head_page)
-        return 0;
-    int32_t sum = 0;
-    rebrick_buffer_page_t *tmp;
-    DL_FOREACH(buffer->head_page, tmp)
-    {
-        sum += tmp->len;
-    }
-
-    return sum;
-}
-
-
-int32_t rebrick_buffer_to_array(rebrick_buffer_t *buffer,char **array,size_t *arr_len){
-     char current_time_str[32] = {0};
-    unused(current_time_str);
-    *arr_len=0;
-    *array=NULL;
-    if(buffer){
-        char *temp=NULL;
-        int32_t sum = 0;
-        rebrick_buffer_page_t *tmp;
-        DL_FOREACH(buffer->head_page, tmp)
-        {
-            sum += tmp->len;
-        }
-        temp=malloc(sum);
-        if_is_null_then_die(temp,"malloc problem\n");
-
-        int32_t index=0;
-        DL_FOREACH(buffer->head_page, tmp)
-        {
-            memcpy(temp+index,tmp->buf,tmp->len);
-            index += tmp->len;
-        }
-        *array=temp;
-        *arr_len=sum;
-
-    }
-    return REBRICK_SUCCESS;
-
-
 }

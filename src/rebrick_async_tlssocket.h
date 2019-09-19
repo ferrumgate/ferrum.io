@@ -3,11 +3,11 @@
 
 #include "rebrick_tls.h"
 #include "rebrick_async_tcpsocket.h"
-#include "rebrick_buffer.h"
+#include "rebrick_buffers.h"
 
 protected_ typedef struct pending_data{
     base_object();
-    rebrick_buffer_t *data;
+    rebrick_buffers_t *data;
     rebrick_clean_func_t *clean_func;
     struct pending_data *prev,*next;
 }pending_data_t;

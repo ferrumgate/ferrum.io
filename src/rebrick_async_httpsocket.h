@@ -3,12 +3,12 @@
 #define __REBRICK_ASYNC_HTTPSOCKET_H__
 
 #include "rebrick_async_tlssocket.h"
-#include "rebrick_buffer.h"
+#include "rebrick_buffers.h"
 #include "./lib/picohttpparser.h"
 
 
 
-
+#define REBRICK_HTTP_MAX_HEADER_LEN 8192
 #define REBRICK_HTTP_MAX_HOSTNAME_LEN 1024
 #define REBRICK_HTTP_MAX_URI_LEN 8192
 #define REBRICK_HTTP_MAX_PATH_LEN 8192
@@ -30,7 +30,7 @@ public_ typedef struct rebrick_http_header{
 
 /* public_ typedef struct rebrick_http_body{
      base_object();
-    public_ rebrick_buffer_t *body;
+    public_ rebrick_buffers_t *body;
 
 
 }rebrick_http_body_t; */
@@ -73,8 +73,13 @@ public_ typedef struct rebrick_async_httpsocket
 
     private_ rebrick_http_header_t *header;
 
-    private_ rebrick_buffer_t *tmp_buffer;
+    private_ rebrick_buffers_t *tmp_buffer;
     private_ int32_t is_header_parsed;
+
+    struct{
+       size_t buflen, prevbuflen , method_len, path_len, num_headers;
+    }parsing_params;
+
 
 
 

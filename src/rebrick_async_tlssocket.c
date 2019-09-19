@@ -167,7 +167,7 @@ void flush_buffers(struct rebrick_async_tlssocket *tlssocket)
         DL_FOREACH_SAFE(tlssocket->pending_write_list, el, tmp)
         {
             char *tmpbuffer = NULL;
-            result = rebrick_buffer_to_array(el->data, &tmpbuffer, &len);
+            result = rebrick_buffers_to_array(el->data, &tmpbuffer, &len);
             int32_t writen_len = 0;
             int32_t temp_len = len;
             error_occured = 0;
@@ -223,7 +223,7 @@ void flush_buffers(struct rebrick_async_tlssocket *tlssocket)
                                 free(holder);
                                 free(tmpbuffer);
                             }
-                            rebrick_buffer_destroy(el->data);
+                            rebrick_buffers_destroy(el->data);
 
                             el->data = NULL;
                         }
@@ -428,7 +428,7 @@ static int32_t local_on_connection_closed_callback(rebrick_async_socket_t *socke
     pending_data_t *el, *tmp;
     DL_FOREACH_SAFE(tlssocket->pending_write_list, el, tmp)
     {
-        rebrick_buffer_destroy(el->data);
+        rebrick_buffers_destroy(el->data);
         DL_DELETE(tlssocket->pending_write_list, el);
         rebrick_clean_func_t  *deletedata=el->clean_func;
         free(el);
@@ -477,7 +477,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 
 
 
-    rebrick_buffer_t *readedbuffer = NULL;
+    rebrick_buffers_t *readedbuffer = NULL;
     size_t tmp_len = len;
     while (tmp_len)
     {
@@ -486,7 +486,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         if (n <= 0)
         {
             rebrick_log_error("ssl bio write failed\n");
-            rebrick_buffer_destroy(readedbuffer);
+            rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
             tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, REBRICK_ERR_TLS_WRITE);
             return REBRICK_ERR_TLS_WRITE;
@@ -505,7 +505,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         {
 
             rebrick_log_error("ssl status failed 1 %d:%d\n",n, result);
-            rebrick_buffer_destroy(readedbuffer);
+            rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
             tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, result);
             return result;
@@ -521,9 +521,9 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 
                 //okunan byteları
                 if (!readedbuffer)
-                    rebrick_buffer_new(&readedbuffer, (uint8_t *)buftemp, (size_t)n, REBRICK_BUFFER_MALLOC_SIZE);
+                    rebrick_buffers_new(&readedbuffer, (uint8_t *)buftemp, (size_t)n, REBRICK_BUFFER_MALLOC_SIZE);
                 else
-                    rebrick_buffer_add(readedbuffer, (uint8_t *)buftemp, (size_t)n);
+                    rebrick_buffers_add(readedbuffer, (uint8_t *)buftemp, (size_t)n);
             }
         } while (n > 0);
         status = check_ssl_status(tlssocket, n);
@@ -531,7 +531,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         if (status==REBRICK_ERR_TLS_ERR)
         {
              rebrick_log_error("ssl status failed 2 %d:%d\n",n,status);
-            rebrick_buffer_destroy(readedbuffer);
+            rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
            tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, status);
 
@@ -545,7 +545,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
     {
         size_t array_len = 0;
         char *array;
-        result = rebrick_buffer_to_array(readedbuffer, &array, &array_len);
+        result = rebrick_buffers_to_array(readedbuffer, &array, &array_len);
 
         if (array_len)
         {
@@ -554,7 +554,7 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
         }
     }
 
-    rebrick_buffer_destroy(readedbuffer);
+    rebrick_buffers_destroy(readedbuffer);
     return REBRICK_SUCCESS;
 }
 
@@ -719,7 +719,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
         return REBRICK_ERR_IO_CLOSED;
     }
 
-    rebrick_buffer_t *buffertmp = NULL;
+    rebrick_buffers_t *buffertmp = NULL;
     int32_t writen_len = 0;
     int32_t temp_len = len;
     while (writen_len < temp_len)
@@ -737,9 +737,9 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
                 if (n > 0)
                 {
                     if (!buffertmp)
-                        rebrick_buffer_new(&buffertmp, (uint8_t *)buftemp, (size_t)n, REBRICK_BUFFER_MALLOC_SIZE);
+                        rebrick_buffers_new(&buffertmp, (uint8_t *)buftemp, (size_t)n, REBRICK_BUFFER_MALLOC_SIZE);
                     else
-                        rebrick_buffer_add(buffertmp, (uint8_t *)buftemp, (size_t)n);
+                        rebrick_buffers_add(buffertmp, (uint8_t *)buftemp, (size_t)n);
                 }
                 else if (!BIO_should_retry(socket->tls->write))
                 {
@@ -754,7 +754,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
             //ssl problemli ise sonra yazalım
             pending_data_t *data = new (pending_data_t);
             constructor(data, pending_data_t);
-            rebrick_buffer_new(&data->data, (uint8_t *)(buffer + writen_len), (size_t)(temp_len - writen_len), REBRICK_BUFFER_MALLOC_SIZE);
+            rebrick_buffers_new(&data->data, (uint8_t *)(buffer + writen_len), (size_t)(temp_len - writen_len), REBRICK_BUFFER_MALLOC_SIZE);
 
             rebrick_clean_func_clone(&cleanfuncs,data->clean_func);
 
@@ -765,7 +765,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
         else if (result==REBRICK_ERR_TLS_ERR)
         {
             rebrick_log_error("tls failed\n");
-            rebrick_buffer_destroy(buffertmp);
+            rebrick_buffers_destroy(buffertmp);
             return result;
         }
     }
@@ -774,7 +774,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
     {
         char *tmpbuffer = NULL;
         size_t tmplen = 0;
-        rebrick_buffer_to_array(buffertmp, &tmpbuffer, &tmplen);
+        rebrick_buffers_to_array(buffertmp, &tmpbuffer, &tmplen);
         if (tmplen)
         {
             send_data_holder_t *holder = new (send_data_holder_t);
@@ -793,7 +793,7 @@ int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *bu
                 free(tmpbuffer);
             }
         }
-        rebrick_buffer_destroy(buffertmp);
+        rebrick_buffers_destroy(buffertmp);
     }
 
     flush_buffers(socket);
