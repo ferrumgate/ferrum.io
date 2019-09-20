@@ -42,7 +42,7 @@ static int teardown(void **state)
 }
 
 
-int32_t on_error_occured_callback(rebrick_async_socket_t *socket,void *callback,int error){
+static int32_t on_error_occured_callback(rebrick_async_socket_t *socket,void *callback,int error){
     unused(socket);
     unused(callback);
     unused(error);
@@ -50,9 +50,9 @@ int32_t on_error_occured_callback(rebrick_async_socket_t *socket,void *callback,
     return REBRICK_SUCCESS;
 }
 
-int32_t is_connected = 1;
+static int32_t is_connected = 1;
 
-int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     is_connected = status;
     unused(callback_data);
@@ -61,8 +61,8 @@ int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, void *ca
     unused(socket);
     return REBRICK_SUCCESS;
 }
-int32_t is_connection_closed = 0;
-int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
+static int32_t is_connection_closed = 0;
+static int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
@@ -70,8 +70,8 @@ int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, void *call
 
     return REBRICK_SUCCESS;
 }
-int32_t is_datareaded = 0;
-int32_t totalreaded_len = 0;
+static int32_t is_datareaded = 0;
+static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
 static int32_t on_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
@@ -166,7 +166,7 @@ Accept: text/html\r\n\
     }
 }
 
-int32_t on_serverconnection_error_occured_callback(rebrick_async_socket_t *socket,void *callbackdata,int error){
+static int32_t on_serverconnection_error_occured_callback(rebrick_async_socket_t *socket,void *callbackdata,int error){
     unused(socket);
     unused(callbackdata);
     unused(error);
@@ -174,9 +174,9 @@ int32_t on_serverconnection_error_occured_callback(rebrick_async_socket_t *socke
 
     return REBRICK_SUCCESS;
 }
-int32_t server_connection_status = 1;
-int32_t client_count = 0;
-int32_t on_serverconnection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static int32_t server_connection_status = 1;
+static int32_t client_count = 0;
+static int32_t on_serverconnection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     server_connection_status = status;
     unused(callback_data);
@@ -212,7 +212,8 @@ content-length:52\r\n\
     }
     return REBRICK_SUCCESS;
 }
-int32_t on_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle, void *callback_data)
+
+static int32_t on_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle, void *callback_data)
 {
     unused(callback_data);
 
@@ -225,7 +226,7 @@ int32_t on_serverconnection_closed_callback(rebrick_async_socket_t *sockethandle
     //rebrick_async_tlssocket_destroy(socket);
     return REBRICK_SUCCESS;
 }
-int32_t datareadedserver = 0;
+static int32_t datareadedserver = 0;
 static char readedbufferserver[65536 * 2] = {0};
 
 static int32_t on_serverdata_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)

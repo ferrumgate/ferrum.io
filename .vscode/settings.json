@@ -26,6 +26,7 @@
         "rebrick_async_udpsocket.h": "c",
         "rebrick_util.h": "c",
         "rebrick_tls.h": "c",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "typeinfo": "c"
     }
 }

@@ -28,7 +28,7 @@
 #define picohttpparser_h
 
 #include <sys/types.h>
-#include "uthash.h"
+
 
 #ifdef _MSC_VER
 #define ssize_t intptr_t
@@ -45,7 +45,7 @@ struct phr_header {
     size_t name_len;
     const char *value;
     size_t value_len;
-    UT_hash_handle hashtable;
+
 
 };
 

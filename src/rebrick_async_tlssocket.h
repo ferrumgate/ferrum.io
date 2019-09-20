@@ -63,7 +63,7 @@ int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *socket, const re
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
+                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,rebrick_async_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_async_tlssocket_destroy(rebrick_async_tlssocket_t *socket);
 int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);

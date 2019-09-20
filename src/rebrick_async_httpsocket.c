@@ -3,7 +3,151 @@
 #define REBRICK_HTTP_BUFFER_MALLOC 8192
 
 
-static int32_t local_on_error_occured_callback(rebrick_async_socket_t *socket,void *callbackdata,int error){
+
+
+
+int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue,const char *key,const char *value){
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+    size_t keylen=0;
+    if(key)strlen(key);
+    size_t valuelen=0;
+    if(value)strlen(value);
+     rebrick_http_key_value_t *tmp = malloc(sizeof(rebrick_http_key_value_t));
+    if_is_null_then_die(tmp, "malloc problem\n");
+    tmp->key = malloc(keylen + 1);
+    if_is_null_then_die(tmp->key, "malloc problem\n");
+    memset(tmp->key, 0, keylen + 1);
+    if(key)
+    memcpy(tmp->key, key, keylen);
+    tmp->value = malloc(valuelen + 1);
+    if_is_null_then_die(tmp->value, "malloc problem\n");
+    memset(tmp->value, 0, valuelen + 1);
+    if(value)
+    memcpy(tmp->value, value, valuelen);
+    tmp->keylen=keylen;
+    tmp->valuelen=valuelen;
+    *keyvalue=tmp;
+
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_http_key_value_new2(rebrick_http_key_value_t **keyvalue,const void *key,size_t keylen,const void *value,size_t valuelen){
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+
+
+     rebrick_http_key_value_t *tmp = malloc(sizeof(rebrick_http_key_value_t));
+    if_is_null_then_die(tmp, "malloc problem\n");
+    tmp->key = malloc(keylen + 1);
+    if_is_null_then_die(tmp->key, "malloc problem\n");
+    memset(tmp->key, 0, keylen + 1);
+    if(key)
+    memcpy(tmp->key, key, keylen);
+    tmp->value = malloc(valuelen + 1);
+    if_is_null_then_die(tmp->value, "malloc problem\n");
+    memset(tmp->value, 0, valuelen + 1);
+    if(value)
+    memcpy(tmp->value, value, valuelen);
+    tmp->keylen=keylen;
+    tmp->valuelen=valuelen;
+    *keyvalue=tmp;
+
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_http_key_value_destroy(rebrick_http_key_value_t *keyvalue){
+    if(keyvalue){
+        if(keyvalue->key)
+            free(keyvalue->key);
+
+        if(keyvalue->value)
+        free(keyvalue->value);
+        free(keyvalue);
+    }
+}
+
+
+
+int32_t rebrick_http_header_new(rebrick_http_header_t **header,const char *path,const char *method,int32_t major_version){
+
+    return rebrick_http_header_new2(header,path,method,major_version,major_version==1?1:0);
+
+}
+int32_t rebrick_http_header_new2(rebrick_http_header_t **header,const char *path,const char *method,int8_t major,int8_t minor){
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    if(!path || !method)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    rebrick_http_header_t *tmp=new(rebrick_http_header_t);
+    constructor(tmp,rebrick_http_header_t);
+
+    size_t path_len=strlen(path);
+    size_t method_len=strlen(method);
+    if(path_len>REBRICK_HTTP_MAX_PATH_LEN-1)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    if(method_len>REBRICK_HTTP_MAX_METHOD_LEN-1)
+    return REBRICK_ERR_BAD_ARGUMENT;
+
+    strcpy(tmp->path,path);
+    strcpy(tmp->method,method);
+    tmp->major_version=major;
+    tmp->minor_version=minor;
+
+    *header=tmp;
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_http_header_add_header(rebrick_http_header_t *header,const char *key,const char*value){
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if(!header || !key || !value)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    rebrick_http_key_value_t *keyvalue;
+    result=rebrick_http_key_value_new(&keyvalue,key,value);
+    if(result)
+    return result;
+
+}
+int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header,const char *key){
+    if(!header || !key)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    rebrick_http_key_value_t *keyvalue;
+    HASH_FIND_STR(header->headers,key,keyvalue);
+    if(!keyvalue)
+    return REBRICK_ERR_NOT_FOUND;
+    return REBRICK_SUCCESS;
+}
+int32_t rebrick_http_header_remove_key(rebrick_http_header_t *header,const char *key){
+    if(!header || !key)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    rebrick_http_key_value_t *keyvalue;
+    HASH_FIND_STR(header->headers,key,keyvalue);
+    if(keyvalue){
+        HASH_DEL(header->headers,keyvalue);
+        rebrick_http_key_value_destroy(keyvalue);
+    }
+    return REBRICK_SUCCESS;
+
+}
+int32_t rebrick_http_header_destroy(rebrick_http_header_t *header){
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+    if(header){
+        rebrick_http_key_value_t *s, *tmp;
+            HASH_ITER(hh, header->headers, s, tmp)
+            {
+                HASH_DEL(header->headers,s);
+                rebrick_http_key_value_destroy(s);
+            }
+
+    }
+    return REBRICK_SUCCESS;
+}
+
+static int32_t local_on_error_occured_callback(rebrick_async_socket_t *socket, void *callbackdata, int error)
+{
     unused(socket);
     unused(callbackdata);
     unused(error);
@@ -48,7 +192,10 @@ static int32_t local_on_connection_closed_callback(rebrick_async_socket_t *socke
     {
 
         if (httpsocket->header)
-            free(httpsocket->header);
+        {
+            rebrick_http_header_destroy(httpsocket->header);
+
+        }
 
         if (httpsocket->override_override_on_connection_closed)
             httpsocket->override_on_connection_closed(socket, httpsocket->override_override_callback_data);
@@ -71,11 +218,13 @@ static int32_t local_on_data_sended_callback(rebrick_async_socket_t *socket, voi
     return REBRICK_SUCCESS;
 }
 
-#define call_received_error(httpsocket,error) \
-    if (httpsocket->override_override_on_error_occured) \
-        {\
-            httpsocket->override_override_on_error_occured(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, error);\
-        }
+
+
+#define call_on_error(httpsocket, error)                                                                                                     \
+    if (httpsocket->override_override_on_error_occured)                                                                                      \
+    {                                                                                                                                        \
+        httpsocket->override_override_on_error_occured(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, error); \
+    }
 
 static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
@@ -94,39 +243,108 @@ static int32_t local_after_data_received_callback(rebrick_async_socket_t *socket
 
     rebrick_async_httpsocket_t *httpsocket = cast_to_http_socket(socket);
 
+    if (httpsocket->override_override_on_data_received)
+        httpsocket->override_override_on_data_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr, buffer, len);
 
-    if (!httpsocket->is_header_parsed)
+    if (httpsocket->is_header_parsed)
     {
+        if (httpsocket->on_http_body_received)
+        {
+            httpsocket->on_http_body_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr,
+                                              buffer, len);
+        }
+    }
+    else
+    {
+        size_t prevbuflen = 0;
         if (httpsocket->tmp_buffer)
-            result=rebrick_buffers_add(httpsocket->tmp_buffer, cast(buffer, uint8_t *), len);
+        {
+            result = rebrick_buffer_add(httpsocket->tmp_buffer, cast(buffer, uint8_t *), len);
+            prevbuflen = httpsocket->tmp_buffer->len;
+        }
         else
         {
-            result=rebrick_buffers_new(&httpsocket->tmp_buffer, cast(buffer, uint8_t *), len, REBRICK_HTTP_BUFFER_MALLOC);
+            result = rebrick_buffer_new(&httpsocket->tmp_buffer, cast(buffer, uint8_t *), len, REBRICK_HTTP_BUFFER_MALLOC);
         }
 
-        if(result<0){
-
-            call_received_error(httpsocket,result);
-            return result;
-        }
-
-
-        char *tmparray;
-        size_t tmparray_len;
-        result = rebrick_buffers_to_array(httpsocket->tmp_buffer, &tmparray, &tmparray_len);
         if (result < 0)
         {
-            call_received_error(httpsocket,result);
-            return len;
+
+            call_on_error(httpsocket, result);
+            return result;
+        }
+        if (!httpsocket->header)
+        {
+            httpsocket->header = new (rebrick_http_header_t);
+            constructor(httpsocket->header, rebrick_http_header_t);
+            httpsocket->header->major_version = 1;
         }
 
+        httpsocket->parsing_params.num_headers = sizeof(httpsocket->parsing_params.headers) / sizeof(httpsocket->parsing_params.headers[0]);
+        ssize_t pret = phr_parse_request(cast(httpsocket->tmp_buffer->buf,const char*),
+                                         httpsocket->tmp_buffer->len,
+                                         cast(&httpsocket->parsing_params.method,const char**), &httpsocket->parsing_params.method_len,
+                                         cast(&httpsocket->parsing_params.path,const char**), &httpsocket->parsing_params.path_len,
+                                         &httpsocket->parsing_params.minor_version,
+                                         httpsocket->parsing_params.headers, &httpsocket->parsing_params.num_headers, prevbuflen);
+        if (pret == -1)
+        {
+            call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
+            return REBRICK_ERR_HTTP_HEADER_PARSE;
+        }
+        if (httpsocket->tmp_buffer->len >= REBRICK_HTTP_MAX_HEADER_LEN)
+        {
+            call_on_error(httpsocket, REBRICK_HTTP_MAX_HEADER_LEN);
+            return REBRICK_HTTP_MAX_HEADER_LEN;
+        }
+        if (pret > 0)
+        {
+            memcpy(httpsocket->header->method, httpsocket->parsing_params.method, httpsocket->parsing_params.method_len);
+            memcpy(httpsocket->header->path, httpsocket->parsing_params.path, httpsocket->parsing_params.path_len);
+            for (size_t i = 0; i < httpsocket->parsing_params.num_headers; ++i)
+            {
+                struct phr_header *header = httpsocket->parsing_params.headers + i;
+                rebrick_http_key_value_t *keyvalue;
+                result=rebrick_http_key_value_new2(&keyvalue,header->name,header->name_len,header->value,header->value_len);
+                if(result<0){
+                    //TODO burayı yazalım
+                }
+                //burayı yazalım
+                HASH_ADD_STR(httpsocket->header->headers, key, keyvalue);
+            }
+            httpsocket->is_header_parsed = TRUE;
+            httpsocket->header_len = pret;
 
-
-        free(tmparray);
+            //http header finished
+            if (httpsocket->on_http_header_received)
+                httpsocket->on_http_header_received(cast_to_base_socket(httpsocket),httpsocket->override_override_callback_data, httpsocket->header, REBRICK_SUCCESS);
+            //if there is data after header parsed in buffer
+            //call on_http_body
+            if (cast(httpsocket->tmp_buffer->len,ssize_t) > pret)
+            {
+                if (httpsocket->on_http_body_received)
+                {
+                    size_t length_remain = httpsocket->tmp_buffer->len - pret;
+                    size_t offset = httpsocket->tmp_buffer->len - length_remain;
+                    httpsocket->on_http_body_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr,
+                                                      cast(httpsocket->tmp_buffer->buf + offset,char*), length_remain);
+                }
+            }
+        }
     }
 
     return REBRICK_SUCCESS;
 }
+
+static struct rebrick_async_tcpsocket *local_create_client()
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_async_httpsocket_t *client = new (rebrick_async_httpsocket_t);
+    constructor(client, rebrick_async_httpsocket_t);
+    return cast(client, rebrick_async_tcpsocket_t *);
+}
+
 
 int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                       rebrick_on_connection_accepted_callback_t on_connection_accepted,
@@ -134,8 +352,8 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
                                       rebrick_on_data_received_callback_t on_data_received,
                                       rebrick_on_data_sended_callback_t on_data_sended,
                                       rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
-                                      rebrick_on_http_request_received_callback_t after_http_request_received,
-                                      rebrick_on_http_body_received_callback_t after_http_body_received)
+                                      rebrick_on_http_header_received_callback_t on_http_header_received,
+                                      rebrick_on_http_body_received_callback_t on_http_body_received,rebrick_async_tcpsocket_create_client_t create_client)
 
 {
     char current_time_str[32] = {0};
@@ -145,11 +363,11 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
     httpsocket->override_override_tls_context = tls_context;
     if (tls_context)
     {
-        result = rebrick_async_tlssocket_init(cast_to_tls_socket(socket), tls_context, addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient);
+        result = rebrick_async_tlssocket_init(cast_to_tls_socket(httpsocket), tls_context, addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient,create_client);
     }
     else
     {
-        result = rebrick_async_tcpsocket_init(cast_to_tcp_socket(socket), addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient, NULL);
+        result = rebrick_async_tcpsocket_init(cast_to_tcp_socket(httpsocket), addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient, create_client);
     }
     if (result < 0)
     {
@@ -161,10 +379,10 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *httpsocket, re
     httpsocket->override_override_on_connection_closed = on_connection_closed;
     httpsocket->override_override_on_data_received = on_data_received;
     httpsocket->override_override_on_data_sended = on_data_sended;
-    httpsocket->override_override_on_error_occured=on_error_occured;
+    httpsocket->override_override_on_error_occured = on_error_occured;
     httpsocket->override_override_callback_data = callback_data;
-    httpsocket->after_http_header_received = after_http_request_received;
-    httpsocket->after_http_body_received = after_http_body_received;
+    httpsocket->on_http_header_received = on_http_header_received;
+    httpsocket->on_http_body_received = on_http_body_received;
 
     return REBRICK_SUCCESS;
 }
@@ -175,8 +393,8 @@ int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket, rebric
                                      rebrick_on_data_received_callback_t on_data_received,
                                      rebrick_on_data_sended_callback_t on_data_sended,
                                      rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
-                                     rebrick_on_http_request_received_callback_t after_http_request_received,
-                                     rebrick_on_http_body_received_callback_t after_http_body_received)
+                                     rebrick_on_http_header_received_callback_t on_http_header_received,
+                                     rebrick_on_http_body_received_callback_t on_http_body_received)
 {
 
     char current_time_str[32] = {0};
@@ -187,8 +405,8 @@ int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket, rebric
     constructor(httpsocket, rebrick_async_httpsocket_t);
 
     result = rebrick_async_httpsocket_init(httpsocket, tls_context, addr,
-                                           callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended,on_error_occured, backlog_or_isclient,
-                                           after_http_request_received, after_http_body_received);
+                                           callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient,
+                                           on_http_header_received, on_http_body_received,local_create_client);
     if (result < 0)
     {
         rebrick_log_error("http socket init failed with error:%d\n", result);

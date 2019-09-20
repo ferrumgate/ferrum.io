@@ -19,6 +19,8 @@
 #include <openssl/engine.h>
 
 
+#define TRUE 1
+#define FALSE 0
 /**
  * @brief errors and success, errors < 0
  */
@@ -38,6 +40,7 @@
 #define REBRICK_ERR_IO_ERR -12
 
 
+
 #define REBRICK_ERR_TLS_INIT -20
 #define REBRICK_ERR_TLS_NEW -21
 #define REBRICK_ERR_TLS_ERR -22
@@ -45,6 +48,12 @@
 #define REBRICK_ERR_TLS_READ -24
 #define REBRICK_ERR_TLS_WRITE -25
 #define REBRICK_ERR_CLOSE -26
+
+
+#define REBRICK_ERR_NOT_FOUND -50
+
+#define REBRICK_ERR_HTTP_HEADER_PARSE -100
+
 
 #define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
 #define UV_ERR(result)  (result)-(REBRICK_ERR_UV)

@@ -585,10 +585,11 @@ static int32_t local_on_data_sended_callback(rebrick_async_socket_t *socket, voi
     return REBRICK_SUCCESS;
 }
 
-///burada ssl socket oluşturmamız lazım
-//bu fonksiyon çalışırsa inheritance çalışıyor demektirki
-//function overloading te çalışıyor.
-///muhahahahaha
+/**
+ * @brief this function creates a new instance of current instance
+ * this is function overloading
+ * @return struct rebrick_async_tcpsocket*
+ */
 static struct rebrick_async_tcpsocket *local_create_client()
 {
     char current_time_str[32] = {0};
@@ -605,7 +606,7 @@ int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *tlssocket, const
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient)
+                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,rebrick_async_tcpsocket_create_client_t create_client)
 {
 
     char current_time_str[32] = {0};
@@ -641,7 +642,7 @@ int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *tlssocket, const
     //this is OOP inheritnace with c
     //base class init function call.
     result = rebrick_async_tcpsocket_init(cast_to_tcp_socket(tlssocket), addr, tlssocket, local_on_connection_accepted_callback,
-                                          local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient, local_create_client);
+                                          local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback,local_on_error_occured_callback,  backlog_or_isclient,create_client);
     if (result)
     {
         int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
@@ -667,7 +668,7 @@ int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const re
 
      rebrick_async_tlssocket_t *tlssocket = new (rebrick_async_tlssocket_t);
     constructor(tlssocket, rebrick_async_tlssocket_t);
-    result=rebrick_async_tlssocket_init(tlssocket,tls_context,addr,callback_data,on_connection_accepted,on_connection_closed,on_data_received,on_data_sended,on_error_occured, backlog_or_isclient);
+    result=rebrick_async_tlssocket_init(tlssocket,tls_context,addr,callback_data,on_connection_accepted,on_connection_closed,on_data_received,on_data_sended,on_error_occured, backlog_or_isclient,local_create_client);
     if(result<0){
         free(tlssocket);
         rebrick_log_error("tls socket init failed with:%d\n",result);
