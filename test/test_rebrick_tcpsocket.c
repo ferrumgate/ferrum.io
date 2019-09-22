@@ -1,4 +1,4 @@
-#include "./rebrick_async_tcpsocket.h"
+#include "./rebrick_tcpsocket.h"
 #include "./server_client/tcpecho.h"
 #include "cmocka.h"
 #include "unistd.h"
@@ -20,13 +20,13 @@ static int teardown(void **state)
 }
 struct callbackdata
 {
-    rebrick_async_tcpsocket_t *client;
+    rebrick_tcpsocket_t *client;
     struct sockaddr *addr;
     char buffer[1024];
 };
 
 
-static int32_t on_error_occured(rebrick_async_socket_t *socket,void *callbackdata,int32_t error){
+static int32_t on_error_occured(rebrick_socket_t *socket,void *callbackdata,int32_t error){
     unused(socket);
     unused(callbackdata);
     unused(error);
@@ -34,7 +34,7 @@ static int32_t on_error_occured(rebrick_async_socket_t *socket,void *callbackdat
 }
 
 int client_connected = 0;
-static int32_t on_newclient_connection(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static int32_t on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(status);
     unused(socket);
@@ -49,7 +49,7 @@ static int32_t on_newclient_connection(rebrick_async_socket_t *socket, void *cal
     return 0;
 }
 
-static int32_t on_read(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -62,17 +62,17 @@ static int32_t on_read(rebrick_async_socket_t *socket, void *callback_data, cons
     return 0;
 }
 
-static void rebrick_async_tcpsocket_asserver_communication(void **start)
+static void rebrick_tcpsocket_asserver_communication(void **start)
 {
     unused(start);
     const char *port = "9999";
-    rebrick_async_tcpsocket_t *server;
+    rebrick_tcpsocket_t *server;
     rebrick_sockaddr_t addr;
     struct callbackdata data;
     int32_t result = rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
     assert_int_equal(result, 0);
 
-    result = rebrick_async_tcpsocket_new(&server, addr, &data, on_newclient_connection, NULL, on_read, NULL,on_error_occured, 10);
+    result = rebrick_tcpsocket_new(&server, addr, &data, on_newclient_connection, NULL, on_read, NULL,on_error_occured, 10);
     assert_int_equal(result, 0);
 
     client_connected = 0;
@@ -106,7 +106,7 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
 
     char *world = "world";
     rebrick_clean_func_t clean={};
-    result = rebrick_async_tcpsocket_send(data.client, world, strlen(world), clean);
+    result = rebrick_tcpsocket_send(data.client, world, strlen(world), clean);
     assert_int_equal(result, 0);
 
     //check loop
@@ -122,7 +122,7 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
     assert_int_equal(result, 5);
 
     assert_string_equal(readed, world);
-    rebrick_async_tcpsocket_destroy(data.client);
+    rebrick_tcpsocket_destroy(data.client);
 
     counter = 100;
     while (counter--)
@@ -131,7 +131,7 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
         usleep(100);
     }
 
-    rebrick_async_tcpsocket_destroy(server);
+    rebrick_tcpsocket_destroy(server);
 
     counter = 100;
     while (counter--)
@@ -144,7 +144,7 @@ static void rebrick_async_tcpsocket_asserver_communication(void **start)
 }
 
 int connected_toserver = 0;
-static int32_t on_connection_accepted(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static int32_t on_connection_accepted(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(callbackdata);
     unused(addr);
@@ -157,7 +157,7 @@ static int32_t on_connection_accepted(rebrick_async_socket_t *socket, void *call
     return 0;
 }
 
-static int32_t on_connection_closed(rebrick_async_socket_t *socket, void *callbackdata)
+static int32_t on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
 {
     unused(socket);
     unused(callbackdata);
@@ -166,7 +166,7 @@ static int32_t on_connection_closed(rebrick_async_socket_t *socket, void *callba
     return 0;
 }
 static int datareceived_ok = 0;
-static int32_t on_datarecevied(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -181,7 +181,7 @@ static int32_t on_datarecevied(rebrick_async_socket_t *socket, void *callback_da
     return 0;
 }
 
-static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
+static int32_t on_datasend(rebrick_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
     unused(source);
@@ -189,12 +189,12 @@ static int32_t on_datasend(rebrick_async_socket_t *socket, void *callback_data,v
     return status - status;
 }
 
-static void rebrick_async_tcpsocket_asclient_communication(void **start)
+static void rebrick_tcpsocket_asclient_communication(void **start)
 {
 
     unused(start);
     const char *port = "9998";
-    rebrick_async_tcpsocket_t *client;
+    rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
     rebrick_util_ip_port_to_addr("127.0.0.1", port, &addr);
     struct callbackdata data;
@@ -205,7 +205,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     result = tcp_echo_listen();
 
-    result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured, 0);
+    result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured, 0);
 
     //check a little
     int counter = 10;
@@ -241,7 +241,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     assert_string_equal(data.buffer, "deneme");
     rebrick_clean_func_t cleanfunc={};
-    rebrick_async_tcpsocket_send(client, "valla", 6, cleanfunc);
+    rebrick_tcpsocket_send(client, "valla", 6, cleanfunc);
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
@@ -249,7 +249,7 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
     tcp_echo_recv(recvbuf);
     assert_string_equal(recvbuf, "valla");
-    rebrick_async_tcpsocket_destroy(client);
+    rebrick_tcpsocket_destroy(client);
     counter = 100;
     while (counter--)
     {
@@ -262,18 +262,18 @@ static void rebrick_async_tcpsocket_asclient_communication(void **start)
 
 ////////////////////////// memory tests /////////////////////////////////////
 
-static int32_t on_error_occured_memorytest(rebrick_async_socket_t *socket,void *callbackdata,int32_t error){
+static int32_t on_error_occured_memorytest(rebrick_socket_t *socket,void *callbackdata,int32_t error){
     unused(socket);
     unused(callbackdata);
     unused(error);
-    rebrick_async_tcpsocket_destroy(cast(socket,rebrick_async_tcpsocket_t*));
+    rebrick_tcpsocket_destroy(cast(socket,rebrick_tcpsocket_t*));
     return REBRICK_SUCCESS;
 }
 
 int connected_to_memorytest = 0;
 int connected_to_memorytest_counter=0;
-rebrick_async_tcpsocket_t *connected_client;
-static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+rebrick_tcpsocket_t *connected_client;
+static int32_t on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(callbackdata);
     unused(addr);
@@ -283,13 +283,13 @@ static int32_t on_connection_accepted_memorytest(rebrick_async_socket_t *socket,
 
     connected_to_memorytest = 1;
     connected_to_memorytest_counter++;
-    connected_client = cast(client_handle, rebrick_async_tcpsocket_t *);
+    connected_client = cast(client_handle, rebrick_tcpsocket_t *);
     return 0;
 }
 
 int connection_closed_memorytest = 0;
 int connection_closed_memorytestcounter=0;
-static int32_t on_connection_closed_memorytest(rebrick_async_socket_t *socket, void *callbackdata)
+static int32_t on_connection_closed_memorytest(rebrick_socket_t *socket, void *callbackdata)
 {
     unused(socket);
     unused(callbackdata);
@@ -302,7 +302,7 @@ static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
 static int datareceived_ok_total_memorytest = 0;
 
-static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -319,7 +319,7 @@ static int32_t on_datarecevied_memorytest(rebrick_async_socket_t *socket, void *
 }
 
 static int datasended_memorytest = 0;
-static int32_t on_datasend_memorytest(rebrick_async_socket_t *socket, void *callback_data,void *source, int status)
+static int32_t on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
     unused(source);
@@ -333,12 +333,12 @@ static int32_t on_datasend_memorytest(rebrick_async_socket_t *socket, void *call
  * test folder altındaki, docker_ssl altındaki run.sh
  * @param start
  */
-static void rebrick_async_tcpsocket_asclient_memory(void **start)
+static void rebrick_tcpsocket_asclient_memory(void **start)
 {
 
     unused(start);
     const char *port = "80";
-    rebrick_async_tcpsocket_t *client;
+    rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
     rebrick_util_ip_port_to_addr("127.0.0.1", port, &addr);
     struct callbackdata data;
@@ -355,7 +355,7 @@ Accept: text/html\r\n\
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
+        int32_t result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -370,7 +370,7 @@ Accept: text/html\r\n\
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
         rebrick_clean_func_t cleanfunc={};
-        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -388,7 +388,7 @@ Accept: text/html\r\n\
         }
         assert_true(datareceived_ok_memorytest > 0);
 
-        rebrick_async_tcpsocket_destroy(client);
+        rebrick_tcpsocket_destroy(client);
         counter = 1000;
         while (--counter && !connection_closed_memorytest)
         {
@@ -404,7 +404,7 @@ static void rebrick_tcp_client_download_data(void **start)
 
     unused(start);
     const char *port = "80";
-    rebrick_async_tcpsocket_t *client;
+    rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
     rebrick_util_ip_port_to_addr("127.0.0.1", port, &addr);
     struct callbackdata data;
@@ -422,7 +422,7 @@ Accept: text/html\r\n\
     {
 
 connection_closed_memorytest = 0;
-        int32_t result = rebrick_async_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
+        int32_t result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -436,7 +436,7 @@ connection_closed_memorytest = 0;
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         rebrick_clean_func_t cleanfunc={};
-        result = rebrick_async_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         datareceived_ok_total_memorytest = 1;
@@ -449,7 +449,7 @@ connection_closed_memorytest = 0;
         if (!connection_closed_memorytest)
         {
             counter=100;
-            rebrick_async_tcpsocket_destroy(client);
+            rebrick_tcpsocket_destroy(client);
 
             while (counter-- && !connection_closed_memorytest)
             {
@@ -472,7 +472,7 @@ connection_closed_memorytest = 0;
  *
  * @param start
  */
-static void rebrick_async_tcpsocket_asserver_memory(void **start)
+static void rebrick_tcpsocket_asserver_memory(void **start)
 {
 
     unused(start);
@@ -503,13 +503,13 @@ Accept-Ranges: bytes\r\n\
 </html>";
 #undef COUNTER
 #define COUNTER 100
-    rebrick_async_tcpsocket_t *server;
+    rebrick_tcpsocket_t *server;
 
     for (int i = 0; i < COUNTER; ++i)
     {
 
         connected_client=NULL;
-        int32_t result = rebrick_async_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 10);
+        int32_t result = rebrick_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 10);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -536,7 +536,7 @@ Accept-Ranges: bytes\r\n\
         rebrick_clean_func_t cleanfunc={};
         //assert_true(datareceived_ok_memorytest > 0);
         if(connected_client)
-        result = rebrick_async_tcpsocket_send(connected_client, html, strlen(html) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(connected_client, html, strlen(html) + 1, cleanfunc);
 
         counter = 100;
         while (--counter && !datasended_memorytest)
@@ -547,7 +547,7 @@ Accept-Ranges: bytes\r\n\
         }
         //assert_int_equal(datasended_memorytest, 10); //this value is used above
 
-        rebrick_async_tcpsocket_destroy(server);
+        rebrick_tcpsocket_destroy(server);
         counter = 100;
         while (--counter && connection_closed_memorytestcounter!=2)
         {
@@ -562,14 +562,14 @@ Accept-Ranges: bytes\r\n\
     //getchar();
 }
 
-int test_rebrick_async_tcpsocket(void)
+int test_rebrick_tcpsocket(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(rebrick_async_tcpsocket_asserver_communication),
-        cmocka_unit_test(rebrick_async_tcpsocket_asclient_communication),
-         cmocka_unit_test(rebrick_async_tcpsocket_asclient_memory),
+        cmocka_unit_test(rebrick_tcpsocket_asserver_communication),
+        cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
+         cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
         cmocka_unit_test(rebrick_tcp_client_download_data),
-        cmocka_unit_test(rebrick_async_tcpsocket_asserver_memory)
+        cmocka_unit_test(rebrick_tcpsocket_asserver_memory)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

@@ -1,8 +1,8 @@
-#ifndef __REBRICK_ASYNC_TLSSOCKET_H__
-#define __REBRICK_ASYNC_TLSSOCKET_H__
+#ifndef __REBRICK_TLSSOCKET_H__
+#define __REBRICK_TLSSOCKET_H__
 
 #include "rebrick_tls.h"
-#include "rebrick_async_tcpsocket.h"
+#include "rebrick_tcpsocket.h"
 #include "rebrick_buffers.h"
 
 protected_ typedef struct pending_data{
@@ -29,16 +29,16 @@ protected_ typedef struct pending_data{
 
 
 
-public_ typedef struct rebrick_async_tlssocket
+public_ typedef struct rebrick_tlssocket
 {
     base_ssl_socket()
 
 
-} rebrick_async_tlssocket_t;
+} rebrick_tlssocket_t;
 
 
 
-#define cast_to_tls_socket(x) cast(x, rebrick_async_tlssocket_t *)
+#define cast_to_tls_socket(x) cast(x, rebrick_tlssocket_t *)
 
 /**
  * @brief
@@ -51,20 +51,20 @@ public_ typedef struct rebrick_async_tlssocket
  * @param on_data_sended
  * @return int32_t
  */
-int32_t rebrick_async_tlssocket_new(rebrick_async_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
 
-int32_t rebrick_async_tlssocket_init(rebrick_async_tlssocket_t *socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,rebrick_async_tcpsocket_create_client_t create_client);
+                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client);
 
-int32_t rebrick_async_tlssocket_destroy(rebrick_async_tlssocket_t *socket);
-int32_t rebrick_async_tlssocket_send(rebrick_async_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket);
+int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 #endif

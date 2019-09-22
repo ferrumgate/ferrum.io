@@ -6,13 +6,13 @@
 #include "./lib/uthash.h"
 #include "./lib/utlist.h"
 
-struct rebrick_async_tlssocket;
+struct rebrick_tlssocket;
 
-typedef void (*rebrick_tls_checkitem_func)(struct rebrick_async_tlssocket *socket);
+typedef void (*rebrick_tls_checkitem_func)(struct rebrick_tlssocket *socket);
 
 typedef struct rebrick_tls_checkitem{
     base_object();
-    public_ readonly_ struct rebrick_async_tlssocket *socket;
+    public_ readonly_ struct rebrick_tlssocket *socket;
     public_ readonly_ rebrick_tls_checkitem_func func;
     private_ struct rebrick_tls_checkitem *prev;
     private_ struct rebrick_tls_checkitem *next;
@@ -32,10 +32,10 @@ typedef struct rebrick_tls_checkitem_list{
 rebrick_tls_checkitem_list_t *tls_after_io_checklist;
 rebrick_tls_checkitem_list_t *tls_before_io_checklist;
 
-int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket);
-int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket);
-int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket);
-int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket);
+int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_tlssocket *socket);
+int32_t rebrick_after_io_list_remove(struct rebrick_tlssocket *socket);
+int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_tlssocket *socket);
+int32_t rebrick_before_io_list_remove(struct rebrick_tlssocket *socket);
 
 
 /**

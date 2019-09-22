@@ -23,7 +23,7 @@ static void after_io(uv_check_t *check)
     }
 }
 
-int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket)
+int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_tlssocket *socket)
 {
 
     char current_time_str[32] = {0};
@@ -51,7 +51,7 @@ int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket)
+int32_t rebrick_after_io_list_remove(struct rebrick_tlssocket *socket)
 {
 
     char current_time_str[32] = {0};
@@ -69,7 +69,7 @@ int32_t rebrick_after_io_list_remove(struct rebrick_async_tlssocket *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_async_tlssocket *socket)
+int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebrick_tlssocket *socket)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -99,7 +99,7 @@ int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebric
 
 
 
-int32_t rebrick_before_io_list_remove(struct rebrick_async_tlssocket *socket)
+int32_t rebrick_before_io_list_remove(struct rebrick_tlssocket *socket)
 {
 
     char current_time_str[32] = {0};

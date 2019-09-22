@@ -1,4 +1,4 @@
-#include "rebrick_async_httpsocket.h"
+#include "rebrick_httpsocket.h"
 #include "cmocka.h"
 #include <unistd.h>
 
@@ -122,17 +122,17 @@ static void rebrick_http_header_to_buffer_test(void **state){
 }
 
 
-static int32_t on_error_occured_callback(rebrick_async_socket_t *socket,void *callback,int error){
+static int32_t on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
     unused(socket);
     unused(callback);
     unused(error);
-    rebrick_async_tlssocket_destroy(cast(socket, rebrick_async_tlssocket_t *));
+    rebrick_tlssocket_destroy(cast(socket, rebrick_tlssocket_t *));
     return REBRICK_SUCCESS;
 }
 
 static int32_t is_connected = 1;
 
-static int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static int32_t on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     is_connected = status;
     unused(callback_data);
@@ -142,7 +142,7 @@ static int32_t on_connection_accepted_callback(rebrick_async_socket_t *socket, v
     return REBRICK_SUCCESS;
 }
 static int32_t is_connection_closed = 0;
-static int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, void *callback_data)
+static int32_t on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
@@ -153,7 +153,7 @@ static int32_t on_connection_closed_callback(rebrick_async_socket_t *socket, voi
 static int32_t is_datareaded = FALSE;
 static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static int32_t on_data_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -173,7 +173,7 @@ static int32_t on_data_read_callback(rebrick_async_socket_t *socket, void *callb
     return 0;
 }
 static int32_t sended=FALSE;
-static int32_t on_data_send(rebrick_async_socket_t *socket,void *callback,void *source,int status){
+static int32_t on_data_send(rebrick_socket_t *socket,void *callback,void *source,int status){
     unused(socket);
     unused(callback);
     unused(source);
@@ -183,7 +183,7 @@ sended=TRUE;
 
 }
 static int32_t header_received=FALSE;
-static int32_t on_http_header_received(rebrick_async_socket_t *socket,void *callback_data,rebrick_http_header_t *header,int status){
+static int32_t on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header,int status){
     unused(socket);
     unused(callback_data);
     unused(header);
@@ -196,7 +196,7 @@ static int32_t on_http_header_received(rebrick_async_socket_t *socket,void *call
 static int32_t is_bodyreaded = FALSE;
 static int32_t totalreadedbody_len = 0;
 static char readedbufferbody[131072] = {0};
-static int32_t on_body_read_callback(rebrick_async_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static int32_t on_body_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -238,10 +238,10 @@ static void http_socket_as_client_create(void **start){
 
     rebrick_util_ip_port_to_addr("127.0.0.1", "80", &destination);
 
-    rebrick_async_httpsocket_t *socket;
+    rebrick_httpsocket_t *socket;
     is_connected=0;
 
-    result = rebrick_async_httpsocket_new(&socket, NULL, destination, NULL,
+    result = rebrick_httpsocket_new(&socket, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
                 on_data_read_callback, NULL,on_error_occured_callback,0,on_http_header_received,NULL);
@@ -263,7 +263,7 @@ static void http_socket_as_client_create(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_async_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(100,(!sended));
     loop(100,!header_received);
@@ -275,14 +275,14 @@ static void http_socket_as_client_create(void **start){
 
 
 
-    rebrick_async_httpsocket_destroy(socket);
+    rebrick_httpsocket_destroy(socket);
     loop(100,TRUE);
 }
 
 
 
 
-int test_rebrick_async_httpsocket(void) {
+int test_rebrick_httpsocket(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_http_keyvalue_test),
         cmocka_unit_test(rebrick_http_keyvalue_test2),

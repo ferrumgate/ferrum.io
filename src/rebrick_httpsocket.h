@@ -1,8 +1,8 @@
 
-#ifndef __REBRICK_ASYNC_HTTPSOCKET_H__
-#define __REBRICK_ASYNC_HTTPSOCKET_H__
+#ifndef __REBRICK_HTTPSOCKET_H__
+#define __REBRICK_HTTPSOCKET_H__
 
-#include "rebrick_async_tlssocket.h"
+#include "rebrick_tlssocket.h"
 #include "rebrick_buffer.h"
 #include "./lib/picohttpparser.h"
 #include "./lib/uthash.h"
@@ -66,14 +66,14 @@ int32_t rebrick_http_header_to_buffer(rebrick_http_header_t *header,rebrick_buff
 }rebrick_http_body_t; */
 
 
-struct rebrick_async_httpsocket;
+struct rebrick_httpsocket;
 /**
  * @brief after a http header parsed, executes this callback
  * @param socket, which socket
  * @param header received header
  * @param status, result of parsing, parsed successfully or error
  */
-typedef int32_t (*rebrick_on_http_header_received_callback_t)(struct rebrick_async_socket *socket, void *callback_data, rebrick_http_header_t *header,int32_t status);
+typedef int32_t (*rebrick_on_http_header_received_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http_header_t *header,int32_t status);
 /**
  * @brief after header parsed finished, when body data starts to come,
  * this callback trigger,this is a synonym
@@ -86,7 +86,7 @@ typedef rebrick_on_data_received_callback_t rebrick_on_http_body_received_callba
  * allways executes callback when new data arrives
  *
  */
-public_ typedef struct rebrick_async_httpsocket
+public_ typedef struct rebrick_httpsocket
 {
     base_ssl_socket();
 
@@ -120,16 +120,16 @@ public_ typedef struct rebrick_async_httpsocket
 
 
 
-} rebrick_async_httpsocket_t;
+} rebrick_httpsocket_t;
 
 
 
 
-#define cast_to_http_socket(x) cast(x,rebrick_async_httpsocket_t*);
+#define cast_to_http_socket(x) cast(x,rebrick_httpsocket_t*);
 
 
 
-int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket,rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket,rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -138,7 +138,7 @@ int32_t rebrick_async_httpsocket_new(rebrick_async_httpsocket_t **socket,rebrick
                                     rebrick_on_http_header_received_callback_t on_http_header_received,
                                     rebrick_on_http_body_received_callback_t on_http_body_received);
 
-int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *socket,rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket,rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -146,9 +146,9 @@ int32_t rebrick_async_httpsocket_init(rebrick_async_httpsocket_t *socket,rebrick
                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
                                     rebrick_on_http_header_received_callback_t after_http_request_received,
                                     rebrick_on_http_body_received_callback_t after_http_body_received,
-                                    rebrick_async_tcpsocket_create_client_t create_client);
-int32_t rebrick_async_httpsocket_destroy(rebrick_async_httpsocket_t *socket);
-int32_t rebrick_async_httpsocket_send(rebrick_async_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+                                    rebrick_tcpsocket_create_client_t create_client);
+int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
+int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 
 

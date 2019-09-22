@@ -1,4 +1,4 @@
-#include "rebrick_async_udpsocket.h"
+#include "rebrick_udpsocket.h"
 
 static void on_send(uv_udp_send_t *req, int status)
 {
@@ -14,7 +14,7 @@ static void on_send(uv_udp_send_t *req, int status)
     if (req->handle && req->handle->data)
     {
 
-        const rebrick_async_udpsocket_t *socket = cast(req->handle->data, rebrick_async_udpsocket_t *);
+        const rebrick_udpsocket_t *socket = cast(req->handle->data, rebrick_udpsocket_t *);
         if (status >= 0)
         {
             if (socket->on_data_sended)
@@ -37,7 +37,7 @@ static void on_send(uv_udp_send_t *req, int status)
     }
     free(req);
 }
-int32_t rebrick_async_udpsocket_send(rebrick_async_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, char *buffer, size_t len, rebrick_clean_func_t func)
+int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, char *buffer, size_t len, rebrick_clean_func_t func)
 {
 
     char current_time_str[32] = {0};
@@ -71,7 +71,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     char current_time_str[32] = {0};
     unused(current_time_str);
     unused(flags);
-    const rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
+    const rebrick_udpsocket_t *socket = cast(handle->data, rebrick_udpsocket_t *);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
 
@@ -110,7 +110,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
     rebrick_log_debug("malloc socket:%lu %p\n", buf->len, buf->base);
 }
 
-static int32_t create_socket(rebrick_async_udpsocket_t *socket)
+static int32_t create_socket(rebrick_udpsocket_t *socket)
 {
     char current_time_str[32] = {0};
 
@@ -144,7 +144,7 @@ static int32_t create_socket(rebrick_async_udpsocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
+int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
                                     rebrick_sockaddr_t bind_addr,
                                     void *callback_data,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -155,8 +155,8 @@ int32_t rebrick_async_udpsocket_new(rebrick_async_udpsocket_t **socket,
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
-    rebrick_async_udpsocket_t *tmp = new (rebrick_async_udpsocket_t);
-    constructor(tmp, rebrick_async_udpsocket_t);
+    rebrick_udpsocket_t *tmp = new (rebrick_udpsocket_t);
+    constructor(tmp, rebrick_udpsocket_t);
 
     //burası önemli,callback data
     tmp->callback_data = callback_data;
@@ -187,13 +187,13 @@ static void on_close(uv_handle_t *handle)
     if (handle)
         if (handle->data)
         {
-            rebrick_async_udpsocket_t *socket = cast(handle->data, rebrick_async_udpsocket_t *);
+            rebrick_udpsocket_t *socket = cast(handle->data, rebrick_udpsocket_t *);
             if (socket)
                 free(socket);
         }
 }
 
-int32_t rebrick_async_udpsocket_destroy(rebrick_async_udpsocket_t *socket)
+int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
