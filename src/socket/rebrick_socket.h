@@ -2,9 +2,9 @@
 #ifndef __REBRICK_SOCKET_H__
 #define __REBRICK_SOCKET_H__
 
-#include "rebrick_common.h"
-#include "rebrick_log.h"
-#include "./lib/utlist.h"
+#include "../common/rebrick_common.h"
+#include "../common/rebrick_log.h"
+#include "../lib/utlist.h"
 
 struct rebrick_socket;
 /**

@@ -3,8 +3,8 @@
 
 #include "./rebrick_common.h"
 #include "./rebrick_log.h"
-#include "./lib/uthash.h"
-#include "./lib/utlist.h"
+#include "../lib/uthash.h"
+#include "../lib/utlist.h"
 
 struct rebrick_tlssocket;
 

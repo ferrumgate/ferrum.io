@@ -27,6 +27,10 @@
         "rebrick_util.h": "c",
         "rebrick_tls.h": "c",
         "type_traits": "cpp",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "udpecho.h": "c",
+        "tcpecho.h": "c",
+        "unistd.h": "c",
+        "cmocka.h": "c"
     }
 }

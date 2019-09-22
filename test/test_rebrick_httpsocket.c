@@ -1,4 +1,4 @@
-#include "rebrick_httpsocket.h"
+#include "./http/rebrick_httpsocket.h"
 #include "cmocka.h"
 #include <unistd.h>
 

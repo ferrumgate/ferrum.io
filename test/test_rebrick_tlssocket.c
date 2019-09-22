@@ -1,5 +1,5 @@
-#include "rebrick_tls.h"
-#include "rebrick_tlssocket.h"
+#include "./common/rebrick_tls.h"
+#include "./socket/rebrick_tlssocket.h"
 #include "cmocka.h"
 #include <unistd.h>
 #include <string.h>

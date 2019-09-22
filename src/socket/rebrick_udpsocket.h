@@ -1,5 +1,6 @@
 #ifndef __REBRICK_UDPSOCKET_H__
 #define __REBRICK_UDPSOCKET_H__
+
 #include "rebrick_socket.h"
 
 public_ typedef struct rebrick_udpsocket

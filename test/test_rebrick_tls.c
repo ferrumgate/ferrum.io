@@ -1,4 +1,4 @@
-#include "rebrick_tls.h"
+#include "./common/rebrick_tls.h"
 #include "cmocka.h"
 
 #include <unistd.h>

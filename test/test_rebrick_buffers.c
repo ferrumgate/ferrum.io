@@ -1,4 +1,4 @@
-#include "rebrick_buffers.h"
+#include "./common/rebrick_buffers.h"
 #include "cmocka.h"
 #define REBRICK_BUFFER_DEFAULT_MALLOC_SIZE 1024
 static int setup(void **state)

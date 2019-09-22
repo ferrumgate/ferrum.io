@@ -1,9 +1,9 @@
 #ifndef __REBRICK_TLSSOCKET_H__
 #define __REBRICK_TLSSOCKET_H__
 
-#include "rebrick_tls.h"
-#include "rebrick_tcpsocket.h"
-#include "rebrick_buffers.h"
+#include "../common/rebrick_tls.h"
+#include "./rebrick_tcpsocket.h"
+#include "../common/rebrick_buffers.h"
 
 protected_ typedef struct pending_data{
     base_object();

@@ -1,4 +1,4 @@
-#include "rebrick_config.h"
+#include "./common/rebrick_config.h"
 #include "cmocka.h"
 
 static int setup(void**state){

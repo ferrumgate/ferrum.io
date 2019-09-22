@@ -10,17 +10,18 @@ LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl 
 OUTPUT = rebrick
 SRC = src
 TEST = test
-OBJS = main_rebrick.o rebrick_util.o rebrick_config.o rebrick_udpsocket.o rebrick_tcpsocket.o rebrick_tls.o rebrick_tlssocket.o rebrick_httpsocket.o \
- 		rebrick_context.o rebrick_metrics.o rebrick_buffers.o rebrick_buffer.o ./lib/b64/decode.o ./lib/b64/encode.o ./lib/picohttpparser.o   \
+OBJS = main_rebrick.o ./common/rebrick_util.o ./common/rebrick_config.o ./socket/rebrick_udpsocket.o ./socket/rebrick_tcpsocket.o ./common/rebrick_tls.o \
+		 ./socket/rebrick_tlssocket.o ./http/rebrick_httpsocket.o \
+ 		./common/rebrick_context.o ./common/rebrick_metrics.o ./common/rebrick_buffers.o ./common/rebrick_buffer.o ./lib/b64/decode.o ./lib/b64/encode.o ./lib/picohttpparser.o   \
 
 OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebrick_util.o \
 			 test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
 			 test_rebrick_tls.o \
 			test_rebrick_udpsocket.o test_rebrick_tcpsocket.o test_rebrick_tlssocket.o test_rebrick_httpsocket.o test_rebrick_buffer.o test_rebrick_buffers.o \
-			../src/rebrick_config.o ../src/rebrick_util.o  ../src/rebrick_context.o ../src/rebrick_metrics.o \
-			../src/rebrick_udpsocket.o ../src/rebrick_tcpsocket.o ../src/rebrick_buffer.o ../src/rebrick_buffers.o\
+			../src/common/rebrick_config.o ../src/common/rebrick_util.o  ../src/common/rebrick_context.o ../src/common/rebrick_metrics.o \
+			../src/socket/rebrick_udpsocket.o ../src/socket/rebrick_tcpsocket.o ../src/common/rebrick_buffer.o ../src/common/rebrick_buffers.o\
 			../src/lib/b64/encode.o ../src/lib/b64/decode.o ../src/lib/picohttpparser.o \
-			../src/rebrick_tls.o ../src/rebrick_tlssocket.o ../src/rebrick_httpsocket.o
+			../src/common/rebrick_tls.o ../src/socket/rebrick_tlssocket.o ../src/http/rebrick_httpsocket.o
 
 
 

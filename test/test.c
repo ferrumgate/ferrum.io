@@ -1,7 +1,7 @@
-#include "rebrick_common.h"
+#include "./common/rebrick_common.h"
 #include "server_client/udpecho.h"
 #include "server_client/tcpecho.h"
-#include "rebrick_util.h"
+#include "./common/rebrick_util.h"
 #include "cmocka.h"
 #include <unistd.h>
 

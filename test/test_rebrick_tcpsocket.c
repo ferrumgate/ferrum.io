@@ -1,4 +1,4 @@
-#include "./rebrick_tcpsocket.h"
+#include "./socket/rebrick_tcpsocket.h"
 #include "./server_client/tcpecho.h"
 #include "cmocka.h"
 #include "unistd.h"

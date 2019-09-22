@@ -1,6 +1,6 @@
-#include "rebrick_common.h"
-#include "rebrick_log.h"
-#include "rebrick_tls.h"
+#include "./common/rebrick_common.h"
+#include "./common/rebrick_log.h"
+#include "./common/rebrick_tls.h"
 
 int main(){
 

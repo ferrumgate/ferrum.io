@@ -2,10 +2,10 @@
 #ifndef __REBRICK_HTTPSOCKET_H__
 #define __REBRICK_HTTPSOCKET_H__
 
-#include "rebrick_tlssocket.h"
-#include "rebrick_buffer.h"
-#include "./lib/picohttpparser.h"
-#include "./lib/uthash.h"
+#include "../socket/rebrick_tlssocket.h"
+#include "../common/rebrick_buffer.h"
+#include "../lib/picohttpparser.h"
+#include "../lib/uthash.h"
 
 #define REBRICK_HTTP_VERSION1 1
 #define REBRICK_HTTP_VERSION2 2

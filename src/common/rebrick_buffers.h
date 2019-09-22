@@ -3,7 +3,7 @@
 
 #include "rebrick_common.h"
 #include "rebrick_log.h"
-#include "./lib/utlist.h"
+#include "../lib/utlist.h"
 
 
 

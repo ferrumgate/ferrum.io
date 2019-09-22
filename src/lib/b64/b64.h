@@ -8,7 +8,7 @@
 #ifndef B64_H
 #define B64_H 1
 
-#include "../../rebrick_log.h"
+#include "../../common/rebrick_log.h"
 
 /**
  *  Memory allocation functions to use. You can define b64_malloc and
