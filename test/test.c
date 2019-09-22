@@ -128,14 +128,14 @@ int main()
   if (test_rebrick_context())
     exit(1);
 
- /*    if (test_rebrick_buffer())
+     if (test_rebrick_buffer())
     exit(1);
 
 
   if (test_rebrick_buffers())
     exit(1);
 
-  if (test_rebrick_async_udpsocket())
+ /* if (test_rebrick_async_udpsocket())
     exit(1);
 
    if (test_rebrick_async_tcpsocket())

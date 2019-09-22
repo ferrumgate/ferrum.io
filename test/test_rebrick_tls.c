@@ -129,7 +129,7 @@ static void tls_ssl_object_create(void **start){
 
     rebrick_tls_ssl_t *tls=NULL;
     result=rebrick_tls_ssl_new(&tls,context);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     assert_non_null(tls);
     assert_non_null(tls->ssl);
     rebrick_tls_ssl_destroy(tls);

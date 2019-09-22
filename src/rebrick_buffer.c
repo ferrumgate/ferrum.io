@@ -22,6 +22,7 @@ int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len, 
 
         buf_tmp->buf = realloc(buf_tmp->buf, m_len);
         if_is_null_then_die(buf_tmp->buf, "malloc problem\n");
+        memset(buf_tmp->buf+buf_tmp->len,0,malloc_size);
     }
     memcpy(buf_tmp->buf + buf_tmp->len, buf, len);
     buf_tmp->len += len;

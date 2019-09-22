@@ -31,7 +31,7 @@ static void metrics_tostring(void **start){
     rebrick_metrics_t *metrics=NULL;
     int32_t result;
     result=rebrick_metrics_new(&metrics);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     metrics->start_time=1;
     metrics->current_time=30;
     metrics->received_total=2;

@@ -7,14 +7,17 @@
 #include "./lib/picohttpparser.h"
 #include "./lib/uthash.h"
 
-
+#define REBRICK_HTTP_VERSION1 1
+#define REBRICK_HTTP_VERSION2 2
 
 #define REBRICK_HTTP_MAX_HEADER_LEN 8192
 #define REBRICK_HTTP_MAX_HOSTNAME_LEN 1024
 #define REBRICK_HTTP_MAX_URI_LEN 8192
 #define REBRICK_HTTP_MAX_PATH_LEN 8192
 #define REBRICK_HTTP_MAX_METHOD_LEN 16
+#define REBRICK_HTTP_MAX_STATUSCODE_LEN 64
 #define REBRICK_HTTP_MAX_HEADERS 100
+
 
 
 
@@ -37,6 +40,7 @@ public_ typedef struct rebrick_http_header{
     public_ int8_t major_version;
     public_ int8_t minor_version;
     public_ int16_t status_code;
+    public_ char status_code_str[REBRICK_HTTP_MAX_STATUSCODE_LEN];
     public_ rebrick_http_key_value_t *headers;
 
 
@@ -46,9 +50,10 @@ public_ typedef struct rebrick_http_header{
 int32_t rebrick_http_header_new(rebrick_http_header_t **header,const char *path,const char *method,int majorversion);
 int32_t rebrick_http_header_new2(rebrick_http_header_t **header,const char *path,const char *method,int8_t major,int8_t minor);
 int32_t rebrick_http_header_add_header(rebrick_http_header_t *header,const char *key,const char*value);
-int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header,const char *key);
+int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header,const char *key,int32_t *founded);
 int32_t rebrick_http_header_remove_key(rebrick_http_header_t *header,const char *key);
 int32_t rebrick_http_header_destroy(rebrick_http_header_t *header);
+int32_t rebrick_http_header_to_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
 
 
 

@@ -18,7 +18,7 @@ app.get('/', (req, res) => res.send('Hello World with Express'));
 // Use Api routes in the App
 app.get('/api/get', (req, res) => {
     console.log(req.body);
-    res.json("get captured successfully");
+    res.send("get captured successfully");
 });
 app.use('/api/box/clients', (req, res) => {
     console.log(req.body);

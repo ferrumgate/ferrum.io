@@ -82,7 +82,7 @@ static void test_string_to_rebrick_socket_success(){
     const char *port="9091";
     rebrick_sockaddr_t addr;
     int32_t result=rebrick_util_to_socket(&addr,ipv4,port);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     assert_int_equal(addr.base.sa_family,AF_INET);
     assert_int_equal(ntohs(addr.v4.sin_port),9091);
     char buff[128];
@@ -102,7 +102,7 @@ static void test_string_to_rebrick_socket_success(){
 
 
     result=rebrick_util_to_socket(&addr,ipv6,port);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     assert_int_equal(addr.base.sa_family,AF_INET6);
 
     inet_ntop(AF_INET6,&addr.v6.sin6_addr,buff,sizeof(buff));
@@ -110,7 +110,7 @@ static void test_string_to_rebrick_socket_success(){
 
     char *anyipv4="0.0.0.0";
     result=rebrick_util_to_socket(&addr,anyipv4,port);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     assert_int_equal(addr.base.sa_family,AF_INET);
 
 
@@ -124,7 +124,7 @@ static void test_string_to_rebrick_socket_success(){
 
 
     result=rebrick_util_to_socket(&addr,anyipv6,port);
-    assert_int_equal(result,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
     assert_int_equal(addr.base.sa_family,AF_INET6);
 
     inet_ntop(AF_INET6,&addr.v6.sin6_addr,buff,sizeof(buff));
