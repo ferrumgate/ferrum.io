@@ -4,10 +4,7 @@ static void on_close(uv_handle_t *handle);
 
 static void on_send(uv_write_t *req, int status)
 {
-    // TODO: status a göre işlem yapılmalı
-
     char current_time_str[32] = {0};
-
     unused(current_time_str);
     rebrick_log_debug("socket on send called and status:%d\n", status);
 

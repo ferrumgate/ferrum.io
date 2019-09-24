@@ -770,7 +770,7 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t
             return result;
         }
     }
-
+    result=REBRICK_SUCCESS;
     if (buffertmp)
     {
         char *tmpbuffer = NULL;
@@ -801,5 +801,5 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t
 
 
 
-    return REBRICK_SUCCESS;
+    return result;
 }

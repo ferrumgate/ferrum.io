@@ -17,7 +17,7 @@ var port = process.env.PORT || 9090;
 app.get('/', (req, res) => res.send('Hello World with Express'));
 // Use Api routes in the App
 app.get('/api/get', (req, res) => {
-    console.log(req.body);
+    console.log("/api/get/ -> "+req.body);
     res.send("get captured successfully");
 });
 app.use('/api/box/clients', (req, res) => {

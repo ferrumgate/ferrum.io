@@ -2,68 +2,7 @@
 #ifndef __REBRICK_HTTPSOCKET_H__
 #define __REBRICK_HTTPSOCKET_H__
 
-#include "../socket/rebrick_tlssocket.h"
-#include "../common/rebrick_buffer.h"
-#include "../lib/picohttpparser.h"
-#include "../lib/uthash.h"
-
-#define REBRICK_HTTP_VERSION1 1
-#define REBRICK_HTTP_VERSION2 2
-
-#define REBRICK_HTTP_MAX_HEADER_LEN 8192
-#define REBRICK_HTTP_MAX_HOSTNAME_LEN 1024
-#define REBRICK_HTTP_MAX_URI_LEN 8192
-#define REBRICK_HTTP_MAX_PATH_LEN 8192
-#define REBRICK_HTTP_MAX_METHOD_LEN 16
-#define REBRICK_HTTP_MAX_STATUSCODE_LEN 64
-#define REBRICK_HTTP_MAX_HEADERS 100
-
-
-
-
-public_ typedef struct rebrick_http_key_value{
-    public_ readonly_ char *key;
-    public_ size_t keylen;
-    public_ readonly_ char *value;
-    public_ size_t valuelen;
-    UT_hash_handle hh;
-}rebrick_http_key_value_t;
-
-int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue,const char *key,const char *value);
-int32_t rebrick_http_key_value_new2(rebrick_http_key_value_t **keyvalue,const void *key,size_t keylen,const void *value,size_t valuelen);
-int32_t rebrick_http_key_value_destroy(rebrick_http_key_value_t *keyvalue);
-
-public_ typedef struct rebrick_http_header{
-    base_object();
-    public_ char path[REBRICK_HTTP_MAX_PATH_LEN];
-    public_ char method[REBRICK_HTTP_MAX_METHOD_LEN];
-    public_ int8_t major_version;
-    public_ int8_t minor_version;
-    public_ int16_t status_code;
-    public_ char status_code_str[REBRICK_HTTP_MAX_STATUSCODE_LEN];
-    public_ rebrick_http_key_value_t *headers;
-
-
-
-}rebrick_http_header_t;
-
-int32_t rebrick_http_header_new(rebrick_http_header_t **header,const char *path,const char *method,int majorversion);
-int32_t rebrick_http_header_new2(rebrick_http_header_t **header,const char *path,const char *method,int8_t major,int8_t minor);
-int32_t rebrick_http_header_add_header(rebrick_http_header_t *header,const char *key,const char*value);
-int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header,const char *key,int32_t *founded);
-int32_t rebrick_http_header_remove_key(rebrick_http_header_t *header,const char *key);
-int32_t rebrick_http_header_destroy(rebrick_http_header_t *header);
-int32_t rebrick_http_header_to_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
-
-
-
-
-/* public_ typedef struct rebrick_http_body{
-     base_object();
-    public_ rebrick_buffers_t *body;
-
-
-}rebrick_http_body_t; */
+#include "rebrick_http.h"
 
 
 struct rebrick_httpsocket;
@@ -103,19 +42,25 @@ public_ typedef struct rebrick_httpsocket
 
     public_ readonly_ rebrick_http_header_t *header;
 
+
     private_ rebrick_buffer_t *tmp_buffer;
     private_ int32_t is_header_parsed;
     public_ size_t header_len;
-    public_ size_t body_must_len;
-    public_ size_t body_received_len;
+    public_ readonly_ size_t content_length;
+    public_ readonly_ size_t content_received_length;
+
 
 
 
     struct{
         struct phr_header headers[REBRICK_HTTP_MAX_HEADERS];
-        char *method, *path;
+        const char *method, *path;
         int  minor_version;
         size_t method_len, path_len, num_headers;
+        int32_t status;
+        const char *status_msg;
+        size_t status_msg_len;
+        size_t pos;
     }parsing_params;
 
 

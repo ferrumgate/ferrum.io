@@ -166,6 +166,10 @@ int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *l
 
 
 
+#define string_to_lower(x) \
+    char * _fakeptr=x;\
+    while(*_fakeptr){ *_fakeptr=tolower(*_fakeptr);_fakeptr++; }
+
 
 
 

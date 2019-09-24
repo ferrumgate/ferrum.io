@@ -22,105 +22,6 @@ static int teardown(void **state){
     return 0;
 }
 
-static void rebrick_http_keyvalue_test(void **state){
-    unused(state);
-    int32_t result;
-    rebrick_http_key_value_t *keyvalue;
-    result=rebrick_http_key_value_new(&keyvalue,"hamza","kilic");
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_memory_equal(keyvalue->key,"hamza",6);
-    assert_memory_equal(keyvalue->value,"kilic",6);
-    assert_int_equal(keyvalue->keylen,6);
-    assert_int_equal(keyvalue->valuelen,6);
-    rebrick_http_key_value_destroy(keyvalue);
-
-
-}
-
-
-static void rebrick_http_keyvalue_test2(void **state){
-    unused(state);
-    int32_t result;
-    rebrick_http_key_value_t *keyvalue;
-    result=rebrick_http_key_value_new2(&keyvalue,"hamza",6,"kilic",6);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_memory_equal(keyvalue->key,"hamza",6);
-    assert_memory_equal(keyvalue->value,"kilic",6);
-    assert_int_equal(keyvalue->keylen,6);
-    assert_int_equal(keyvalue->valuelen,6);
-    rebrick_http_key_value_destroy(keyvalue);
-
-
-}
-
-static void rebrick_http_header_test(void **state){
-    unused(state);
-    int32_t result;
-    rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"/api/metrics","POST",1);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_string_equal(header->path,"/api/metrics");
-    assert_string_equal(header->method,"POST");
-    assert_int_equal(header->major_version,1);
-    assert_int_equal(header->minor_version,1);
-    assert_null(header->headers);
-
-    rebrick_http_header_destroy(header);
-}
-
-static void rebrick_http_header_test2(void **state){
-    unused(state);
-    int32_t result;
-    rebrick_http_header_t *header;
-    result=rebrick_http_header_new2(&header,"/api/metrics","POST",1,1);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_string_equal(header->path,"/api/metrics");
-    assert_string_equal(header->method,"POST");
-    assert_int_equal(header->major_version,1);
-    assert_int_equal(header->minor_version,1);
-    assert_null(header->headers);
-    result=rebrick_http_header_add_header(header,"content-type","application/json");
-    assert_int_equal(result,REBRICK_SUCCESS);
-    int32_t founded;
-    result=rebrick_http_header_contains_key(header,"content-type",&founded);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_int_equal(founded,TRUE);
-
-
-
-    result=rebrick_http_header_contains_key(header,"Content-Type",&founded);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_int_equal(founded,FALSE);
-
-    result=rebrick_http_header_remove_key(header,"content-type");
-    assert_int_equal(result,REBRICK_SUCCESS);
-
-     result=rebrick_http_header_contains_key(header,"content-type",&founded);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_int_equal(founded,FALSE);
-
-    rebrick_http_header_destroy(header);
-}
-
-static void rebrick_http_header_to_buffer_test(void **state){
-         unused(state);
-    int32_t result;
-    rebrick_http_header_t *header;
-    result=rebrick_http_header_new2(&header,"/api/metrics","POST",1,1);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    result=rebrick_http_header_add_header(header,"content-type","application/json");
-    assert_int_equal(result,REBRICK_SUCCESS);
-    result=rebrick_http_header_add_header(header,"host","hamzakilic.com");
-    assert_int_equal(result,REBRICK_SUCCESS);
-    rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_string_equal(buffer->buf,"POST /api/metrics HTTP/1.1\r\ncontent-type:application/json\r\nhost:hamzakilic.com\r\n\r\n");
-    rebrick_buffer_destroy(buffer);
-    rebrick_http_header_destroy(header);
-
-}
-
 
 static int32_t on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
     unused(socket);
@@ -130,11 +31,12 @@ static int32_t on_error_occured_callback(rebrick_socket_t *socket,void *callback
     return REBRICK_SUCCESS;
 }
 
-static int32_t is_connected = 1;
+static int32_t is_connected = FALSE;
 
 static int32_t on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
-    is_connected = status;
+    is_connected = TRUE;
+    unused(status);
     unused(callback_data);
     unused(addr);
     unused(client_handle);
@@ -234,9 +136,9 @@ static void http_socket_as_client_create(void **start){
     unused(start);
     int32_t result;
     int32_t counter=0;
-     rebrick_sockaddr_t destination;
+    rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "80", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9090", &destination);
 
     rebrick_httpsocket_t *socket;
     is_connected=0;
@@ -244,13 +146,14 @@ static void http_socket_as_client_create(void **start){
     result = rebrick_httpsocket_new(&socket, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, NULL,on_error_occured_callback,0,on_http_header_received,NULL);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
     assert_int_equal(result, 0);
 
-    loop(100,!is_connected);
+    loop(1000,!is_connected);
+    assert_int_equal(is_connected,TRUE);
 
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header, "/api/get","GET",1);
+    result=rebrick_http_header_new(&header,"GET", "/api/get",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
     result=rebrick_http_header_to_buffer(header,&buffer);
@@ -263,11 +166,39 @@ static void http_socket_as_client_create(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,cast(buffer->buf,char*),buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
-    loop(100,(!sended));
+    loop(1000,(!sended));
+    assert_int_equal(sended,TRUE);
     loop(100,!header_received);
+    assert_int_equal(header_received,TRUE);
     loop(100,!is_bodyreaded);
+    assert_int_equal(is_bodyreaded,TRUE);
+    assert_non_null(socket->header);
+    assert_int_equal(socket->header->major_version,1);
+    assert_int_equal(socket->header->minor_version,1);
+    assert_int_equal(socket->header->is_request,FALSE);
+    assert_string_equal(socket->header->path,"");
+    assert_string_equal(socket->header->method,"");
+    assert_string_equal(socket->header->status_code_str,"OK");
+    assert_int_equal(socket->header->status_code,200);
+    const char *value;
+    rebrick_http_header_get_header(socket->header,"X-Powered-By",&value);
+    assert_string_equal(value,"Express");
+    rebrick_http_header_get_header(socket->header,"Content-Type",&value);
+    assert_string_equal(value,"text/html; charset=utf-8");
+    rebrick_http_header_get_header(socket->header,"Content-Length",&value);
+    assert_string_equal(value,"25");
+     /*rebrick_http_header_get_header(socket->header,"ETag",&value);
+    assert_string_equal(value,"W/\"19-EE0dTSKO8nU0PWVui0tLx8f6m9I\"");
+     rebrick_http_header_get_header(socket->header,"Date",&value);
+    assert_string_equal(value,"Sun, 22 Sep 2019 20:14:00 GMT");*/
+     rebrick_http_header_get_header(socket->header,"Connection",&value);
+    assert_string_equal(value,"keep-alive");
+
+
+    assert_string_equal(readedbufferbody,"get captured successfully");
+
 
 
     rebrick_http_header_destroy(header);
@@ -282,13 +213,10 @@ static void http_socket_as_client_create(void **start){
 
 
 
+
+
 int test_rebrick_httpsocket(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(rebrick_http_keyvalue_test),
-        cmocka_unit_test(rebrick_http_keyvalue_test2),
-        cmocka_unit_test(rebrick_http_header_test),
-        cmocka_unit_test(rebrick_http_header_test2),
-        cmocka_unit_test(rebrick_http_header_to_buffer_test),
 
         cmocka_unit_test(http_socket_as_client_create)
 

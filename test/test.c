@@ -17,6 +17,7 @@ extern int test_rebrick_buffer();
 extern int test_rebrick_buffers();
 extern int test_rebrick_tls();
 extern int test_rebrick_tlssocket();
+extern int test_rebrick_http();
 extern int test_rebrick_httpsocket();
 /*static void test_udpecho_server(){
     fprintf(stdout, "starting udp test server\n");
@@ -145,6 +146,9 @@ int main()
     exit(1);
   if (test_rebrick_tlssocket())
     exit(1);*/
+    if(test_rebrick_http())
+  exit(1);
+
   if(test_rebrick_httpsocket())
   exit(1);
   //kill(getpid(), SIGSEGV);

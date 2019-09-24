@@ -42,6 +42,7 @@
 
 
 
+
 #define REBRICK_ERR_TLS_INIT -20
 #define REBRICK_ERR_TLS_NEW -21
 #define REBRICK_ERR_TLS_ERR -22
@@ -104,6 +105,7 @@
 #define typeof(x,y) !strcmp((x)->type_name,#y)
 
 #define ssizeof(x) cast(sizeof(x),int32_t)
+
 
 
 
