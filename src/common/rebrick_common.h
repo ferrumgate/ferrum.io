@@ -106,6 +106,11 @@
 
 #define ssizeof(x) cast(sizeof(x),int32_t)
 
+#define cast_to_uint8ptr(x) cast(x,uint8_t*)
+#define cast_to_const_uint8ptr(x) cast(x, const uint8_t*)
+#define cast_to_charptr(x) cast(x,char *)
+#define cast_to_const_charptr(x) cast(x,cont char*)
+
 
 
 

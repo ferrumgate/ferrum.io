@@ -43,10 +43,10 @@ public_ typedef struct rebrick_httpsocket
     public_ readonly_ rebrick_http_header_t *header;
 
 
+
     private_ rebrick_buffer_t *tmp_buffer;
     private_ int32_t is_header_parsed;
     public_ size_t header_len;
-    public_ readonly_ size_t content_length;
     public_ readonly_ size_t content_received_length;
 
 
@@ -94,6 +94,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket,rebrick_tls_context
                                     rebrick_tcpsocket_create_client_t create_client);
 int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
 int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket);
 
 
 

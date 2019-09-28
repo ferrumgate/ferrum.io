@@ -4,6 +4,13 @@
 #include <unistd.h>
 #include <string.h>
 
+
+
+
+#define loop(var,a,x) \
+    var=a; \
+ while (var-- && (x)){ usleep(100); uv_run(uv_default_loop(), UV_RUN_NOWAIT);}
+
 static rebrick_tls_context_t *context_verify_none = NULL;
 static rebrick_tls_context_t *context_server = NULL;
 static rebrick_tls_context_t *context_verify = NULL;
@@ -31,12 +38,8 @@ static int teardown(void **state)
     context_server = NULL;
     context_verify_none = NULL;
     rebrick_tls_cleanup();
-    int32_t counter = 100;
-    while (counter--)
-    {
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        usleep(1000);
-    }
+    int32_t counter;
+    loop(counter,100,TRUE);
     uv_loop_close(uv_default_loop());
     return 0;
 }
@@ -110,11 +113,8 @@ static void ssl_client(void **start)
     is_connected = 1;
     is_connection_closed = 0;
     totalreaded_len = 0;
-    while (counter-- && is_connected && !is_connection_closed)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,100000,(is_connected && !is_connection_closed));
+
     assert_int_equal(is_connected, 0);
     assert_int_equal(is_connection_closed, 0);
 
@@ -126,31 +126,18 @@ Accept: text/html\r\n\
     counter = 100;
 
     is_datareaded = 0;
+    memset(readedbuffer, 0, sizeof(readedbuffer));
 
-    while (counter--)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,100,TRUE);
     rebrick_clean_func_t clean={};
     result = rebrick_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
     assert_int_equal(result, 0);
     counter = 100;
-    while (counter--)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,100,TRUE);
 
     assert_int_equal(result, 0);
-    counter = 1000;
 
-    while (counter-- && !is_datareaded)
-    {
-        memset(readedbuffer, 0, sizeof(readedbuffer));
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,1000,!is_datareaded);
 
     tempresult = memcmp("HTTP/1.1 200", readedbuffer, 12);
     assert_int_equal(tempresult, 0);
@@ -158,12 +145,7 @@ Accept: text/html\r\n\
     if (!is_connection_closed)
         rebrick_tlssocket_destroy(tlsclient);
     counter = 100;
-    while (counter--)
-    {
-
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        usleep(1000);
-    }
+    loop(counter,100,TRUE);
 }
 
 static int32_t on_serverconnection_error_occured_callback(rebrick_socket_t *socket,void *callbackdata,int error){
@@ -197,19 +179,9 @@ content-length:52\r\n\
     int32_t counter = 10;
     rebrick_clean_func_t clean={};
     rebrick_tlssocket_send(client, msg, strlen(msg), clean);
-    while (counter--)
-    {
-        usleep(10);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,10,TRUE);
 
-    counter = 10;
-    //rebrick_tlssocket_destroy(client);
-    while (counter--)
-    {
-        usleep(10);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+    loop(counter,10,TRUE);
     return REBRICK_SUCCESS;
 }
 
@@ -264,32 +236,21 @@ static void ssl_server(void **start)
     rebrick_tlssocket_t *tlsserver;
     result = rebrick_tlssocket_new(&tlsserver, context_server, listen, NULL, on_serverconnection_accepted_callback, on_serverconnection_closed_callback, on_serverdata_read_callback, NULL,on_serverconnection_error_occured_callback, 100);
     assert_int_equal(result, 0);
-    int counter = 10000;
+    int counter;
     server_connection_status = 1;
-    while (counter--)
-    {
+    loop(counter,10000,TRUE);
 
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
-
-    // assert_int_equal(server_connection_status, 0);
 
     counter = 10;
     while (client_count)
     {
         printf("%d\n", client_count);
-        usleep(10);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+        loop(counter,1,TRUE);
     }
 
     rebrick_tlssocket_destroy(tlsserver);
-    counter = 100;
-    while (counter-- && client_count)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
+
+    loop(counter,100,TRUE);
 }
 
 static void ssl_client_verify(void **start)
@@ -309,17 +270,10 @@ static void ssl_client_verify(void **start)
     int counter = 100000;
     is_connected = 1;
     is_connection_closed = 0;
-    while (counter && is_connected)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
-    }
+    loop(counter,10000,is_connected);
+
     counter = 100;
-    while (counter--)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
-    }
+    loop(counter,100,TRUE);
     char *head = "GET / HTTP/1.0\r\n\
 Host: localhost\r\n\
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
@@ -329,21 +283,12 @@ Accept: text/html\r\n\
 rebrick_clean_func_t clean={};
     result = rebrick_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
 
-    counter = 100;
-    assert_int_equal(result, REBRICK_ERR_TLS_ERR);
-    while (counter--)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
 
+    assert_int_equal(result, REBRICK_ERR_TLS_ERR);
+     loop(counter,100,TRUE);
     rebrick_tlssocket_destroy(tlsclient);
-    counter = 100;
-    while (counter--)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
-    }
+
+    loop(counter,100,TRUE);
 }
 
 /**
@@ -368,11 +313,8 @@ static void ssl_client_download_data(void **start)
     int counter = 100;
     is_connected = 1;
     is_connection_closed = 0;
-    while (counter && is_connected && !is_connection_closed)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT), --counter;
-    }
+    loop(counter,100,(is_connected && !is_connection_closed));
+
     assert_int_equal(is_connected, 0);
     assert_int_equal(is_connection_closed, 0);
 
@@ -396,12 +338,8 @@ Accept: text/html\r\n\
     assert_int_equal(is_connection_closed, 0);
     counter = 1000;
     totalreaded_len = 0;
-    while (counter && !is_connection_closed)
-    {
-        usleep(100);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        counter--;
-    }
+    loop(counter,1000,!is_connection_closed);
+
     if (!is_connection_closed)
     {
         rebrick_tlssocket_destroy(tlsclient);

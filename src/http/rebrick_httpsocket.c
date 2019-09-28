@@ -51,13 +51,11 @@ static int32_t local_on_connection_closed_callback(rebrick_socket_t *ssocket, vo
 
     if (httpsocket)
     {
-        if(httpsocket->tmp_buffer)
-        rebrick_buffer_destroy(httpsocket->tmp_buffer);
+        if (httpsocket->tmp_buffer)
+            rebrick_buffer_destroy(httpsocket->tmp_buffer);
 
         if (httpsocket->header)
-        {
             rebrick_http_header_destroy(httpsocket->header);
-        }
 
         if (httpsocket->override_override_on_connection_closed)
             httpsocket->override_override_on_connection_closed(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data);
@@ -86,19 +84,6 @@ static int32_t local_on_data_sended_callback(rebrick_socket_t *ssocket, void *ca
             httpsocket->override_override_on_data_sended(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, source, status);
     }
     return REBRICK_SUCCESS;
-}
-
-static int32_t calculate_body_size(rebrick_httpsocket_t *socket){
-     char current_time_str[32] = {0};
-    unused(current_time_str);
-
-    int32_t transfer_encoding_founded=FALSE;
-          int32_t  result=rebrick_http_header_contains_key(socket->header,"transfer-encoding",&transfer_encoding_founded);
-            if(result<0)
-            {
-               return result;
-            }
-
 }
 
 #define call_on_error(httpsocket, error)                                                                                                     \
@@ -131,6 +116,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
     {
         if (httpsocket->on_http_body_received)
         {
+            httpsocket->content_received_length += len;
             httpsocket->on_http_body_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr,
                                               buffer, len);
         }
@@ -138,11 +124,9 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
     else
     {
 
-
         if (httpsocket->tmp_buffer)
         {
             result = rebrick_buffer_add(httpsocket->tmp_buffer, cast(buffer, uint8_t *), len);
-
         }
         else
         {
@@ -156,38 +140,39 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
             return result;
         }
 
-
         httpsocket->parsing_params.num_headers = sizeof(httpsocket->parsing_params.headers) / sizeof(httpsocket->parsing_params.headers[0]);
-        int32_t pret=0;
-        int32_t is_request_header=FALSE;
+        int32_t pret = 0;
+        int32_t is_request_header = FALSE;
 
         //check request or response
-        if(httpsocket->tmp_buffer->len<5){
+        if (httpsocket->tmp_buffer->len < 5)
+        {
 
             return REBRICK_ERR_LEN_NOT_ENOUGH;
         }
         //small lower buffer of started data
 
-
-        if((httpsocket->header==NULL && strncasecmp(cast(httpsocket->tmp_buffer->buf,const char*),"HTTP/",5)==0) || !httpsocket->header->is_request){
-            pret=phr_parse_response(cast(httpsocket->tmp_buffer->buf,const char*),
-                                        httpsocket->tmp_buffer->len,
-                                        &httpsocket->parsing_params.minor_version,
-                                        &httpsocket->parsing_params.status,
-                                        &httpsocket->parsing_params.status_msg,
-                                        &httpsocket->parsing_params.status_msg_len,
-                                        httpsocket->parsing_params.headers,
-                                        &httpsocket->parsing_params.num_headers,httpsocket->parsing_params.pos);
-                                        is_request_header=FALSE;
-        }else{
-            is_request_header=TRUE;
-        pret = phr_parse_request(cast(httpsocket->tmp_buffer->buf, const char *),
-                                         httpsocket->tmp_buffer->len,
-                                         &httpsocket->parsing_params.method, &httpsocket->parsing_params.method_len,
-                                         &httpsocket->parsing_params.path, &httpsocket->parsing_params.path_len,
-                                         &httpsocket->parsing_params.minor_version,
-                                         httpsocket->parsing_params.headers, &httpsocket->parsing_params.num_headers, httpsocket->parsing_params.pos);
-
+        if ((httpsocket->header == NULL && strncasecmp(cast(httpsocket->tmp_buffer->buf, const char *), "HTTP/", 5) == 0) || !httpsocket->header->is_request)
+        {
+            pret = phr_parse_response(cast(httpsocket->tmp_buffer->buf, const char *),
+                                      httpsocket->tmp_buffer->len,
+                                      &httpsocket->parsing_params.minor_version,
+                                      &httpsocket->parsing_params.status,
+                                      &httpsocket->parsing_params.status_msg,
+                                      &httpsocket->parsing_params.status_msg_len,
+                                      httpsocket->parsing_params.headers,
+                                      &httpsocket->parsing_params.num_headers, httpsocket->parsing_params.pos);
+            is_request_header = FALSE;
+        }
+        else
+        {
+            is_request_header = TRUE;
+            pret = phr_parse_request(cast(httpsocket->tmp_buffer->buf, const char *),
+                                     httpsocket->tmp_buffer->len,
+                                     &httpsocket->parsing_params.method, &httpsocket->parsing_params.method_len,
+                                     &httpsocket->parsing_params.path, &httpsocket->parsing_params.path_len,
+                                     &httpsocket->parsing_params.minor_version,
+                                     httpsocket->parsing_params.headers, &httpsocket->parsing_params.num_headers, httpsocket->parsing_params.pos);
         }
 
         if (pret == -1)
@@ -203,50 +188,48 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
             call_on_error(httpsocket, REBRICK_HTTP_MAX_HEADER_LEN);
             return REBRICK_ERR_LEN_NOT_ENOUGH;
         }
-        httpsocket->parsing_params.pos=pret;
+        httpsocket->parsing_params.pos = pret;
         if (pret > 0)
         {
             if (!httpsocket->header)
             {
 
-                if(is_request_header){
-                    result=rebrick_http_header_new2(&httpsocket->header,
-                    httpsocket->parsing_params.method,
-                    httpsocket->parsing_params.method_len,
-                    httpsocket->parsing_params.path,
-                    httpsocket->parsing_params.path_len,
-                    httpsocket->parsing_params.minor_version==1?1:2,
-                    httpsocket->parsing_params.minor_version);
-                }else{
-                    result=rebrick_http_header_new4(&httpsocket->header,
-                    httpsocket->parsing_params.status,
-                    httpsocket->parsing_params.status_msg,
-                    httpsocket->parsing_params.status_msg_len,
-                    httpsocket->parsing_params.minor_version==1?1:2,
-                    httpsocket->parsing_params.minor_version);
+                if (is_request_header)
+                {
+                    result = rebrick_http_header_new2(&httpsocket->header,
+                                                      httpsocket->parsing_params.method,
+                                                      httpsocket->parsing_params.method_len,
+                                                      httpsocket->parsing_params.path,
+                                                      httpsocket->parsing_params.path_len,
+                                                      httpsocket->parsing_params.minor_version == 1 ? 1 : 2,
+                                                      httpsocket->parsing_params.minor_version);
                 }
-                 if (result < 0)
+                else
+                {
+                    result = rebrick_http_header_new4(&httpsocket->header,
+                                                      httpsocket->parsing_params.status,
+                                                      httpsocket->parsing_params.status_msg,
+                                                      httpsocket->parsing_params.status_msg_len,
+                                                      httpsocket->parsing_params.minor_version == 1 ? 1 : 2,
+                                                      httpsocket->parsing_params.minor_version);
+                }
+                if (result < 0)
                 {
                     rebrick_log_error("new header create error\n");
                     call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
                 }
-
             }
 
             for (size_t i = 0; i < httpsocket->parsing_params.num_headers; ++i)
             {
                 struct phr_header *header = httpsocket->parsing_params.headers + i;
-                result = rebrick_http_header_add_header2(httpsocket->header, header->name,header->name_len, header->value,header->value_len);
+                result = rebrick_http_header_add_header2(httpsocket->header, header->name, header->name_len, header->value, header->value_len);
                 if (result < 0)
                 {
                     rebrick_log_error("adding header to headers error\n");
                     call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
                 }
             }
-
-            //detect body size
-
-
 
             httpsocket->is_header_parsed = TRUE;
             httpsocket->header_len = pret;
@@ -262,6 +245,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
                 {
                     size_t length_remain = httpsocket->tmp_buffer->len - pret;
                     size_t offset = httpsocket->tmp_buffer->len - length_remain;
+                    httpsocket->content_received_length += length_remain;
                     httpsocket->on_http_body_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr,
                                                       cast(httpsocket->tmp_buffer->buf + offset, char *), length_remain);
                 }
@@ -365,6 +349,25 @@ int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket)
             return rebrick_tcpsocket_destroy(cast_to_tcp_socket(socket));
         }
     }
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket)
+{
+    if (socket)
+    {
+        if (socket->tmp_buffer)
+            rebrick_buffer_destroy(socket->tmp_buffer);
+        socket->tmp_buffer = NULL;
+
+        if (socket->header)
+            rebrick_http_header_destroy(socket->header);
+        socket->header = NULL;
+        socket->is_header_parsed = FALSE;
+        socket->content_received_length = 0;
+        socket->header_len=0;
+    }
+
     return REBRICK_SUCCESS;
 }
 int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc)
