@@ -238,7 +238,7 @@ static void ssl_server(void **start)
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
-    loop(counter,10000,TRUE);
+    loop(counter,100000,TRUE);
 
 
     counter = 10;

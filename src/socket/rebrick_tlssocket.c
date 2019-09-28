@@ -26,6 +26,7 @@ enum sslstatus
     SSLSTATUS_OK,
     SSLSTATUS_WANT_READ,
     SSLSTATUS_WANT_WRITE,
+    SSLSTATUS_CLOSED,
     SSLSTATUS_FAIL
 };
 
@@ -44,6 +45,7 @@ static enum sslstatus get_sslstatus(SSL *ssl, int n)
 
         return SSLSTATUS_WANT_READ;
     case SSL_ERROR_ZERO_RETURN:
+        return SSLSTATUS_CLOSED;
     case SSL_ERROR_SYSCALL:
     default:
         return SSLSTATUS_FAIL;
@@ -135,6 +137,11 @@ static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
         rebrick_log_debug("ssl want write\n");
         return REBRICK_ERR_TLS_ERR;
     }
+     if (status == SSLSTATUS_CLOSED)
+    {
+        rebrick_log_error("ssl closed\n");
+        return REBRICK_ERR_TLS_CLOSED;
+    }
     if (status == SSLSTATUS_FAIL)
     {
         rebrick_log_error("ssl failed\n");
@@ -176,13 +183,13 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
                 int32_t n = SSL_write(tlssocket->tls->ssl, (const void *)(tmpbuffer + writen_len), temp_len - writen_len);
                 result = check_ssl_status(tlssocket, n);
 
-                if(result==REBRICK_ERR_TLS_ERR){
-                    rebrick_log_error("tls failed\n");
+                if(result==REBRICK_ERR_TLS_ERR || result==REBRICK_ERR_TLS_CLOSED){
+                    rebrick_log_error("tls failed with %d\n",result);
 
                     error_occured=1;
                     free(tmpbuffer);
                     if(tlssocket->on_error_occured)
-                    tlssocket->on_error_occured(cast_to_base_socket(tlssocket),tlssocket->override_callback_data, REBRICK_ERR_TLS_ERR);
+                    tlssocket->on_error_occured(cast_to_base_socket(tlssocket),tlssocket->override_callback_data, result);
 
 
 
@@ -504,7 +511,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
         else if (result < 0)
         {
 
-            rebrick_log_error("ssl status failed 1 %d:%d\n",n, result);
+            rebrick_log_error("ssl status failed %d:%d\n",n, result);
             rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
             tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, result);
@@ -528,9 +535,10 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
         } while (n > 0);
         status = check_ssl_status(tlssocket, n);
 
-        if (status==REBRICK_ERR_TLS_ERR)
+        if (status==REBRICK_ERR_TLS_ERR || status==REBRICK_ERR_TLS_CLOSED)
         {
-             rebrick_log_error("ssl status failed 2 %d:%d\n",n,status);
+
+             rebrick_log_error("ssl status failed %d:%d\n",n,status);
             rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
            tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, status);
@@ -763,7 +771,7 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t
             DL_APPEND(socket->pending_write_list, data);
             break;
         }
-        else if (result==REBRICK_ERR_TLS_ERR)
+        else if (result==REBRICK_ERR_TLS_ERR || result==REBRICK_ERR_TLS_CLOSED)
         {
             rebrick_log_error("tls failed\n");
             rebrick_buffers_destroy(buffertmp);
