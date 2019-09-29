@@ -119,6 +119,7 @@ int main()
   //test_tcpecho_server();
   //test_tcpecho_client();
 
+
   if (test_rebrick_util())
     exit(1);
   if (test_rebrick_config())

@@ -31,6 +31,8 @@ int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func,struct rebrick
     rebrick_tls_checkitem_t *tmp;
 
     int32_t founded = 0;
+
+    //burası hash table yapılsa daha hızlı çalışır
     DL_FOREACH(tls_after_io_checklist->head, tmp)
     {
         if (tmp->socket == socket)

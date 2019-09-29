@@ -13,6 +13,7 @@
 
 static rebrick_tls_context_t *context_verify_none = NULL;
 static rebrick_tls_context_t *context_server = NULL;
+static rebrick_tls_context_t *context_servermanual = NULL;
 static rebrick_tls_context_t *context_verify = NULL;
 
 static int setup(void **state)
@@ -25,6 +26,8 @@ static int setup(void **state)
     rebrick_tls_context_new(&context_server, "server", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL, "./data/domain.crt", "./data/domain.key");
     rebrick_tls_context_new(&context_verify, "clientverify", SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, SSL_SESS_CACHE_BOTH, SSL_OP_ALL, NULL, NULL);
 
+    rebrick_tls_context_new(&context_servermanual, "servermanuel", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_AD_NO_RENEGOTIATION, "./data/domain.crt", "./data/domain.key");
+
     return 0;
 }
 
@@ -33,6 +36,7 @@ static int teardown(void **state)
     unused(state);
     rebrick_tls_context_destroy(context_verify_none);
     rebrick_tls_context_destroy(context_server);
+    rebrick_tls_context_destroy(context_servermanual);
     rebrick_tls_context_destroy(context_verify);
     context_verify = NULL;
     context_server = NULL;
@@ -363,15 +367,46 @@ static void ssl_client_memory_test(void **state)
     }
 }
 
+
+static void ssl_server_for_manual(void **start)
+{
+    unused(start);
+    int32_t result;
+    //curl -XGET https://postman-echo.com/get
+    rebrick_sockaddr_t listen;
+    printf("started a tls server at 8443\n");
+    rebrick_util_ip_port_to_addr("0.0.0.0", "8443", &listen);
+    client_count = 0;
+    rebrick_tlssocket_t *tlsserver;
+    result = rebrick_tlssocket_new(&tlsserver, context_server, listen, NULL, on_serverconnection_accepted_callback, on_serverconnection_closed_callback, on_serverdata_read_callback, NULL,on_serverconnection_error_occured_callback, 100);
+    assert_int_equal(result, 0);
+    int counter;
+    server_connection_status = 1;
+   // loop(counter,100000,TRUE);
+
+
+    counter = 1000;
+    while (1)
+    {
+        //printf("%d\n", client_count);
+        loop(counter,1,TRUE);
+    }
+
+    rebrick_tlssocket_destroy(tlsserver);
+
+    loop(counter,100,TRUE);
+}
+
 int test_rebrick_tlssocket(void)
 {
 
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(ssl_client),
+        /* cmocka_unit_test(ssl_client),
         cmocka_unit_test(ssl_server),
          cmocka_unit_test(ssl_client_verify),
         cmocka_unit_test(ssl_client_download_data),
-        cmocka_unit_test(ssl_client_memory_test)
+        cmocka_unit_test(ssl_client_memory_test), */
+        cmocka_unit_test(ssl_server_for_manual),
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

@@ -39,7 +39,7 @@ static enum sslstatus get_sslstatus(SSL *ssl, int n)
 
         return SSLSTATUS_OK;
     case SSL_ERROR_WANT_WRITE:
-
+        printf("ssl want write\n");
         return SSLSTATUS_WANT_WRITE;
     case SSL_ERROR_WANT_READ:
 
@@ -106,6 +106,7 @@ static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
 
             if (n > 0)
             {
+                printf("ssl read len:%d\n",n);
                 char *xbuf = malloc(n);
                 memcpy(xbuf, buftemp, n);
                 send_data_holder_t *holder = new (send_data_holder_t);
@@ -389,7 +390,7 @@ static int32_t local_on_connection_accepted_callback(rebrick_socket_t *serversoc
         if (status == REBRICK_SUCCESS || status == REBRICK_ERR_TLS_INIT_NOT_FINISHED)
         {
             //ssl problemi yok ise, her loop sonrası çalışacak kod ekleniyor
-            rebrick_after_io_list_add(flush_buffers, tlsclient);
+            //rebrick_after_io_list_add(flush_buffers, tlsclient);
         }
         else
         {
@@ -475,14 +476,6 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
         return REBRICK_ERR_BAD_ARGUMENT;
     }
 
-   /*  if(len<=0){
-          rebrick_log_error("socket io error %" PRId64 "\n",len);
-          if(tlssocket->override_on_data_received)
-          tlssocket->override_on_data_received(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, addr, NULL, len);
-          return len;
-    } */
-
-
 
     rebrick_buffers_t *readedbuffer = NULL;
     size_t tmp_len = len;
@@ -563,6 +556,9 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
     }
 
     rebrick_buffers_destroy(readedbuffer);
+
+     flush_buffers(tlssocket);
+
     return REBRICK_SUCCESS;
 }
 
@@ -582,7 +578,7 @@ static int32_t local_on_data_sended_callback(rebrick_socket_t *socket, void *cal
 
     //burası önemli, flush_ssl_buffer yaptığımızda
 
-
+    //flush_buffers(tlssocket);
 
     if(source)//eğer gönderilen data client datası ise
     if (tlssocket->override_on_data_sended)
@@ -805,7 +801,7 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t
         rebrick_buffers_destroy(buffertmp);
     }
 
-    flush_buffers(socket);
+    //flush_buffers(socket);
 
 
 
