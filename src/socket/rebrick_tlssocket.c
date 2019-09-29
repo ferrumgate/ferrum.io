@@ -80,33 +80,25 @@ static void clean_send_data_holder(void *ptr){
     free(senddata);
 }
 
-static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
-{
-    char current_time_str[32] = {0};
+static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket){
+     char buftemp[BUF_SIZE] = {0};
+      char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
-
-    enum sslstatus status;
-    char buftemp[BUF_SIZE] = {0};
-    if (!tlssocket || !tlssocket->tls)
+    int32_t n;
+     if (!tlssocket || !tlssocket->tls)
     {
         rebrick_log_fatal("socket tls is null\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
 
-    status = get_sslstatus(tlssocket->tls->ssl, n);
-
-
-    if (status == SSLSTATUS_WANT_READ)
-    {
-        rebrick_log_debug("ssl want read\n");
-        do
+    do
         {
             n = BIO_read(tlssocket->tls->write, buftemp, sizeof(buftemp));
 
             if (n > 0)
             {
-                printf("ssl read len:%d\n",n);
+
                 char *xbuf = malloc(n);
                 memcpy(xbuf, buftemp, n);
                 send_data_holder_t *holder = new (send_data_holder_t);
@@ -132,6 +124,34 @@ static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
             }
 
         } while (n > 0);
+
+        return REBRICK_SUCCESS;
+
+}
+
+static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+   // int32_t result;
+
+    enum sslstatus status;
+   // char buftemp[BUF_SIZE] = {0};
+    if (!tlssocket || !tlssocket->tls)
+    {
+        rebrick_log_fatal("socket tls is null\n");
+        return REBRICK_ERR_BAD_ARGUMENT;
+    }
+
+    status = get_sslstatus(tlssocket->tls->ssl, n);
+
+
+    if (status == SSLSTATUS_WANT_READ)
+    {
+        rebrick_log_debug("ssl want read\n");
+        n=flush_ssl_buffers(tlssocket);
+        if(n<0)
+        return n;
     }
     if (status == SSLSTATUS_WANT_WRITE)
     {
@@ -464,6 +484,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
     unused(current_time_str);
     unused(callback_data);
     int32_t result;
+    unused(result);
     int32_t n;
     int32_t status;
 
@@ -485,6 +506,10 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
         n = BIO_write(tlssocket->tls->read, buffer, tmp_len);
         if (n <= 0)
         {
+            if (BIO_should_retry(tlssocket->tls->read))
+            {
+                continue;
+            }
             rebrick_log_error("ssl bio write failed\n");
             rebrick_buffers_destroy(readedbuffer);
             if(tlssocket->override_on_error_occured)
@@ -494,7 +519,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
         buffer += n;
         tmp_len -= n;
 
-        result = check_ssl_status(tlssocket, n);
+       /* result = check_ssl_status(tlssocket, n);
 
         if (result == REBRICK_ERR_TLS_INIT_NOT_FINISHED)
         {
@@ -509,7 +534,7 @@ static int32_t local_after_data_received_callback(rebrick_socket_t *socket, void
             if(tlssocket->override_on_error_occured)
             tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, result);
             return result;
-        }
+        }*/
 
         do
         {

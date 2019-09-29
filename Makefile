@@ -52,7 +52,7 @@ buildtest:
 test : $(OBJSTEST)
 	$(CC) -o test  $(OBJSTEST) $(LDFLAGSTEST)
 testrun: test
-	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib  LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6  ./test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6  ./test
 testrunvalgrind: test
 	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6 valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all   --gen-suppressions=all --suppressions=$(shell pwd)/valgrind.options  ./test
 

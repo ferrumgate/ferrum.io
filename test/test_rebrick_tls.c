@@ -58,7 +58,7 @@ static void tls_context_object_create_destroy_success(void **start)
     getcwd(pwd, sizeof(pwd));
     fprintf(stdout, "current working directory %s:\n", pwd);
     const char *key="deneme";
-    int32_t result = rebrick_tls_context_new(&context, key, 0, 0, 0, "./data/domain.crt", "./data/domain.key");
+    int32_t result = rebrick_tls_context_new(&context, key, 0, 0,0, 0, "./data/domain.crt", "./data/domain.key");
     assert_int_equal(result, 0);
     assert_non_null(context);
 
@@ -84,7 +84,7 @@ static void tls_context_object_create_fail(void **start)
     char pwd[PATH_MAX];
     getcwd(pwd, sizeof(pwd));
     fprintf(stdout, "current working directory %s:\n", pwd);
-    int32_t result = rebrick_tls_context_new(&context, "deneme2", 0, 0, 0, "./data/domain_notvalid.crt", "./data/domain.key");
+    int32_t result = rebrick_tls_context_new(&context, "deneme2", 0, 0,0, 0, "./data/domain_notvalid.crt", "./data/domain.key");
     assert_int_not_equal(result, 0);
     assert_null(context);
     rebrick_tls_context_destroy(context);
@@ -103,7 +103,7 @@ static void tls_context_object_create_for_client(void **start)
     char pwd[PATH_MAX];
     getcwd(pwd, sizeof(pwd));
     fprintf(stdout, "current working directory %s:\n", pwd);
-    int32_t result = rebrick_tls_context_new(&context, "deneme2", 0, 0, 0, NULL, NULL);
+    int32_t result = rebrick_tls_context_new(&context, "deneme2", 0, 0,0, 0, NULL, NULL);
     assert_int_equal(result, 0);
     assert_non_null(context);
     rebrick_tls_context_destroy(context);
@@ -123,7 +123,7 @@ static void tls_ssl_object_create(void **start){
     getcwd(pwd, sizeof(pwd));
     fprintf(stdout, "current working directory %s:\n", pwd);
     const char *key="deneme";
-    int32_t result = rebrick_tls_context_new(&context, key, 0, 0, 0, "./data/domain.crt", "./data/domain.key");
+    int32_t result = rebrick_tls_context_new(&context, key, 0, 0,0, 0, "./data/domain.crt", "./data/domain.key");
     assert_int_equal(result, 0);
     assert_non_null(context);
 

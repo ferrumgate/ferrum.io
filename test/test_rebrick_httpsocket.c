@@ -11,7 +11,7 @@ static rebrick_tls_context_t *context_verify_none = NULL;
 static int setup(void**state){
     unused(state);
     rebrick_tls_init();
-    rebrick_tls_context_new(&context_verify_none, "client", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL, NULL, NULL);
+    rebrick_tls_context_new(&context_verify_none, "client", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL,0, NULL, NULL);
     fprintf(stdout,"****  %s ****\n",__FILE__);
     return 0;
 }

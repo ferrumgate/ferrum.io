@@ -40,6 +40,7 @@ DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
 tar xvf openssl-1.1.1c.tar.gz
+cd openssl-1.1.1c
 ./config --prefix=$DESTFOLDER shared
 make depend
 make all

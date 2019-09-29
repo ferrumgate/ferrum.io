@@ -74,7 +74,7 @@ typedef struct rebrick_tls_context{
  * @param private_file NULL for client
  * @return int32_t return REBRICK_SUCCESS,  <0 means error
  */
-int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key,int32_t ssl_verify,int32_t session_mode,int32_t options,const char *certificate_file,const char *private_file);
+int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key,int32_t ssl_verify,int32_t session_mode,int32_t options,int32_t clearoptions,const char *certificate_file,const char *private_file);
 int32_t rebrick_tls_context_destroy(rebrick_tls_context_t *context);
 
 /**

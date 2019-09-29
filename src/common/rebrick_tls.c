@@ -131,6 +131,8 @@ int32_t rebrick_tls_init()
         SSL_load_error_strings();
         ERR_load_crypto_strings();
 
+
+
         tls_after_io_checklist=new(rebrick_tls_checkitem_list_t);
         constructor(tls_after_io_checklist,rebrick_tls_checkitem_list_t);
 
@@ -192,7 +194,7 @@ struct rebrick_tls_context_hashitem
 
 struct rebrick_tls_context_hashitem *ctx_map = NULL;
 
-int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key, int32_t ssl_verify, int32_t session_mode, int32_t options, const char *certificate_file, const char *private_file)
+int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key, int32_t ssl_verify, int32_t session_mode, int32_t options,int32_t clearoptions,  const char *certificate_file, const char *private_file)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -240,10 +242,20 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
+    if(private_file && !SSL_CTX_check_private_key(ctx->tls_ctx)){
+         rebrick_log_fatal("ssl private file %s loading failed\n", private_file);
+        ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx->tls_ctx);
+        free(ctx);
+        return REBRICK_ERR_TLS_INIT;
+    }
     strncpy(ctx->key, key, REBRICK_TLS_KEY_LEN - 1);
     SSL_CTX_set_verify(ctx->tls_ctx, ssl_verify, NULL);
     SSL_CTX_set_session_cache_mode(ctx->tls_ctx, session_mode);
     SSL_CTX_set_options(ctx->tls_ctx, options);
+    if(clearoptions)
+    SSL_CTX_clear_options(ctx->tls_ctx, clearoptions);
+
 
     struct rebrick_tls_context_hashitem *hash;
     hash = new (struct rebrick_tls_context_hashitem);
