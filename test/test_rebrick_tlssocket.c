@@ -26,7 +26,7 @@ static int setup(void **state)
     rebrick_tls_context_new(&context_server, "server", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL,0, "./data/domain.crt", "./data/domain.key");
     rebrick_tls_context_new(&context_verify, "clientverify", SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, SSL_SESS_CACHE_BOTH, SSL_OP_ALL,0, NULL, NULL);
 
-    rebrick_tls_context_new(&context_servermanual, "servermanuel", SSL_VERIFY_NONE, SSL_SESS_CACHE_OFF|SSL_SESS_CACHE_NO_INTERNAL, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3,SSL_OP_NO_COMPRESSION|SSL_OP_NO_TICKET, "./data/domain.crt", "./data/domain.key");
+    rebrick_tls_context_new(&context_servermanual, "servermanuel", SSL_VERIFY_NONE, SSL_SESS_CACHE_OFF, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TICKET,SSL_OP_NO_COMPRESSION, "./data/domain.crt", "./data/domain.key");
 
     return 0;
 }

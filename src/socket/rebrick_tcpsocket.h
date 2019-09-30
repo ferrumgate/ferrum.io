@@ -68,6 +68,21 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t a
                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
 
 
+/**
+ * @brief
+ *
+ * @param socket
+ * @param addr
+ * @param callback_data
+ * @param on_connection_accepted
+ * @param on_connection_closed
+ * @param on_data_received
+ * @param on_data_sended
+ * @param on_error_occured
+ * @param backlog_or_isclient
+ * @param create_client, createa a client instance that must be easily destory with free(ptr), no other function like destory(ptr)
+ * @return int32_t
+ */
 
 int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,

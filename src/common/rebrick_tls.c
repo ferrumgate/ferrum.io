@@ -251,8 +251,10 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     }
     strncpy(ctx->key, key, REBRICK_TLS_KEY_LEN - 1);
     SSL_CTX_set_verify(ctx->tls_ctx, ssl_verify, NULL);
-    SSL_CTX_set_session_cache_mode(ctx->tls_ctx, session_mode);
     SSL_CTX_set_options(ctx->tls_ctx, options);
+    SSL_CTX_set_session_cache_mode(ctx->tls_ctx, session_mode);
+
+
     if(clearoptions)
     SSL_CTX_clear_options(ctx->tls_ctx, clearoptions);
 

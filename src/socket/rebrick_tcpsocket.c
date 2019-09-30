@@ -185,9 +185,11 @@ static void on_connection(uv_stream_t *server, int status)
     {
         // TODO: make it threadsafe
         rebrick_log_fatal("accept error uverror:%d %s\n", result, uv_strerror(result));
-
+        //burada client direk free edilebilmeli
+        //başka bir şey olmadan
+        //@see rebrick_tcpsocket.h
         free(client);
-        //TODO burada extra bir şey lazımmı
+
         return;
     }
     temp = sizeof(struct sockaddr_storage);

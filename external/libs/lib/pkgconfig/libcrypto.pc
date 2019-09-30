@@ -8,5 +8,5 @@ Name: OpenSSL-libcrypto
 Description: OpenSSL cryptography library
 Version: 1.1.1c
 Libs: -L${libdir} -lcrypto
-Libs.private: -ldl -pthread 
+Libs.private: -lz -ldl -pthread 
 Cflags: -I${includedir}

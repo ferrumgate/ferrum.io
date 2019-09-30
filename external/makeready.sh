@@ -41,7 +41,7 @@ cd $TMPFOLDER
 
 tar xvf openssl-1.1.1c.tar.gz
 cd openssl-1.1.1c
-./config --prefix=$DESTFOLDER shared
+./config --prefix=$DESTFOLDER shared zlib
 make depend
 make all
 make install_sw
