@@ -146,10 +146,10 @@ static void tls_ssl_object_create(void **start){
 int test_rebrick_tls(void)
 {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test(tls_context_object_create_destroy_success),
+      /*   cmocka_unit_test(tls_context_object_create_destroy_success),
         cmocka_unit_test(tls_context_object_create_fail),
         cmocka_unit_test(tls_context_object_create_for_client),
-        cmocka_unit_test(tls_ssl_object_create)
+        cmocka_unit_test(tls_ssl_object_create) */
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

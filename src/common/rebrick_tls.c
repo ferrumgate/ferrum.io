@@ -475,6 +475,22 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
     return REBRICK_SUCCESS;
 }
 
+int32_t rebrick_tls_ssl_new3(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t *context,const char *servername){
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+    if(!servername){
+        rebrick_log_fatal("servername is null\n");
+        return REBRICK_ERR_BAD_ARGUMENT;
+    }
+    int32_t result=rebrick_tls_ssl_new(ssl,context);
+    if(result<0)
+    return result;
+
+    SSL_set_tlsext_host_name((*ssl)->ssl,servername);
+
+    return REBRICK_SUCCESS;
+}
+
 
 int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl,const char *server_indication_name){
     char current_time_str[32] = {0};
@@ -493,8 +509,7 @@ int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl,const char *server_indicati
     if(result<0)
     return result;
 
-    //copy sni name for finding real tls context
-    //snprintf(state->sni_pattern,REBRICK_TLS_SNI_MAX_LEN-1,"%s",server_indication_name);
+
     //add to SNI_CONTEXT pending list
     //this is import
     DL_APPEND(context->sni_pending_list,state);

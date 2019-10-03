@@ -17,6 +17,7 @@ static rebrick_tls_context_t *context_server = NULL;
 static rebrick_tls_context_t *context_servermanual = NULL;
 static rebrick_tls_context_t *context_hamzakilic_com = NULL;
 static rebrick_tls_context_t *context_verify = NULL;
+static rebrick_tls_context_t *context_test_com=NULL;
 
 static int setup(void **state)
 {
@@ -31,6 +32,7 @@ static int setup(void **state)
     rebrick_tls_context_new(&context_servermanual, "servermanuel", SSL_VERIFY_NONE, SSL_SESS_CACHE_OFF, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TICKET,SSL_OP_NO_COMPRESSION, "./data/domain.crt", "./data/domain.key");
 
     rebrick_tls_context_new(&context_hamzakilic_com, "hamzakilic.com", SSL_VERIFY_NONE, SSL_SESS_CACHE_OFF, SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3|SSL_OP_NO_TICKET,SSL_OP_NO_COMPRESSION, "./data/domain.crt", "./data/domain.key");
+    rebrick_tls_context_new(&context_test_com, "test.com", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL,0, "./data/test.com.crt", "./data/test.com.key");
 
     return 0;
 }
@@ -44,6 +46,7 @@ static int teardown(void **state)
     rebrick_tls_context_destroy(context_verify);
     rebrick_tls_context_destroy(context_servermanual);
     rebrick_tls_context_destroy(context_hamzakilic_com);
+    rebrick_tls_context_destroy(context_test_com);
     context_verify = NULL;
     context_server = NULL;
     context_verify_none = NULL;
@@ -460,14 +463,14 @@ static void ssl_server_for_manual_sni(void **start)
     rebrick_util_ip_port_to_addr("0.0.0.0", "8443", &listen);
     client_count = 0;
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new2(&tlsserver, "hamzakilic.com", listen, NULL, NULL, NULL, NULL, NULL,on_error_occured_callback, 100);
+    result = rebrick_tlssocket_new2(&tlsserver, "hamzakilic.com",context_test_com, listen, NULL, NULL, NULL, NULL, NULL,on_error_occured_callback, 100);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
    // loop(counter,100000,TRUE);
 
 
-    counter = 100000;
+    counter = 1000000;
     int32_t tmp=100;
     while (counter--)
     {
@@ -485,13 +488,13 @@ int test_rebrick_tlssocket(void)
 {
 
     const struct CMUnitTest tests[] = {
-         cmocka_unit_test(ssl_client),
-        cmocka_unit_test(ssl_server),
-         cmocka_unit_test(ssl_client_verify),
-        cmocka_unit_test(ssl_client_download_data),
+        // cmocka_unit_test(ssl_client),
+        //cmocka_unit_test(ssl_server),
+        // cmocka_unit_test(ssl_client_verify),
+     /*    cmocka_unit_test(ssl_client_download_data),
         cmocka_unit_test(ssl_client_memory_test),
-     //   cmocka_unit_test(ssl_server_for_manual),
-      //  cmocka_unit_test(ssl_server_for_manual_sni)
+      *///   cmocka_unit_test(ssl_server_for_manual),
+        cmocka_unit_test(ssl_server_for_manual_sni)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

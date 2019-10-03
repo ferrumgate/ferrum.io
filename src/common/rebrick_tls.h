@@ -138,6 +138,7 @@ typedef struct rebrick_tls_ssl{
  * @return int32_t
  */
 int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl,const rebrick_tls_context_t *context);
+int32_t rebrick_tls_ssl_new3(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t *context,const char *servername);
 
 /**
  * @brief creates a new ssl from server indication name
