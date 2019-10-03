@@ -45,12 +45,12 @@ static void on_server_received(rebrick_socket_t *socket, void *data, const struc
 
 }
 
-static void on_server_send(rebrick_socket_t *socket, void *data, void *source, int status)
+static void on_server_send(rebrick_socket_t *socket, void *data, void *source)
 {
     unused(data);
     unused(socket);
     unused(source);
-    unused(status);
+
     assert_string_equal(data, testdata);
     flag = 2;
 
@@ -151,13 +151,13 @@ static void on_dnsclient_received(rebrick_socket_t *socket, void *data, const st
 
 }
 static int32_t sended_count = 0;
-static void on_dnsclient_send(rebrick_socket_t *socket, void *data, void *source, int status)
+static void on_dnsclient_send(rebrick_socket_t *socket, void *data, void *source)
 {
     unused(data);
     unused(socket);
     unused(source);
     unused(data);
-    unused(status);
+
     sended_count++;
 
 }

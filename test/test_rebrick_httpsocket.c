@@ -38,10 +38,10 @@ static void on_error_occured_callback(rebrick_socket_t *socket,void *callback,in
 
 static int32_t is_connected = FALSE;
 
-static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
     is_connected = TRUE;
-    unused(status);
+
     unused(callback_data);
     unused(addr);
     unused(client_handle);
@@ -79,21 +79,21 @@ static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data,
 
 }
 static int32_t sended=FALSE;
-static void on_data_send(rebrick_socket_t *socket,void *callback,void *source,int status){
+static void on_data_send(rebrick_socket_t *socket,void *callback,void *source){
     unused(socket);
     unused(callback);
     unused(source);
-    unused(status);
+
 sended=TRUE;
 
 
 }
 static int32_t header_received=FALSE;
-static void on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header,int status){
+static void on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header){
     unused(socket);
     unused(callback_data);
     unused(header);
-    unused(status);
+
     header_received=TRUE;
 
 }

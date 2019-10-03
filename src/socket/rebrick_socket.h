@@ -22,10 +22,9 @@ typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socke
  * @brief after data sended this function is called
  * @param socket which socket used
  * @param callback_data,  this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
- * @param after_sendata,  this parameters will be sended to this function
- * @param status,  status=0 SUCCESS
+ * @param source,  this parameters used for source detection
  */
-typedef void (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source,int status);
+typedef void (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source);
 
 
 /**

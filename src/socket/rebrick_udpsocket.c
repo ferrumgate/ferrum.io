@@ -18,7 +18,7 @@ static void on_send(uv_udp_send_t *req, int status)
         if (status >= 0)
         {
             if (socket->on_data_sended)
-                socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source, status);
+                socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source);
         }
         else
         {

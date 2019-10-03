@@ -65,9 +65,9 @@ static void on_error_occured_callback(rebrick_socket_t *socket,void *callback,in
 
 static int32_t is_connected = 1;
 
-static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
-    is_connected = status;
+    is_connected = 0;
     unused(callback_data);
     unused(addr);
     unused(client_handle);
@@ -171,9 +171,9 @@ static void on_serverconnection_error_occured_callback(rebrick_socket_t *socket,
 }
 static int32_t server_connection_status = 1;
 static int32_t client_count = 0;
-static void on_serverconnection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_serverconnection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
-    server_connection_status = status;
+    server_connection_status = 0;
     unused(callback_data);
     unused(addr);
     unused(client_handle);

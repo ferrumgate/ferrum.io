@@ -21,7 +21,7 @@ static void on_send(uv_write_t *req, int status)
                 socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
         }
         else if (socket->on_data_sended)
-            socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source, status);
+            socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source);
     }
 
     if (clean_func)
@@ -130,7 +130,7 @@ static void on_connect(uv_connect_t *connection, int status)
         }
         else if (serversocket->on_connection_accepted)
         {
-            serversocket->on_connection_accepted(cast_to_base_socket(serversocket), serversocket->callback_data, NULL, serversocket, status);
+            serversocket->on_connection_accepted(cast_to_base_socket(serversocket), serversocket->callback_data, NULL, serversocket);
         }
     }
 
@@ -218,7 +218,7 @@ static void on_connection(uv_stream_t *server, int status)
 
     if (serversocket->on_connection_accepted)
     {
-        serversocket->on_connection_accepted(cast_to_base_socket(serversocket), client->callback_data, &client->bind_addr.base, client, status);
+        serversocket->on_connection_accepted(cast_to_base_socket(serversocket), client->callback_data, &client->bind_addr.base, client);
     }
 
 }

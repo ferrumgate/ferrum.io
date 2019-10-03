@@ -12,7 +12,7 @@ struct rebrick_tcpsocket;
  * @params addr
  * @params client_handle if client_handle is null then error occured
  */
-typedef void (*rebrick_on_connection_accepted_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle,int status);
+typedef void (*rebrick_on_connection_accepted_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle);
 
 /**
  * @brief after socket is closed this function is called

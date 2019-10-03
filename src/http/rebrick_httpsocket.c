@@ -15,14 +15,14 @@ static void local_on_error_occured_callback(rebrick_socket_t *ssocket, void *cal
 
 }
 
-static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
 
     unused(ssocket);
     unused(callback_data);
     unused(addr);
     unused(client_handle);
-    unused(status);
+
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
@@ -32,7 +32,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     if (httpsocket)
     {
         if (httpsocket->override_override_on_connection_accepted)
-            httpsocket->override_override_on_connection_accepted(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr, client_handle, status);
+            httpsocket->override_override_on_connection_accepted(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr, client_handle);
     }
 
 
@@ -64,12 +64,12 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
 
 }
 
-static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callback_data, void *source, int status)
+static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callback_data, void *source)
 {
     unused(ssocket);
     unused(callback_data);
     unused(source);
-    unused(status);
+
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
@@ -81,7 +81,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     {
 
         if (httpsocket->override_override_on_data_sended)
-            httpsocket->override_override_on_data_sended(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, source, status);
+            httpsocket->override_override_on_data_sended(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, source);
     }
 
 }
@@ -238,7 +238,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
             //http header finished
             if (httpsocket->on_http_header_received)
-                httpsocket->on_http_header_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, httpsocket->header, REBRICK_SUCCESS);
+                httpsocket->on_http_header_received(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, httpsocket->header);
             //if there is data after header parsed in buffer
             //call on_http_body
             if (cast(httpsocket->tmp_buffer->len, ssize_t) > pret)

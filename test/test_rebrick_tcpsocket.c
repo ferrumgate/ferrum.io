@@ -34,9 +34,9 @@ static void on_error_occured(rebrick_socket_t *socket,void *callbackdata,int32_t
 }
 
 int client_connected = 0;
-static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle)
 {
-    unused(status);
+
     unused(socket);
     unused(callbackdata);
     unused(addr);
@@ -144,11 +144,11 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
 }
 
 int connected_toserver = 0;
-static void on_connection_accepted(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_connection_accepted(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle)
 {
     unused(callbackdata);
     unused(addr);
-    unused(status);
+
     unused(client_handle);
     unused(socket);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
@@ -181,12 +181,12 @@ static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const
 
 }
 
-static void on_datasend(rebrick_socket_t *socket, void *callback_data,void *source, int status)
+static void on_datasend(rebrick_socket_t *socket, void *callback_data,void *source)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
-    unused(status);
+
 
 }
 
@@ -274,11 +274,11 @@ static void on_error_occured_memorytest(rebrick_socket_t *socket,void *callbackd
 int connected_to_memorytest = 0;
 int connected_to_memorytest_counter=0;
 rebrick_tcpsocket_t *connected_client;
-static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle)
 {
     unused(callbackdata);
     unused(addr);
-    unused(status);
+
     unused(client_handle);
     unused(socket);
 
@@ -317,12 +317,12 @@ static void on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_
 }
 
 static int datasended_memorytest = 0;
-static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source, int status)
+static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
-    datasended_memorytest = 10 - status;
+    datasended_memorytest = 10;
 
 }
 
