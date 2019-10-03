@@ -120,6 +120,7 @@
 #define private_
 #define readonly_
 #define protected_
+#define internal_
 
 
 /**

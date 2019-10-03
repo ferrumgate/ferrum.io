@@ -6,6 +6,15 @@
 #include "../lib/uthash.h"
 #include "../lib/utlist.h"
 
+
+
+#define REBRICK_TLS_SNI_MAX_LEN 1024
+#define REBRICK_TLS_CONTEXT_SNI "CTX_SNI"
+#define REBRICK_TLS_FILE_MAX_LEN 1024
+#define REBRICK_TLS_SNI_FAKE_CERT_PRV_FILE "/tmp/nofile"
+
+
+
 struct rebrick_tlssocket;
 
 typedef void (*rebrick_tls_checkitem_func)(struct rebrick_tlssocket *socket);
@@ -38,6 +47,7 @@ int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func,struct rebric
 int32_t rebrick_before_io_list_remove(struct rebrick_tlssocket *socket);
 
 
+
 /**
  * @brief inits tls
  *
@@ -48,18 +58,28 @@ int32_t rebrick_tls_cleanup();
 
 
 
-
+struct rebrick_tls_ssl;
 
 typedef struct rebrick_tls_context{
     base_object();
     private_ char key[REBRICK_TLS_KEY_LEN];
+    private_ char sni_pattern[REBRICK_TLS_SNI_MAX_LEN];
     public_ readonly_  SSL_CTX * tls_ctx;
-    public_ readonly_ int32_t is_server;
+
     private_ const char ca_verify_path[REBRICK_CA_VERIFY_PATH_MAX_LEN];
+    public_ readonly_ char cert_file[REBRICK_TLS_FILE_MAX_LEN];
+    public_ readonly_ char prv_file[REBRICK_TLS_FILE_MAX_LEN];
+
+
+
+     //this field is for list
+    internal_ struct rebrick_tls_ssl *sni_pending_list;
 
 }rebrick_tls_context_t;
 
 
+
+#define rebrick_tls_context_is_server(x) (strlen((x)->prv_file))
 
 /**
  * @brief creates a new context if is absent in hash map with key
@@ -94,16 +114,39 @@ typedef struct rebrick_tls_ssl{
     public_ readonly_ BIO *read;
     public_ readonly_ BIO *write;
 
+
+    /**
+     * @brief ref ptr to some data
+     *
+     */
+    public_ readonly_ void *ref;
+
+    /**
+     * @brief fields for defining a list
+     *
+     */
+    public_ readonly_ struct rebrick_tls_ssl *prev;
+    public_ readonly_ struct rebrick_tls_ssl *next;
+
 }rebrick_tls_ssl_t;
 
 /**
- * @brief creates a new ssl
+ * @brief creates a new ssl from context
  *
  * @param ssl
  * @param context checks this context and if context is server then SSL is server otherwise client
  * @return int32_t
  */
 int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl,const rebrick_tls_context_t *context);
+
+/**
+ * @brief creates a new ssl from server indication name
+ *
+ * @param ssl
+ * @param server_indication_name
+ * @return int32_t
+ */
+int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl,const char *server_indication_name);
 int32_t rebrick_tls_ssl_destroy(rebrick_tls_ssl_t *ssl);
 
 #endif
