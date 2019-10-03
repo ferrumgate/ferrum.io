@@ -26,15 +26,15 @@ struct callbackdata
 };
 
 
-static int32_t on_error_occured(rebrick_socket_t *socket,void *callbackdata,int32_t error){
+static void on_error_occured(rebrick_socket_t *socket,void *callbackdata,int32_t error){
     unused(socket);
     unused(callbackdata);
     unused(error);
-    return REBRICK_SUCCESS;
+
 }
 
 int client_connected = 0;
-static int32_t on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(status);
     unused(socket);
@@ -46,10 +46,10 @@ static int32_t on_newclient_connection(rebrick_socket_t *socket, void *callbackd
     data->client = client_handle;
     data->addr = cast(addr, struct sockaddr *);
     client_connected = 1;
-    return 0;
+
 }
 
-static int32_t on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -59,7 +59,7 @@ static int32_t on_read(rebrick_socket_t *socket, void *callback_data, const stru
     memset(data->buffer, 0, 1024);
     memcpy(data->buffer, buffer, len);
 
-    return 0;
+
 }
 
 static void rebrick_tcpsocket_asserver_communication(void **start)
@@ -144,7 +144,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
 }
 
 int connected_toserver = 0;
-static int32_t on_connection_accepted(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_connection_accepted(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(callbackdata);
     unused(addr);
@@ -154,19 +154,19 @@ static int32_t on_connection_accepted(rebrick_socket_t *socket, void *callbackda
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
     connected_toserver = 1;
-    return 0;
+
 }
 
-static int32_t on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
+static void on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
 {
     unused(socket);
     unused(callbackdata);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
-    return 0;
+
 }
 static int datareceived_ok = 0;
-static int32_t on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -178,15 +178,16 @@ static int32_t on_datarecevied(rebrick_socket_t *socket, void *callback_data, co
     memcpy(data->buffer, buffer, len);
     datareceived_ok = 1;
     }
-    return 0;
+
 }
 
-static int32_t on_datasend(rebrick_socket_t *socket, void *callback_data,void *source, int status)
+static void on_datasend(rebrick_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
-    return status - status;
+    unused(status);
+
 }
 
 static void rebrick_tcpsocket_asclient_communication(void **start)
@@ -262,18 +263,18 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
 ////////////////////////// memory tests /////////////////////////////////////
 
-static int32_t on_error_occured_memorytest(rebrick_socket_t *socket,void *callbackdata,int32_t error){
+static void on_error_occured_memorytest(rebrick_socket_t *socket,void *callbackdata,int32_t error){
     unused(socket);
     unused(callbackdata);
     unused(error);
     rebrick_tcpsocket_destroy(cast(socket,rebrick_tcpsocket_t*));
-    return REBRICK_SUCCESS;
+
 }
 
 int connected_to_memorytest = 0;
 int connected_to_memorytest_counter=0;
 rebrick_tcpsocket_t *connected_client;
-static int32_t on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
+static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle, int32_t status)
 {
     unused(callbackdata);
     unused(addr);
@@ -284,25 +285,25 @@ static int32_t on_connection_accepted_memorytest(rebrick_socket_t *socket, void 
     connected_to_memorytest = 1;
     connected_to_memorytest_counter++;
     connected_client = cast(client_handle, rebrick_tcpsocket_t *);
-    return 0;
+
 }
 
 int connection_closed_memorytest = 0;
 int connection_closed_memorytestcounter=0;
-static int32_t on_connection_closed_memorytest(rebrick_socket_t *socket, void *callbackdata)
+static void on_connection_closed_memorytest(rebrick_socket_t *socket, void *callbackdata)
 {
     unused(socket);
     unused(callbackdata);
 
     connection_closed_memorytest = 1;
     connection_closed_memorytestcounter++;
-    return 0;
+
 }
 static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
 static int datareceived_ok_total_memorytest = 0;
 
-static int32_t on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -313,19 +314,16 @@ static int32_t on_datarecevied_memorytest(rebrick_socket_t *socket, void *callba
     datareceived_ok_memorytest = len;
     datareceived_ok_total_memorytest += len;
 
-
-
-    return 0;
 }
 
 static int datasended_memorytest = 0;
-static int32_t on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source, int status)
+static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source, int status)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
     datasended_memorytest = 10 - status;
-    return status - status;
+
 }
 
 /**
@@ -567,9 +565,9 @@ int test_rebrick_tcpsocket(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
-       /*   cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
+          cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
         cmocka_unit_test(rebrick_tcp_client_download_data),
-        cmocka_unit_test(rebrick_tcpsocket_asserver_memory) */
+        cmocka_unit_test(rebrick_tcpsocket_asserver_memory)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

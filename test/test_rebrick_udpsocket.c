@@ -25,14 +25,14 @@ static int32_t flag = 0;
 static char read_buffer[65536] = {'\0'};
 static const char *testdata = "merhaba";
 
-static int32_t on_error_occured(rebrick_socket_t *socket, void *data, int error)
+static void on_error_occured(rebrick_socket_t *socket, void *data, int error)
 {
     unused(socket);
     unused(data);
     unused(error);
-    return REBRICK_SUCCESS;
+
 }
-static int32_t on_server_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_server_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -42,18 +42,18 @@ static int32_t on_server_received(rebrick_socket_t *socket, void *data, const st
     memset(read_buffer, 0, 512);
     memcpy(read_buffer, buffer, len < 65536 ? len : 65536);
 
-    return REBRICK_SUCCESS;
+
 }
 
-static int32_t on_server_send(rebrick_socket_t *socket, void *data, void *source, int status)
+static void on_server_send(rebrick_socket_t *socket, void *data, void *source, int status)
 {
     unused(data);
     unused(socket);
     unused(source);
+    unused(status);
     assert_string_equal(data, testdata);
     flag = 2;
 
-    return REBRICK_SUCCESS + status - status;
 }
 
 static void rebrick_udpsocket_asserver_communication(void **start)
@@ -129,17 +129,17 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     }
 }
 
-static int32_t on_dnsclient_error_occured(rebrick_socket_t *socket, void *data, int32_t error)
+static void on_dnsclient_error_occured(rebrick_socket_t *socket, void *data, int32_t error)
 {
 
     unused(socket);
     unused(data);
     unused(error);
-    return REBRICK_SUCCESS;
+
 }
 
 static int32_t received_count = 0;
-static int32_t on_dnsclient_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_dnsclient_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -148,10 +148,10 @@ static int32_t on_dnsclient_received(rebrick_socket_t *socket, void *data, const
     unused(len);
 
     received_count++;
-    return REBRICK_SUCCESS;
+
 }
 static int32_t sended_count = 0;
-static int32_t on_dnsclient_send(rebrick_socket_t *socket, void *data, void *source, int status)
+static void on_dnsclient_send(rebrick_socket_t *socket, void *data, void *source, int status)
 {
     unused(data);
     unused(socket);
@@ -159,7 +159,7 @@ static int32_t on_dnsclient_send(rebrick_socket_t *socket, void *data, void *sou
     unused(data);
     unused(status);
     sended_count++;
-    return REBRICK_SUCCESS + status - status;
+
 }
 
 /////////////////////// memory tests ///////////////////////////////////////////////
@@ -355,9 +355,9 @@ int test_rebrick_udpsocket(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_udpsocket_asserver_communication),
-        /* cmocka_unit_test(test_rebrick_udpsocket_check_memory),
+        cmocka_unit_test(test_rebrick_udpsocket_check_memory),
         cmocka_unit_test(test_rebrick_udpsocket_check_memory2),
-        cmocka_unit_test(test_rebrick_udpsocket_check_memory3)*/
+        cmocka_unit_test(test_rebrick_udpsocket_check_memory3)
         };
     return cmocka_run_group_tests(tests, setup, teardown);
 }

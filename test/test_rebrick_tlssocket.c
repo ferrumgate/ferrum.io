@@ -55,38 +55,38 @@ static int teardown(void **state)
 }
 
 
-static int32_t on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
+static void on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
     unused(socket);
     unused(callback);
     unused(error);
     rebrick_tlssocket_destroy(cast(socket, rebrick_tlssocket_t *));
-    return REBRICK_SUCCESS;
+
 }
 
 static int32_t is_connected = 1;
 
-static int32_t on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     is_connected = status;
     unused(callback_data);
     unused(addr);
     unused(client_handle);
     unused(socket);
-    return REBRICK_SUCCESS;
+
 }
 static int32_t is_connection_closed = 0;
-static int32_t on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
+static void on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
     is_connection_closed = 1;
 
-    return REBRICK_SUCCESS;
+
 }
 static int32_t is_datareaded = 0;
 static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static int32_t on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -103,7 +103,7 @@ static int32_t on_data_read_callback(rebrick_socket_t *socket, void *callback_da
         totalreaded_len += len;
 
 
-    return 0;
+
 }
 
 static void ssl_client(void **start)
@@ -160,18 +160,18 @@ Accept: text/html\r\n\
 
 static int32_t lastError=0;
 
-static int32_t on_serverconnection_error_occured_callback(rebrick_socket_t *socket,void *callbackdata,int error){
+static void on_serverconnection_error_occured_callback(rebrick_socket_t *socket,void *callbackdata,int error){
     unused(socket);
     unused(callbackdata);
     unused(error);
     lastError=error;
     rebrick_tlssocket_destroy(cast(socket, rebrick_tlssocket_t *));
 
-    return REBRICK_SUCCESS;
+
 }
 static int32_t server_connection_status = 1;
 static int32_t client_count = 0;
-static int32_t on_serverconnection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_serverconnection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     server_connection_status = status;
     unused(callback_data);
@@ -195,10 +195,10 @@ content-length:52\r\n\
     loop(counter,10,TRUE);
 
     loop(counter,10,TRUE);
-    return REBRICK_SUCCESS;
+
 }
 
-static int32_t on_serverconnection_closed_callback(rebrick_socket_t *sockethandle, void *callback_data)
+static void on_serverconnection_closed_callback(rebrick_socket_t *sockethandle, void *callback_data)
 {
     unused(callback_data);
 
@@ -209,12 +209,12 @@ static int32_t on_serverconnection_closed_callback(rebrick_socket_t *sockethandl
         client_count--;
     }
     //rebrick_tlssocket_destroy(socket);
-    return REBRICK_SUCCESS;
+
 }
 static int32_t datareadedserver = 0;
 static char readedbufferserver[65536 * 2] = {0};
 
-static int32_t on_serverdata_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_serverdata_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(addr);
@@ -228,12 +228,10 @@ static int32_t on_serverdata_read_callback(rebrick_socket_t *socket, void *callb
         memcpy(readedbufferserver, buffer, len);
         totalreaded_len += len;
 
-
-    return 0;
 }
 
 
-static int32_t on_serverdata_read_callback2(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_serverdata_read_callback2(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(addr);
@@ -258,7 +256,6 @@ content-length:52\r\n\
     loop(counter,10,TRUE);
 
 
-    return 0;
 }
 /**
  * @brief  for i in {1..10}; do curl --insecure https://localhost:9797; done
@@ -408,7 +405,7 @@ static void ssl_client_memory_test(void **state)
 
 
 
-static int32_t on_serverconnectionmanuel_closed_callback(rebrick_socket_t *sockethandle, void *callback_data)
+static void on_serverconnectionmanuel_closed_callback(rebrick_socket_t *sockethandle, void *callback_data)
 {
     unused(callback_data);
 
@@ -419,7 +416,7 @@ static int32_t on_serverconnectionmanuel_closed_callback(rebrick_socket_t *socke
         client_count--;
     }
     //rebrick_tlssocket_destroy(socket);
-    return REBRICK_SUCCESS;
+
 }
 
 static void ssl_server_for_manual(void **start)
@@ -489,12 +486,12 @@ int test_rebrick_tlssocket(void)
 
     const struct CMUnitTest tests[] = {
          cmocka_unit_test(ssl_client),
-       // cmocka_unit_test(ssl_server),
+        cmocka_unit_test(ssl_server),
          cmocka_unit_test(ssl_client_verify),
-        //cmocka_unit_test(ssl_client_download_data),
-       // cmocka_unit_test(ssl_client_memory_test),
+        cmocka_unit_test(ssl_client_download_data),
+        cmocka_unit_test(ssl_client_memory_test),
      //   cmocka_unit_test(ssl_server_for_manual),
-        cmocka_unit_test(ssl_server_for_manual_sni)
+      //  cmocka_unit_test(ssl_server_for_manual_sni)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

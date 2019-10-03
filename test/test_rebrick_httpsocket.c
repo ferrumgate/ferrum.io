@@ -28,17 +28,17 @@ static int teardown(void **state){
 }
 
 
-static int32_t on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
+static void on_error_occured_callback(rebrick_socket_t *socket,void *callback,int error){
     unused(socket);
     unused(callback);
     unused(error);
     rebrick_tlssocket_destroy(cast(socket, rebrick_tlssocket_t *));
-    return REBRICK_SUCCESS;
+
 }
 
 static int32_t is_connected = FALSE;
 
-static int32_t on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
+static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle, int status)
 {
     is_connected = TRUE;
     unused(status);
@@ -46,21 +46,21 @@ static int32_t on_connection_accepted_callback(rebrick_socket_t *socket, void *c
     unused(addr);
     unused(client_handle);
     unused(socket);
-    return REBRICK_SUCCESS;
+
 }
 static int32_t is_connection_closed = 0;
-static int32_t on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
+static void on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
     is_connection_closed = 1;
 
-    return REBRICK_SUCCESS;
+
 }
 static int32_t is_datareaded = FALSE;
 static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static int32_t on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -77,33 +77,32 @@ static int32_t on_data_read_callback(rebrick_socket_t *socket, void *callback_da
         totalreaded_len += len;
 
 
-    return 0;
 }
 static int32_t sended=FALSE;
-static int32_t on_data_send(rebrick_socket_t *socket,void *callback,void *source,int status){
+static void on_data_send(rebrick_socket_t *socket,void *callback,void *source,int status){
     unused(socket);
     unused(callback);
     unused(source);
     unused(status);
 sended=TRUE;
-    return REBRICK_SUCCESS;
+
 
 }
 static int32_t header_received=FALSE;
-static int32_t on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header,int status){
+static void on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header,int status){
     unused(socket);
     unused(callback_data);
     unused(header);
     unused(status);
     header_received=TRUE;
-    return REBRICK_SUCCESS;
+
 }
 
 
 static int32_t is_bodyreaded = FALSE;
 static int32_t totalreadedbody_len = 0;
 static char readedbufferbody[131072] = {0};
-static int32_t on_body_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_body_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -120,7 +119,6 @@ static int32_t on_body_read_callback(rebrick_socket_t *socket, void *callback_da
         totalreadedbody_len += len;
 
 
-    return 0;
 }
 
 void deletesendata(void *ptr){

@@ -15,7 +15,7 @@ struct rebrick_socket;
  * @param buffer data
  * @param len buffer lenght
  */
-typedef int32_t (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
+typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
 
 
 /**
@@ -25,7 +25,7 @@ typedef int32_t (*rebrick_on_data_received_callback_t)(struct rebrick_socket *so
  * @param after_sendata,  this parameters will be sended to this function
  * @param status,  status=0 SUCCESS
  */
-typedef int32_t (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source,int status);
+typedef void (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source,int status);
 
 
 /**
@@ -35,7 +35,7 @@ typedef int32_t (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *sock
  * @param after_sendata,  this parameters will be sended to this function
  * @param status, result of operation, if status=0 SUCCESS otherwise ERROR
  */
-typedef int32_t (*rebrick_on_error_occured_callback_t)(struct rebrick_socket *socket, void *callback_data,int error);
+typedef void (*rebrick_on_error_occured_callback_t)(struct rebrick_socket *socket, void *callback_data,int error);
 
 
 

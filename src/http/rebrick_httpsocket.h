@@ -12,7 +12,7 @@ struct rebrick_httpsocket;
  * @param header received header
  * @param status, result of parsing, parsed successfully or error
  */
-typedef int32_t (*rebrick_on_http_header_received_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http_header_t *header,int32_t status);
+typedef void (*rebrick_on_http_header_received_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http_header_t *header,int32_t status);
 /**
  * @brief after header parsed finished, when body data starts to come,
  * this callback trigger,this is a synonym
