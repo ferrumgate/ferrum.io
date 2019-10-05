@@ -47,6 +47,19 @@ make all
 make install_sw
 
 
+###### install nghttp2  ################
+cd $CURRENTFOLDER
+cp nghttp2-1.39.2.tar.gz /tmp/uv
+DESTFOLDER=$(pwd)/libs
+cd $TMPFOLDER
+
+tar xvf nghttp2-1.39.2.tar.gz
+cd nghttp2-1.39.2
+./configure --enable-lib-only --prefix=$DESTFOLDER
+make
+make install
+
+
 
 
 
@@ -56,3 +69,4 @@ make install_sw
 ############ make ready ##############
 cd $CURRENTFOLDER
 chown -R hframe:hframe libs
+
