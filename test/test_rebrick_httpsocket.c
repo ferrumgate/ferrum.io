@@ -89,10 +89,12 @@ sended=TRUE;
 
 }
 static int32_t header_received=FALSE;
-static void on_http_header_received(rebrick_socket_t *socket,void *callback_data,rebrick_http_header_t *header){
+static void on_http_header_received(rebrick_socket_t *socket,int32_t stream_id,void *callback_data,rebrick_http_header_t *header){
     unused(socket);
     unused(callback_data);
     unused(header);
+    //stream id is useless, at least this is not http2
+    unused(stream_id);
 
     header_received=TRUE;
 
@@ -102,13 +104,15 @@ static void on_http_header_received(rebrick_socket_t *socket,void *callback_data
 static int32_t is_bodyreaded = FALSE;
 static int32_t totalreadedbody_len = 0;
 static char readedbufferbody[131072] = {0};
-static void on_body_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_body_read_callback(rebrick_socket_t *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
     unused(addr);
     unused(buffer);
     unused(len);
+    //this is http, stream id is allways zero
+    unused(stream_id);
     unused(callback_data);
 
         is_bodyreaded = TRUE;
@@ -145,7 +149,7 @@ static void http_socket_as_client_create_get(void **start){
     rebrick_httpsocket_t *socket;
     is_connected=FALSE;
 
-    result = rebrick_httpsocket_new(&socket, NULL, destination, NULL,
+    result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
                 on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
@@ -232,7 +236,7 @@ static void http_socket_as_client_create_post(void **start){
     rebrick_httpsocket_t *socket;
     is_connected=FALSE;
 
-    result = rebrick_httpsocket_new(&socket, NULL, destination, NULL,
+    result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
                 on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
@@ -340,7 +344,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     rebrick_httpsocket_t *socket;
     is_connected=FALSE;
 
-    result = rebrick_httpsocket_new(&socket, NULL, destination, NULL,
+    result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
                 on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);

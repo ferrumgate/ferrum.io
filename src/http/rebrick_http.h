@@ -47,6 +47,8 @@ public_ typedef struct rebrick_http_header{
     public_ char status_code_str[REBRICK_HTTP_MAX_STATUSCODE_LEN];
     public_ rebrick_http_key_value_t *headers;
     public_ int32_t is_request;
+    //http2 supporting
+    public_ int32_t stream_id;
 
 
 
@@ -66,14 +68,5 @@ int32_t rebrick_http_header_destroy(rebrick_http_header_t *header);
 int32_t rebrick_http_header_to_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
 
 
-
-
-
-/* public_ typedef struct rebrick_http_body{
-     base_object();
-    public_ rebrick_buffers_t *body;
-
-
-}rebrick_http_body_t; */
 
 #endif

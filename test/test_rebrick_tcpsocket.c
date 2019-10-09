@@ -563,11 +563,11 @@ Accept-Ranges: bytes\r\n\
 int test_rebrick_tcpsocket(void)
 {
     const struct CMUnitTest tests[] = {
-       // cmocka_unit_test(rebrick_tcpsocket_asserver_communication),
-       // cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
-       //   cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
-        /* cmocka_unit_test(rebrick_tcp_client_download_data),
-        cmocka_unit_test(rebrick_tcpsocket_asserver_memory) */
+        cmocka_unit_test(rebrick_tcpsocket_asserver_communication),
+        cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
+          cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
+         cmocka_unit_test(rebrick_tcp_client_download_data),
+        cmocka_unit_test(rebrick_tcpsocket_asserver_memory)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

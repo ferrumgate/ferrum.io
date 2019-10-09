@@ -57,24 +57,6 @@ public_ typedef struct rebrick_tlssocket
 
 #define cast_to_tls_socket(x) cast(x, rebrick_tlssocket_t *)
 
-/**
- * @brief
- *
- * @param socket socket pointer
- * @param tls_context  tls context
- * @param bind_addr bind address and port
- * @param dst_addr destination address and port, if port is zero then only listening socket opens
- * @param callback_data, callback data parameter for every callback
- * @param on_data_received data received callback
- * @param on_data_sended
- * @return int32_t
- */
-int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
-                                    rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                    rebrick_on_connection_closed_callback_t on_connection_closed,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
 
 /*
  * @brief creates a tls socket with SNI(server name indication) pattern
@@ -87,7 +69,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const rebrick_tls_co
  * @param on_data_sended
  * @return int32_t
  */
-int32_t rebrick_tlssocket_new2(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -110,7 +92,7 @@ int32_t rebrick_tlssocket_new2(rebrick_tlssocket_t **socket, const char *sni_pat
  * @param create_client
  * @return int32_t
  */
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,

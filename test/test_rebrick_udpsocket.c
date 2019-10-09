@@ -355,9 +355,9 @@ int test_rebrick_udpsocket(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_udpsocket_asserver_communication),
-        /* cmocka_unit_test(test_rebrick_udpsocket_check_memory),
+        cmocka_unit_test(test_rebrick_udpsocket_check_memory),
         cmocka_unit_test(test_rebrick_udpsocket_check_memory2),
-        cmocka_unit_test(test_rebrick_udpsocket_check_memory3) */
+        cmocka_unit_test(test_rebrick_udpsocket_check_memory3)
         };
     return cmocka_run_group_tests(tests, setup, teardown);
 }

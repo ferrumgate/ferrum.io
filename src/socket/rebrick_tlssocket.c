@@ -599,7 +599,7 @@ static struct rebrick_tcpsocket *local_create_client()
     return cast(client, rebrick_tcpsocket_t *);
 }
 
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
@@ -628,6 +628,11 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const rebrick_tls
         return REBRICK_ERR_BAD_ARGUMENT;
     }
 
+    //burası sayesinde yeni bir
+    if(sni_pattern_or_name)
+    snprintf(tlssocket->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN, "%s", sni_pattern_or_name);
+
+
     tlssocket->is_server = backlog_or_isclient;
 
     tlssocket->override_on_connection_accepted = on_connection_accepted;
@@ -652,33 +657,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const rebrick_tls
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
-                              rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                              rebrick_on_connection_closed_callback_t on_connection_closed,
-                              rebrick_on_data_received_callback_t on_data_received,
-                              rebrick_on_data_sended_callback_t on_data_sended,
-                              rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient)
-{
-
-    char current_time_str[32] = {0};
-    unused(current_time_str);
-    int32_t result;
-
-    rebrick_tlssocket_t *tlssocket = new (rebrick_tlssocket_t);
-    constructor(tlssocket, rebrick_tlssocket_t);
-    result = rebrick_tlssocket_init(tlssocket, tls_context, addr, callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient, local_create_client);
-    if (result < 0)
-    {
-        free(tlssocket);
-        rebrick_log_error("tls socket init failed with:%d\n", result);
-        return result;
-    }
-
-    *socket = tlssocket;
-    return REBRICK_SUCCESS;
-}
-
-int32_t rebrick_tlssocket_new2(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tlscontext, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tlscontext, rebrick_sockaddr_t addr, void *callback_data,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
@@ -707,16 +686,14 @@ int32_t rebrick_tlssocket_new2(rebrick_tlssocket_t **socket, const char *sni_pat
     rebrick_tlssocket_t *tlssocket = new (rebrick_tlssocket_t);
     constructor(tlssocket, rebrick_tlssocket_t);
 
-    result = rebrick_tlssocket_init(tlssocket, sni_context, addr, callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient, local_create_client);
+    result = rebrick_tlssocket_init(tlssocket,sni_pattern_or_name, sni_context, addr, callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient, local_create_client);
     if (result < 0)
     {
         free(tlssocket);
         rebrick_log_error("tls socket init failed with:%d\n", result);
         return result;
     }
-    //burası sayesinde yeni bir
-    if(sni_pattern_or_name)
-    snprintf(tlssocket->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN, "%s", sni_pattern_or_name);
+
 
     *socket = tlssocket;
     return REBRICK_SUCCESS;
