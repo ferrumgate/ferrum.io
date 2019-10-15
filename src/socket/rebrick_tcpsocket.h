@@ -49,6 +49,9 @@ public_ typedef struct rebrick_tcpsocket
 
 #define cast_to_tcp_socket(x)  cast((x),rebrick_tcpsocket_t*)
 
+
+
+
 /**
  * @brief
  *
@@ -91,7 +94,9 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
                                     rebrick_on_data_sended_callback_t on_data_sended,
                                     rebrick_on_error_occured_callback_t on_error_occured,
                                     int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client);
-
+int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket,int enable);
+int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket,int enable,int delay);
+int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket,int enable);
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
 int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
