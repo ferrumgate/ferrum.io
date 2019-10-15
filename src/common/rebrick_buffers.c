@@ -182,13 +182,13 @@ int32_t rebrick_buffers_total_len(rebrick_buffers_t *buffer)
 }
 
 
-int32_t rebrick_buffers_to_array(rebrick_buffers_t *buffer,char **array,size_t *arr_len){
+int32_t rebrick_buffers_to_array(rebrick_buffers_t *buffer,uint8_t **array,size_t *arr_len){
      char current_time_str[32] = {0};
     unused(current_time_str);
     *arr_len=0;
     *array=NULL;
     if(buffer){
-        char *temp=NULL;
+        uint8_t *temp=NULL;
         int32_t sum = 0;
         rebrick_buffers_page_t *tmp;
         DL_FOREACH(buffer->head_page, tmp)

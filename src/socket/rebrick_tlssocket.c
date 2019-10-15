@@ -80,7 +80,7 @@ static void clean_send_data_holder(void *ptr)
 
 static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
 {
-    char buftemp[BUF_SIZE] = {0};
+    uint8_t buftemp[BUF_SIZE] = {0};
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
@@ -176,7 +176,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
 
     char current_time_str[32] = {0};
     unused(current_time_str);
-    char buftemp[BUF_SIZE];
+    uint8_t buftemp[BUF_SIZE];
 
     if (tlssocket && tlssocket->pending_write_list)
     {
@@ -190,7 +190,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
         struct pending_data *el, *tmp;
         DL_FOREACH_SAFE(tlssocket->pending_write_list, el, tmp)
         {
-            char *tmpbuffer = NULL;
+            uint8_t *tmpbuffer = NULL;
             result = rebrick_buffers_to_array(el->data, &tmpbuffer, &len);
             int32_t writen_len = 0;
             int32_t temp_len = len;
@@ -474,7 +474,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *
         tlssocket->override_on_connection_closed(cast_to_base_socket(tlssocket), tlssocket->override_callback_data);
 }
 
-static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
 
     char current_time_str[32] = {0};
@@ -547,7 +547,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
     if (tlssocket->override_on_data_received)
     {
         size_t array_len = 0;
-        char *array;
+        uint8_t *array;
         result = rebrick_buffers_to_array(readedbuffer, &array, &array_len);
 
         if (array_len)
@@ -729,7 +729,7 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfuncs)
+int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfuncs)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -794,7 +794,7 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t
     result = REBRICK_SUCCESS;
     if (buffertmp)
     {
-        char *tmpbuffer = NULL;
+        uint8_t *tmpbuffer = NULL;
         size_t tmplen = 0;
         rebrick_buffers_to_array(buffertmp, &tmpbuffer, &tmplen);
         if (tmplen)

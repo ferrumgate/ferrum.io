@@ -36,7 +36,7 @@ static void on_send(uv_write_t *req, int status)
     free(req);
 }
 
-int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
 
     char current_time_str[32] = {0};
@@ -50,7 +50,7 @@ int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, char *buffer, size_t
     uv_write_t *request = new (uv_write_t);
     if_is_null_then_die(request, "malloc problem\n");
     fill_zero(request, sizeof(uv_write_t));
-    uv_buf_t buf = uv_buf_init(buffer, len);
+    uv_buf_t buf = uv_buf_init(cast(buffer,char*), len);
 
     rebrick_clean_func_clone(&cleanfunc, request->data);
 
@@ -83,7 +83,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     else if (socket->on_data_received)
     {
 
-        socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, NULL, rcvbuf->base, nread);
+        socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, NULL,cast(rcvbuf->base,uint8_t*), nread);
     }
 
     free(rcvbuf->base);

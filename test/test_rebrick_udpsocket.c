@@ -32,7 +32,7 @@ static void on_error_occured(rebrick_socket_t *socket, void *data, int error)
     unused(error);
 
 }
-static void on_server_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_server_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -100,7 +100,7 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     flag = 0;
     char *reply = "got it";
     rebrick_clean_func_t clean = {};
-    result = rebrick_udpsocket_send(server, &client, reply, strlen(reply) + 1, clean);
+    result = rebrick_udpsocket_send(server, &client,cast(reply,uint8_t*), strlen(reply) + 1, clean);
     assert_int_equal(result, 0);
     // uv_run(uv_default_loop(),UV_RUN_NOWAIT);
 
@@ -139,7 +139,7 @@ static void on_dnsclient_error_occured(rebrick_socket_t *socket, void *data, int
 }
 
 static int32_t received_count = 0;
-static void on_dnsclient_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_dnsclient_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -207,7 +207,7 @@ static void test_rebrick_udpsocket_check_memory(void **state)
         sended_count = 0;
         received_count = 0;
         rebrick_clean_func_t clean = {};
-        rebrick_udpsocket_send(dnsclient, &destination, testdata, datalen, clean);
+        rebrick_udpsocket_send(dnsclient, &destination,cast(testdata,uint8_t*), datalen, clean);
         int counter = 1000;
         while (counter-- && !sended_count)
         {
@@ -282,7 +282,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
         sended_count = 0;
         received_count = 0;
         rebrick_clean_func_t clean = {};
-        rebrick_udpsocket_send(dnsclient, &destination, testdata, datalen, clean);
+        rebrick_udpsocket_send(dnsclient, &destination,cast(testdata,uint8_t*), datalen, clean);
 
         int counter = 10000;
         while (counter-- && !sended_count)

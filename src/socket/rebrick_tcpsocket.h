@@ -94,6 +94,6 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
 
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
-int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 #endif

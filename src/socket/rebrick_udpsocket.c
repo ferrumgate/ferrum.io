@@ -37,7 +37,7 @@ static void on_send(uv_udp_send_t *req, int status)
     }
     free(req);
 }
-int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, char *buffer, size_t len, rebrick_clean_func_t func)
+int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func)
 {
 
     char current_time_str[32] = {0};
@@ -48,7 +48,7 @@ int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *
 
     uv_udp_send_t *request = new (uv_udp_send_t);
     fill_zero(request, sizeof(uv_udp_send_t));
-    uv_buf_t buf = uv_buf_init(buffer, len);
+    uv_buf_t buf = uv_buf_init(cast(buffer,char*), len);
 
     rebrick_clean_func_clone(&func, request->data);
 
@@ -85,7 +85,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
         }
         else if (socket->on_data_received)
         {
-            socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, addr, rcvbuf->base, nread);
+            socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, addr,cast(rcvbuf->base,uint8_t*), nread);
         }
     }
 

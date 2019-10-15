@@ -92,7 +92,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
         httpsocket->override_override_on_error_occured(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, error); \
     }
 
-static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(socket);
     unused(callback_data);
@@ -249,7 +249,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                     size_t offset = httpsocket->tmp_buffer->len - length_remain;
                     httpsocket->content_received_length += length_remain;
                     httpsocket->on_http_body_received(cast_to_base_socket(httpsocket),0, httpsocket->override_override_callback_data, addr,
-                                                      cast(httpsocket->tmp_buffer->buf + offset, char *), length_remain);
+                                                      httpsocket->tmp_buffer->buf + offset, length_remain);
                 }
             }
         }
@@ -372,12 +372,14 @@ int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket)
 
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     unused(buffer);
     unused(len);
     unused(cleanfunc);
+    //not using, with http1.1 only for http2
+    unused(stream_id);
     if (!socket || !buffer | !len)
         return REBRICK_ERR_BAD_ARGUMENT;
 
@@ -385,3 +387,29 @@ int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size
         return rebrick_tlssocket_send(cast_to_tls_socket(socket), buffer, len, cleanfunc);
     return rebrick_tcpsocket_send(cast_to_tcp_socket(socket), buffer, len, cleanfunc);
 }
+
+static void clean_buffer(void *buffer){
+    rebrick_buffer_t *tmp=cast(buffer,rebrick_buffer_t *);
+    if(tmp){
+        rebrick_buffer_destroy(tmp);
+    }
+}
+
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t stream_id,rebrick_http_header_t *header){
+    unused(socket);
+    int32_t result;
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    if(!socket || !header)
+    return REBRICK_ERR_BAD_ARGUMENT;
+    rebrick_buffer_t *buffer;
+    result=rebrick_http_header_to_buffer(header,&buffer);
+    if(result<0){
+        rebrick_log_error("http sending header failed with error:%d\n",result);
+        return result;
+    }
+    rebrick_clean_func_t cleanfunc={.func=clean_buffer,.ptr=buffer};
+    return rebrick_httpsocket_send(socket,stream_id,buffer->buf,buffer->len,cleanfunc);
+
+}
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);

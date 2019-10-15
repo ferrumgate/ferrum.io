@@ -89,7 +89,7 @@ static void on_connection_closed_callback(rebrick_socket_t *socket, void *callba
 static int32_t is_datareaded = 0;
 static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -143,7 +143,7 @@ Accept: text/html\r\n\
 
     loop(counter,100,TRUE);
     rebrick_clean_func_t clean={};
-    result = rebrick_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
+    result = rebrick_tlssocket_send(tlsclient, cast(head,uint8_t*), strlen(head) + 1, clean);
     assert_int_equal(result, 0);
     counter = 100;
     loop(counter,100,TRUE);
@@ -194,7 +194,7 @@ content-length:52\r\n\
 <html><body><h1>server is working</h1></body></html>";
     int32_t counter = 10;
     rebrick_clean_func_t clean={};
-    rebrick_tlssocket_send(client, msg, strlen(msg), clean);
+    rebrick_tlssocket_send(client,cast(msg,uint8_t*), strlen(msg), clean);
     loop(counter,10,TRUE);
 
     loop(counter,10,TRUE);
@@ -217,7 +217,7 @@ static void on_serverconnection_closed_callback(rebrick_socket_t *sockethandle, 
 static int32_t datareadedserver = 0;
 static char readedbufferserver[65536 * 2] = {0};
 
-static void on_serverdata_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_serverdata_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(addr);
@@ -234,7 +234,7 @@ static void on_serverdata_read_callback(rebrick_socket_t *socket, void *callback
 }
 
 
-static void on_serverdata_read_callback2(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_serverdata_read_callback2(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(addr);
@@ -255,7 +255,7 @@ content-length:52\r\n\
 <html><body><h1>server is working</h1></body></html>";
     int32_t counter = 10;
     rebrick_clean_func_t clean={};
-    rebrick_tlssocket_send(cast_to_tls_socket(socket), msg, strlen(msg), clean);
+    rebrick_tlssocket_send(cast_to_tls_socket(socket),cast(msg,uint8_t*), strlen(msg), clean);
     loop(counter,10,TRUE);
 
 
@@ -374,7 +374,7 @@ Accept: text/html\r\n\
         counter--;
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        result = rebrick_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);
+        result = rebrick_tlssocket_send(tlsclient,cast(head,uint8_t*), strlen(head) + 1, clean);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     } while (result != 0 && counter && !is_connection_closed);
     assert_int_equal(result, 0);

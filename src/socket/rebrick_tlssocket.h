@@ -100,7 +100,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket,const char *sni_patte
                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket);
-int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket,const char *servername);
 #endif

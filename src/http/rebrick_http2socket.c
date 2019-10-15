@@ -23,17 +23,17 @@ static ssize_t http2_on_send_callback(nghttp2_session *session, const uint8_t *d
     unused(flags);
     unused(user_data);
     int32_t result;
-
+    unused(result);
     rebrick_http2socket_t *httpsocket = cast(user_data, rebrick_http2socket_t *);
     if (httpsocket)
     {
-        rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
-        result = rebrick_http2socket_send(httpsocket, cast(data, char *), length, func);
+        //rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
+       /*  result = rebrick_http2socket_send(httpsocket,cast(data,uint8_t*), length, func);
         if (result < 0)
         {
             rebrick_log_error("nghttp2 send callback failed with error:%d\n", result);
             call_error(httpsocket, result);
-        }
+        } */
         return -1;
     }
     return length;
@@ -209,7 +209,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     }
 }
 
-static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(socket);
     unused(callback_data);

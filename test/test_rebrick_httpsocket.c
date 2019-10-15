@@ -60,7 +60,7 @@ static void on_connection_closed_callback(rebrick_socket_t *socket, void *callba
 static int32_t is_datareaded = FALSE;
 static int32_t totalreaded_len = 0;
 static char readedbuffer[131072] = {0};
-static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_data_read_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -104,7 +104,7 @@ static void on_http_header_received(rebrick_socket_t *socket,int32_t stream_id,v
 static int32_t is_bodyreaded = FALSE;
 static int32_t totalreadedbody_len = 0;
 static char readedbufferbody[131072] = {0};
-static void on_body_read_callback(rebrick_socket_t *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_body_read_callback(rebrick_socket_t *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -173,7 +173,7 @@ static void http_socket_as_client_create_get(void **start){
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
     //send data
-    result=rebrick_httpsocket_send(socket,cast(buffer->buf,char*),buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -272,7 +272,7 @@ static void http_socket_as_client_create_post(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_httpsocket_send(socket,cast(buffer->buf,char*),buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -281,7 +281,7 @@ static void http_socket_as_client_create_post(void **start){
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func=deletesendata;
     cleanfunc2.ptr=bodybuffer;
-    result=rebrick_httpsocket_send(socket,cast(bodybuffer->buf,char*),bodybuffer->len,cleanfunc2);
+    result=rebrick_httpsocket_send(socket,0,bodybuffer->buf,bodybuffer->len,cleanfunc2);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
 
@@ -380,7 +380,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_httpsocket_send(socket,cast(buffer->buf,char*),buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -389,7 +389,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func=deletesendata;
     cleanfunc2.ptr=bodybuffer;
-    result=rebrick_httpsocket_send(socket,cast(bodybuffer->buf,char*),bodybuffer->len,cleanfunc2);
+    result=rebrick_httpsocket_send(socket,0,bodybuffer->buf,bodybuffer->len,cleanfunc2);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
 

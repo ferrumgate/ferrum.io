@@ -15,7 +15,7 @@ struct rebrick_socket;
  * @param buffer data
  * @param len buffer lenght
  */
-typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
+typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
 
 /**

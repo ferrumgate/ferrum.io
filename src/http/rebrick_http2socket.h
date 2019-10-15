@@ -55,7 +55,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_
                                     rebrick_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
-int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 
 #endif

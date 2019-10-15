@@ -136,7 +136,7 @@ int main()
   if (test_rebrick_buffers())
     exit(1);
 
- /*  if (test_rebrick_udpsocket())
+   if (test_rebrick_udpsocket())
     exit(1);
 
   if (test_rebrick_tcpsocket())
@@ -145,7 +145,7 @@ int main()
   if (test_rebrick_tls())
     exit(1);
   if (test_rebrick_tlssocket())
-    exit(1); */
+    exit(1);
   if (test_rebrick_http())
     exit(1);
 

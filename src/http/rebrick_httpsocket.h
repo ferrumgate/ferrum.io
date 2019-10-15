@@ -25,7 +25,7 @@ typedef void (*rebrick_on_http_header_received_callback_t)(struct rebrick_socket
  * this callback trigger,this is a synonym
  * @see rebrick_on_data_received_callback_t
  */
-typedef void (*rebrick_on_http_body_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len);
+typedef void (*rebrick_on_http_body_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
 
 
@@ -105,10 +105,10 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket, const char *sni_pa
                                     rebrick_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
-int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, char *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket);
 int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t stream_id,rebrick_http_header_t *header);
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id, char *buffer,size_t len,rebrick_clean_func_t cleanfunc);
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);
 
 
 

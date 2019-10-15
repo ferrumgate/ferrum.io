@@ -49,7 +49,7 @@ static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata
 
 }
 
-static void on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(addr);
     unused(socket);
@@ -106,7 +106,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
 
     char *world = "world";
     rebrick_clean_func_t clean={};
-    result = rebrick_tcpsocket_send(data.client, world, strlen(world), clean);
+    result = rebrick_tcpsocket_send(data.client,cast(world,uint8_t*), strlen(world), clean);
     assert_int_equal(result, 0);
 
     //check loop
@@ -166,7 +166,7 @@ static void on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
 
 }
 static int datareceived_ok = 0;
-static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -242,7 +242,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
     assert_string_equal(data.buffer, "deneme");
     rebrick_clean_func_t cleanfunc={};
-    rebrick_tcpsocket_send(client, "valla", 6, cleanfunc);
+    rebrick_tcpsocket_send(client,cast("valla",uint8_t*), 6, cleanfunc);
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
@@ -303,7 +303,7 @@ static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
 static int datareceived_ok_total_memorytest = 0;
 
-static void on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const char *buffer, ssize_t len)
+static void on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
 {
     unused(callback_data);
     unused(addr);
@@ -368,7 +368,7 @@ Accept: text/html\r\n\
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
         rebrick_clean_func_t cleanfunc={};
-        result = rebrick_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(client, cast(head,uint8_t*), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -434,7 +434,7 @@ connection_closed_memorytest = 0;
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         rebrick_clean_func_t cleanfunc={};
-        result = rebrick_tcpsocket_send(client, head, strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(client, cast(head,uint8_t*), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         datareceived_ok_total_memorytest = 1;
@@ -534,7 +534,7 @@ Accept-Ranges: bytes\r\n\
         rebrick_clean_func_t cleanfunc={};
         //assert_true(datareceived_ok_memorytest > 0);
         if(connected_client)
-        result = rebrick_tcpsocket_send(connected_client, html, strlen(html) + 1, cleanfunc);
+        result = rebrick_tcpsocket_send(connected_client, cast(html,uint8_t*), strlen(html) + 1, cleanfunc);
 
         counter = 100;
         while (--counter && !datasended_memorytest)
