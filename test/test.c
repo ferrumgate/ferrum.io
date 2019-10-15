@@ -151,6 +151,8 @@ int main()
 
   if (test_rebrick_httpsocket())
     exit(1);
+   if (test_rebrick_http2socket())
+    exit(1);
   //kill(getpid(), SIGSEGV);
   //    getchar();
 

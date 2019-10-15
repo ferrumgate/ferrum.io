@@ -152,7 +152,7 @@ static void http_socket_as_client_create_get(void **start){
     result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
@@ -239,7 +239,7 @@ static void http_socket_as_client_create_post(void **start){
     result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
     assert_int_equal(result, REBRICK_SUCCESS);
 
     loop(counter,1000,!is_connected);
@@ -347,7 +347,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
     assert_int_equal(result, REBRICK_SUCCESS);
 
     loop(counter,1000,!is_connected);
