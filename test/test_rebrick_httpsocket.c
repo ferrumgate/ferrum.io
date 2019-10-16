@@ -173,7 +173,7 @@ static void http_socket_as_client_create_get(void **start){
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
     //send data
-    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -272,7 +272,7 @@ static void http_socket_as_client_create_post(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -281,7 +281,7 @@ static void http_socket_as_client_create_post(void **start){
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func=deletesendata;
     cleanfunc2.ptr=bodybuffer;
-    result=rebrick_httpsocket_send(socket,0,bodybuffer->buf,bodybuffer->len,cleanfunc2);
+    result=rebrick_httpsocket_send(socket,bodybuffer->buf,bodybuffer->len,cleanfunc2);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
 
@@ -380,7 +380,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     rebrick_clean_func_t cleanfunc;
     cleanfunc.func=deletesendata;
     cleanfunc.ptr=buffer;
-    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
+    result=rebrick_httpsocket_send(socket,buffer->buf,buffer->len,cleanfunc);
     assert_int_equal(result,REBRICK_SUCCESS);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
@@ -389,7 +389,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func=deletesendata;
     cleanfunc2.ptr=bodybuffer;
-    result=rebrick_httpsocket_send(socket,0,bodybuffer->buf,bodybuffer->len,cleanfunc2);
+    result=rebrick_httpsocket_send(socket,bodybuffer->buf,bodybuffer->len,cleanfunc2);
     loop(counter,1000,(!sended));
     assert_int_equal(sended,TRUE);
 

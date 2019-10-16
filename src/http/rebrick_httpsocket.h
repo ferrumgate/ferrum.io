@@ -108,9 +108,9 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket, const char *sni_pa
                                     rebrick_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
-int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket);
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t stream_id,rebrick_http_header_t *header);
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t *stream_id,rebrick_http_header_t *header);
 int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);
 
 

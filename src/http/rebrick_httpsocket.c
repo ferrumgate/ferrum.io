@@ -407,14 +407,13 @@ int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket)
 
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     unused(buffer);
     unused(len);
     unused(cleanfunc);
-    //not using, with http1.1 only for http2
-    unused(stream_id);
+
     if (!socket || !buffer | !len)
         return REBRICK_ERR_BAD_ARGUMENT;
 
@@ -432,12 +431,15 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t stream_id, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
     char current_time_str[32] = {0};
     unused(current_time_str);
+    //not used, only for compability with http2
+    unused(stream_id);
+
     if (!socket || !header)
         return REBRICK_ERR_BAD_ARGUMENT;
     rebrick_buffer_t *buffer;
@@ -448,7 +450,7 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t str
         return result;
     }
     rebrick_clean_func_t cleanfunc = {.func = clean_buffer, .ptr = buffer};
-    return rebrick_httpsocket_send(socket, stream_id, buffer->buf, buffer->len, cleanfunc);
+    return rebrick_httpsocket_send(socket, buffer->buf, buffer->len, cleanfunc);
 }
 int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
@@ -456,10 +458,11 @@ int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t strea
     int32_t result;
     unused(result);
     char current_time_str[32] = {0};
+    unused(stream_id);
     unused(current_time_str);
     if (!socket || !buffer)
         return REBRICK_ERR_BAD_ARGUMENT;
 
     //rebrick_clean_func_t cleanfunc={.func=clean_buffer,.ptr=buffer};
-    return rebrick_httpsocket_send(socket, stream_id, buffer, len, cleanfunc);
+    return rebrick_httpsocket_send(socket, buffer, len, cleanfunc);
 }

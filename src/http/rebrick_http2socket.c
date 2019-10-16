@@ -4,6 +4,24 @@
     if (httpsocket->override_override_on_error_occured) \
         httpsocket->override_override_on_error_occured(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, error);
 
+#define check_nghttp2_result(result)                                                               \
+    if (result < 0)                                                                                \
+    {                                                                                              \
+        const char *errstr = nghttp2_strerror(result);                                             \
+        rebrick_log_error("http2 failed with error :%d %s\n", REBRICK_ERR_HTTP2 + result, errstr); \
+        return REBRICK_ERR_HTTP2 + result;                                                         \
+    }
+
+#define check_nghttp2_result_call_error(result, socket)                                                          \
+    if (result < 0)                                                                                              \
+    {                                                                                                            \
+        const char *errstr = nghttp2_strerror(result);                                                           \
+        rebrick_log_error("http2 failed with error :%d %s\n", REBRICK_ERR_HTTP2 + result, errstr);               \
+        if (socket->override_override_on_error_occured)                                                          \
+            socket->override_override_on_error_occured(cast_to_base_socket(socket), socket->override_override_callback_data, REBRICK_ERR_HTTP2 + result); \
+        return;                                                                                                  \
+    }
+
 static void http2_stream_error(nghttp2_session *session, int32_t stream_id, uint32_t error_code)
 {
     char current_time_str[32] = {0};
@@ -27,20 +45,19 @@ static ssize_t http2_on_send_callback(nghttp2_session *session, const uint8_t *d
     rebrick_http2socket_t *httpsocket = cast(user_data, rebrick_http2socket_t *);
     if (httpsocket)
     {
-        //rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
-       /*  result = rebrick_http2socket_send(httpsocket,cast(data,uint8_t*), length, func);
+        rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
+        result = rebrick_http2socket_send(httpsocket,data, length, func);
         if (result < 0)
         {
             rebrick_log_error("nghttp2 send callback failed with error:%d\n", result);
             call_error(httpsocket, result);
-        } */
-        return -1;
+            return -1;
+        }
+
     }
     return length;
 
-    return 0;
 }
-
 
 static int http2_on_before_frame_send_callback(nghttp2_session *session,
                                                const nghttp2_frame *frame, void *user_data)
@@ -156,11 +173,52 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     unused(result);
 
     rebrick_http2socket_t *httpsocket = cast(ssocket, rebrick_http2socket_t *);
-    if (httpsocket)
+    if (!httpsocket)
     {
-        if (httpsocket->override_override_on_connection_accepted)
-            httpsocket->override_override_on_connection_accepted(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, addr, client_handle);
+        rebrick_log_fatal("socket casting to http2socket is null\n");
+        return;
     }
+    rebrick_http2socket_t *socket = NULL;
+    if (httpsocket->is_server)
+        socket = cast_to_http2_socket(client_handle);
+    else
+        socket = httpsocket;
+
+    //copy from server structure
+    if (httpsocket->is_server)
+    {
+        socket->override_override_callback_data = httpsocket->override_override_callback_data;
+        socket->override_override_on_connection_accepted = httpsocket->override_override_on_connection_accepted;
+        socket->override_override_on_connection_closed = httpsocket->override_override_on_connection_closed;
+        socket->override_override_on_data_received = httpsocket->override_override_on_data_received;
+        socket->override_override_on_data_sended = httpsocket->override_override_on_data_sended;
+        socket->override_override_on_error_occured = httpsocket->override_override_on_error_occured;
+
+        memcpy(&socket->settings, &httpsocket->settings, sizeof(rebrick_http2_socket_settings_t));
+
+    }
+
+    //init http2 structure
+    result = nghttp2_session_callbacks_new(&socket->parsing_params.session_callback);
+    check_nghttp2_result_call_error(result, socket);
+
+    setup_nghttp2_callbacks(socket->parsing_params.session_callback);
+
+    if (socket->is_server)
+        result = nghttp2_session_server_new(&socket->parsing_params.session, socket->parsing_params.session_callback, socket);
+    else
+        result = nghttp2_session_client_new(&socket->parsing_params.session, socket->parsing_params.session_callback, socket);
+
+    check_nghttp2_result_call_error(result,socket);
+
+    result = nghttp2_submit_settings(socket->parsing_params.session, NGHTTP2_FLAG_NONE, socket->settings.entries, socket->settings.settings_count);
+    check_nghttp2_result_call_error(result,socket);
+    result=nghttp2_session_send(socket->parsing_params.session);
+    check_nghttp2_result_call_error(result,socket);
+
+    if (socket->override_override_on_connection_accepted)
+        socket->override_override_on_connection_accepted(cast_to_base_socket(httpsocket), socket->override_override_callback_data, addr, socket);
+
 }
 
 static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void *callback_data)
@@ -255,25 +313,25 @@ static struct rebrick_tcpsocket *local_create_client()
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
+    int32_t result;
     rebrick_http2socket_t *client = new (rebrick_http2socket_t);
     constructor(client, rebrick_http2socket_t);
+    result = rebrick_tcpsocket_nodelay(cast_to_tcp_socket(client), 0);
+    if (result < 0)
+    {
+        rebrick_log_fatal("no delay failed\n");
+    }
     return cast(client, rebrick_tcpsocket_t *);
 }
 
-#define check_nghttp2_result(result)                                                                              \
-    if (result < 0)                                                                                               \
-    {                                                                                                             \
-        const char *errstr = nghttp2_strerror(result);                                                            \
-        rebrick_log_error("http2 parsing params failed with error :%d %s\n", REBRICK_ERR_HTTP2 + result, errstr); \
-        return REBRICK_ERR_HTTP2 + result;                                                                        \
-    }
-
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr, void *callback_data,
+                                 const rebrick_http2_socket_settings_t *settings,
                                  rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                  rebrick_on_connection_closed_callback_t on_connection_closed,
                                  rebrick_on_data_received_callback_t on_data_received,
                                  rebrick_on_data_sended_callback_t on_data_sended,
-                                 rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                                 rebrick_on_error_occured_callback_t on_error_occured,
+                                 int32_t backlog_or_isclient,
                                  rebrick_tcpsocket_create_client_t create_client)
 {
 
@@ -281,9 +339,10 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     unused(current_time_str);
     int32_t result;
     unused(result);
-    httpsocket->override_override_tls_context = tls;
+
     if (tls)
     {
+        //create a new tls socket
         result = rebrick_tlssocket_init(cast_to_tls_socket(httpsocket), sni_pattern_or_name, tls, addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient, create_client);
     }
     else
@@ -295,31 +354,21 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
         rebrick_log_error("http2 socket creation failed with error:%d\n", result);
         return result;
     }
+    //set no delay for tcp socket, this is important
+    rebrick_tcpsocket_nodelay(cast_to_tcp_socket(httpsocket), 0);
+    memcpy(&httpsocket->settings, settings, sizeof(rebrick_http2_socket_settings_t));
     httpsocket->override_override_on_connection_accepted = on_connection_accepted;
     httpsocket->override_override_on_connection_closed = on_connection_closed;
     httpsocket->override_override_on_data_received = on_data_received;
     httpsocket->override_override_on_data_sended = on_data_sended;
     httpsocket->override_override_on_error_occured = on_error_occured;
     httpsocket->override_override_callback_data = callback_data;
-    //init http2 structure
-    result = nghttp2_session_callbacks_new(&httpsocket->parsing_params.session_callback);
-    check_nghttp2_result(result);
-
-    setup_nghttp2_callbacks(httpsocket->parsing_params.session_callback);
-
-    if (httpsocket->is_server)
-        result = nghttp2_session_server_new(&httpsocket->parsing_params.session, httpsocket->parsing_params.session_callback, httpsocket);
-    else
-        result = nghttp2_session_client_new(&httpsocket->parsing_params.session, httpsocket->parsing_params.session_callback, httpsocket);
-
-    check_nghttp2_result(result);
-    result = nghttp2_submit_settings(httpsocket->parsing_params.session, NGHTTP2_FLAG_NONE, NULL, 0);
-    check_nghttp2_result(result);
 
     return REBRICK_SUCCESS;
 }
 
 int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr, void *callback_data,
+                                const rebrick_http2_socket_settings_t *settings,
                                 rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                 rebrick_on_connection_closed_callback_t on_connection_closed,
                                 rebrick_on_data_received_callback_t on_data_received,
@@ -335,7 +384,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
     constructor(httpsocket, rebrick_http2socket_t);
 
     result = rebrick_http2socket_init(httpsocket, sni_pattern_or_name, tls, addr,
-                                      callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient,
+                                      callback_data, settings, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient,
                                       local_create_client);
     if (result < 0)
     {
@@ -345,4 +394,20 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
     }
     *socket = httpsocket;
     return REBRICK_SUCCESS;
+}
+
+
+int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+{
+    unused(socket);
+    unused(buffer);
+    unused(len);
+    unused(cleanfunc);
+
+    if (!socket || !buffer | !len)
+        return REBRICK_ERR_BAD_ARGUMENT;
+
+    if (socket->tls)
+        return rebrick_tlssocket_send(cast_to_tls_socket(socket), buffer, len, cleanfunc);
+    return rebrick_tcpsocket_send(cast_to_tcp_socket(socket), buffer, len, cleanfunc);
 }

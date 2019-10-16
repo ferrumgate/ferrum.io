@@ -1,4 +1,4 @@
-#include "./http/rebrick_httpsocket.h"
+#include "./http/rebrick_http2socket.h"
 #include "cmocka.h"
 #include <unistd.h>
 
@@ -125,7 +125,7 @@ static void on_body_read_callback(rebrick_socket_t *socket,int32_t stream_id, vo
 
 }
 
-void deletesendata(void *ptr){
+static void deletesendata(void *ptr){
     if(ptr){
         rebrick_buffer_t *buffer=cast(ptr,rebrick_buffer_t *);
         rebrick_buffer_destroy(buffer);
@@ -144,21 +144,27 @@ static void http2_socket_as_client_create_get(void **start){
 
     rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9090", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "8080", &destination);
 
-    rebrick_httpsocket_t *socket;
+    rebrick_http2socket_t *socket;
     is_connected=FALSE;
+    rebrick_http2_socket_settings_t settings;
+    nghttp2_settings_entry maxstream={NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,100};
+    settings.entries[0]=maxstream;
+    settings.settings_count=1;
 
-    result = rebrick_httpsocket_new(&socket,NULL, NULL, destination, NULL,
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,
+                &settings,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
     assert_int_equal(is_connected,TRUE);
+    loop(counter,1000,1);
 
-    rebrick_http_header_t *header;
+    /*rebrick_http_header_t *header;
     result=rebrick_http_header_new(&header,"GET", "/api/get",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
@@ -196,10 +202,7 @@ static void http2_socket_as_client_create_get(void **start){
     assert_string_equal(value,"text/html; charset=utf-8");
     rebrick_http_header_get_header(socket->header,"Content-Length",&value);
     assert_string_equal(value,"25");
-     /*rebrick_http_header_get_header(socket->header,"ETag",&value);
-    assert_string_equal(value,"W/\"19-EE0dTSKO8nU0PWVui0tLx8f6m9I\"");
-     rebrick_http_header_get_header(socket->header,"Date",&value);
-    assert_string_equal(value,"Sun, 22 Sep 2019 20:14:00 GMT");*/
+
      rebrick_http_header_get_header(socket->header,"Connection",&value);
     assert_string_equal(value,"keep-alive");
 
@@ -220,7 +223,7 @@ static void http2_socket_as_client_create_get(void **start){
     assert_null(socket->tmp_buffer);
 
     rebrick_httpsocket_destroy(socket);
-    loop(counter,100,TRUE);
+    loop(counter,100,TRUE); */
 }
 
 

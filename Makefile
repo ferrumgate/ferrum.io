@@ -18,11 +18,11 @@ OBJS = main_rebrick.o ./common/rebrick_util.o ./common/rebrick_config.o ./socket
 OBJSTEST = test.o ./server_client/udpecho.o ./server_client/tcpecho.o test_rebrick_util.o \
 			 test_rebrick_config.o test_rebrick_context.o test_rebrick_metrics.o \
 			 test_rebrick_tls.o \
-			test_rebrick_udpsocket.o test_rebrick_tcpsocket.o test_rebrick_tlssocket.o test_rebrick_http.o test_rebrick_httpsocket.o test_rebrick_buffer.o test_rebrick_buffers.o \
+			test_rebrick_udpsocket.o test_rebrick_tcpsocket.o test_rebrick_tlssocket.o test_rebrick_http.o test_rebrick_httpsocket.o test_rebrick_http2socket.o test_rebrick_buffer.o test_rebrick_buffers.o \
 			../src/common/rebrick_config.o ../src/common/rebrick_util.o  ../src/common/rebrick_context.o ../src/common/rebrick_metrics.o \
 			../src/socket/rebrick_udpsocket.o ../src/socket/rebrick_tcpsocket.o ../src/common/rebrick_buffer.o ../src/common/rebrick_buffers.o\
 			../src/lib/b64/encode.o ../src/lib/b64/decode.o ../src/lib/picohttpparser.o \
-			../src/common/rebrick_tls.o ../src/socket/rebrick_tlssocket.o ../src/http/rebrick_http.o ../src/http/rebrick_httpsocket.o \
+			../src/common/rebrick_tls.o ../src/socket/rebrick_tlssocket.o ../src/http/rebrick_http.o ../src/http/rebrick_httpsocket.o  \
 			../src/http/rebrick_http2socket.o  ../src/http/rebrick_websocket.o
 
 

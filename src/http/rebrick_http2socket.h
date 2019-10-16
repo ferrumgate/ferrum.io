@@ -15,6 +15,10 @@ public_ typedef struct rebrick_http2socket_settings{
 }rebrick_http2socket_settings_t;
 
 
+public_ typedef struct rebrick_http2_socket_settings{
+    nghttp2_settings_entry entries[64];
+    size_t settings_count;
+}rebrick_http2_socket_settings_t;
 
 public_ typedef struct rebrick_http2socket{
 
@@ -25,13 +29,14 @@ public_ typedef struct rebrick_http2socket{
     private_ rebrick_on_data_received_callback_t override_override_on_data_received;
     private_ rebrick_on_data_sended_callback_t  override_override_on_data_sended;
     private_ rebrick_on_error_occured_callback_t override_override_on_error_occured;
-    private_ rebrick_tls_context_t *override_override_tls_context;
     private_ void *override_override_callback_data;
 
     private_ struct{
         nghttp2_session *session;
         nghttp2_session_callbacks *session_callback;
     }parsing_params;
+
+    private_ rebrick_http2_socket_settings_t settings;
 
 
 }rebrick_http2socket_t;
@@ -40,6 +45,7 @@ public_ typedef struct rebrick_http2socket{
 
 
 int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket,const char *sni_pattern_or_name, rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
+                                    const rebrick_http2_socket_settings_t *settings,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -47,6 +53,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket,const char *sni_p
                                     rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
 
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls,rebrick_sockaddr_t addr, void *callback_data,
+                                    const rebrick_http2_socket_settings_t *settings,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
@@ -56,6 +63,8 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
 int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+
+
 
 
 #endif
