@@ -159,10 +159,10 @@ static void http_socket_as_client_create_get(void **start){
     assert_int_equal(is_connected,TRUE);
 
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"GET", "/api/get",1,1);
+    result=rebrick_http_header_new(&header,"http","localhost", "GET", "/api/get",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
+    result=rebrick_http_header_to_http_buffer(header,&buffer);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_non_null(buffer);
 
@@ -254,14 +254,14 @@ static void http_socket_as_client_create_post(void **start){
 
 
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"POST", "/api/post",1,1);
+    result=rebrick_http_header_new(&header,"http","localhost", "POST", "/api/post",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_http_header_add_header(header,"content-type","application/json");
     sprintf(temp,"%ld",bodybuffer->len);
     rebrick_http_header_add_header(header,"content-length",temp);
     //header buffer
     rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
+    result=rebrick_http_header_to_http_buffer(header,&buffer);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_non_null(buffer);
 
@@ -362,14 +362,14 @@ static void http_socket_as_client_create_with_tls_post(void **start){
 
 
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"POST", "/api/post",1,1);
+    result=rebrick_http_header_new(&header,"https","localhost","POST", "/api/post",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_http_header_add_header(header,"content-type","application/json");
     sprintf(temp,"%ld",bodybuffer->len);
     rebrick_http_header_add_header(header,"content-length",temp);
     //header buffer
     rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
+    result=rebrick_http_header_to_http_buffer(header,&buffer);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_non_null(buffer);
 

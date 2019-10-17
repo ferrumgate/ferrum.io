@@ -9,16 +9,20 @@
 
 
 
-public_ typedef struct rebrick_http2socket_settings{
-    public_ readonly_ nghttp2_settings_entry *entries;
-    public_ readonly_ size_t entries_len;
-}rebrick_http2socket_settings_t;
 
+typedef nghttp2_settings_entry rebrick_http2_settings_entry;
 
 public_ typedef struct rebrick_http2_socket_settings{
-    nghttp2_settings_entry entries[64];
+    rebrick_http2_settings_entry entries[64];
     size_t settings_count;
 }rebrick_http2_socket_settings_t;
+
+private_ typedef struct rebrick_http2stream{
+    int32_t stream_id;
+    rebrick_buffer_t *buffer;
+    //make this hashtable
+    UT_hash_handle hh;
+}rebrick_http2stream_t;
 
 public_ typedef struct rebrick_http2socket{
 
@@ -31,12 +35,18 @@ public_ typedef struct rebrick_http2socket{
     private_ rebrick_on_error_occured_callback_t override_override_on_error_occured;
     private_ void *override_override_callback_data;
 
+    public_ readonly_ rebrick_http_header_t *header;
+
     private_ struct{
         nghttp2_session *session;
         nghttp2_session_callbacks *session_callback;
     }parsing_params;
 
     private_ rebrick_http2_socket_settings_t settings;
+
+    private_ rebrick_http2stream_t *streams;
+
+
 
 
 }rebrick_http2socket_t;
@@ -63,6 +73,17 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
 int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+/**
+ * @brief
+ *
+ * @param socket
+ * @param stream_id if *stream_id=-1 then new stream_id will return
+ * @param flags @see NGHTTP2_FLAGS_NONE or @see NGHTTP2_FLAGS_END_STREAM
+ * @param header
+ * @return int32_t
+ */
+int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket,int32_t *stream_id,int32_t flags, rebrick_http_header_t *header);
+int32_t rebrick_http2socket_send_body(rebrick_http2socket_t *socket,int32_t stream_id,int32_t flags, uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);
 
 
 

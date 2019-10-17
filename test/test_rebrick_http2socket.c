@@ -149,7 +149,7 @@ static void http2_socket_as_client_create_get(void **start){
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
     rebrick_http2_socket_settings_t settings;
-    nghttp2_settings_entry maxstream={NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,100};
+    rebrick_http2_settings_entry maxstream={NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,100};
     settings.entries[0]=maxstream;
     settings.settings_count=1;
 
@@ -163,12 +163,19 @@ static void http2_socket_as_client_create_get(void **start){
     loop(counter,1000,!is_connected);
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
+    rebrick_http_header_t *header;
+    result=rebrick_http_header_new(&header,"http","localhost:8080","GET","/index.html",2,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    int stream_id=-1;
+    rebrick_http2socket_send_header(socket,&stream_id,NGHTTP2_FLAG_NONE,header);
+    loop(counter,1000,TRUE);
+
 
     /*rebrick_http_header_t *header;
     result=rebrick_http_header_new(&header,"GET", "/api/get",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
+    result=rebrick_http_header_to_http_buffer(header,&buffer);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_non_null(buffer);
 

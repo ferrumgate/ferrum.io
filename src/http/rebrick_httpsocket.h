@@ -9,7 +9,9 @@ typedef enum{
     http2,
     websocket,
     websocket2
-}upgrade_socket_type_t;
+}rebrick_upgrade_socket_type_t;
+
+
 
 struct rebrick_httpsocket;
 /**
@@ -29,7 +31,7 @@ typedef void (*rebrick_on_http_body_received_callback_t)(struct rebrick_socket *
 
 
 
-typedef void (*rebrick_on_socket_needs_upgrade_callback_t)(struct rebrick_socket *socket,void *callback_data,upgrade_socket_type_t type,void *extra_data);
+typedef void (*rebrick_on_socket_needs_upgrade_callback_t)(struct rebrick_socket *socket,void *callback_data,rebrick_upgrade_socket_type_t type,void *extra_data);
 
 /**
  * @brief http socket structure
@@ -110,8 +112,8 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket, const char *sni_pa
 int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
 int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket);
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t *stream_id,rebrick_http_header_t *header);
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id, uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket,int32_t *stream_id,int32_t flags, rebrick_http_header_t *header);
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket,int32_t stream_id,int32_t flags,uint8_t *buffer,size_t len,rebrick_clean_func_t cleanfunc);
 
 
 

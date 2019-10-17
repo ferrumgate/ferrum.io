@@ -58,10 +58,13 @@ static void rebrick_http_header_test(void **state){
     unused(state);
     int32_t result;
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"POST","/api/metrics",1,1);
+    result=rebrick_http_header_new(&header,"http","deneme.com", "POST","/api/metrics",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
+    assert_string_equal(header->host,"deneme.com");
+    assert_string_equal(header->scheme,"http");
     assert_string_equal(header->path,"/api/metrics");
     assert_string_equal(header->method,"POST");
+
     assert_int_equal(header->major_version,1);
     assert_int_equal(header->minor_version,1);
     assert_int_equal(header->is_request,TRUE);
@@ -76,10 +79,12 @@ static void rebrick_http_header_test2(void **state){
     unused(state);
     int32_t result;
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new2(&header,"POST",4,"/api/metrics",12,1,1);
+    result=rebrick_http_header_new2(&header,"http",4,"deneme.com",10, "POST",4,"/api/metrics",12,1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_string_equal(header->path,"/api/metrics");
     assert_string_equal(header->method,"POST");
+    assert_string_equal(header->scheme,"http");
+    assert_string_equal(header->host,"deneme.com");
     assert_int_equal(header->major_version,1);
     assert_int_equal(header->minor_version,1);
     assert_int_equal(header->is_request,TRUE);
@@ -103,7 +108,7 @@ static void rebrick_http_header_test2(void **state){
     result=rebrick_http_header_remove_key(header,"content-type");
     assert_int_equal(result,REBRICK_SUCCESS);
 
-     result=rebrick_http_header_contains_key(header,"content-type",&founded);
+    result=rebrick_http_header_contains_key(header,"content-type",&founded);
     assert_int_equal(result,REBRICK_SUCCESS);
     assert_int_equal(founded,FALSE);
 
@@ -148,20 +153,70 @@ static void rebrick_http_header_test4(void **state){
     rebrick_http_header_destroy(header);
 }
 
-static void rebrick_http_header_to_buffer_test(void **state){
-         unused(state);
+static void rebrick_http_header_to_http_buffer_test(void **state){
+
+    unused(state);
     int32_t result;
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"POST","/api/metrics",1,1);
+    result=rebrick_http_header_new(&header,"http","deneme.com", "POST","/api/metrics",1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
     result=rebrick_http_header_add_header(header,"content-type","application/json");
     assert_int_equal(result,REBRICK_SUCCESS);
-    result=rebrick_http_header_add_header(header,"host","hamzakilic.com");
+
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_buffer(header,&buffer);
+    result=rebrick_http_header_to_http_buffer(header,&buffer);
     assert_int_equal(result,REBRICK_SUCCESS);
-    assert_string_equal(buffer->buf,"POST /api/metrics HTTP/1.1\r\ncontent-type:application/json\r\nhost:hamzakilic.com\r\n\r\n");
+    assert_string_equal(buffer->buf,"POST /api/metrics HTTP/1.1\r\nhost:deneme.com\r\ncontent-type:application/json\r\n\r\n");
+    rebrick_buffer_destroy(buffer);
+    rebrick_http_header_destroy(header);
+
+}
+
+static void rebrick_http_header_to_http2_buffer_test(void **state){
+
+    unused(state);
+    int32_t result;
+    rebrick_http_header_t *header;
+    result=rebrick_http_header_new(&header,"http","deneme.com", "POST","/api/metrics",2,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    result=rebrick_http_header_add_header(header,"content-type","application/json");
+    assert_int_equal(result,REBRICK_SUCCESS);
+
+
+    rebrick_buffer_t *buffer;
+    result=rebrick_http_header_to_http2_buffer(header,&buffer);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    nghttp2_nv *nv=cast(buffer->buf,nghttp2_nv*);
+    size_t nvlen=buffer->len/sizeof(nghttp2_nv);
+    assert_int_equal(nvlen,5);
+    assert_memory_equal(nv[0].name,":scheme",7);
+    assert_int_equal(nv[0].namelen,7);
+    assert_memory_equal(nv[0].value,"http",4);
+    assert_int_equal(nv[0].valuelen,4);
+
+    assert_memory_equal(nv[1].name,":authority",10);
+    assert_int_equal(nv[1].namelen,10);
+    assert_memory_equal(nv[1].value,"deneme.com",10);
+    assert_int_equal(nv[1].valuelen,10);
+
+    assert_memory_equal(nv[2].name,":method",7);
+    assert_int_equal(nv[2].namelen,7);
+    assert_memory_equal(nv[2].value,"POST",4);
+    assert_int_equal(nv[2].valuelen,4);
+
+    assert_memory_equal(nv[3].name,":path",5);
+    assert_int_equal(nv[3].namelen,5);
+    assert_memory_equal(nv[3].value,"/api/metrics",12);
+    assert_int_equal(nv[3].valuelen,12);
+
+
+     assert_memory_equal(nv[4].name,"content-type",12);
+    assert_int_equal(nv[4].namelen,12);
+    assert_memory_equal(nv[4].value,"application/json",16);
+    assert_int_equal(nv[4].valuelen,16);
+
+
     rebrick_buffer_destroy(buffer);
     rebrick_http_header_destroy(header);
 
@@ -179,7 +234,8 @@ int test_rebrick_http(void) {
         cmocka_unit_test(rebrick_http_header_test2),
         cmocka_unit_test(rebrick_http_header_test3),
         cmocka_unit_test(rebrick_http_header_test4),
-        cmocka_unit_test(rebrick_http_header_to_buffer_test)
+        cmocka_unit_test(rebrick_http_header_to_http_buffer_test),
+        cmocka_unit_test(rebrick_http_header_to_http2_buffer_test)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

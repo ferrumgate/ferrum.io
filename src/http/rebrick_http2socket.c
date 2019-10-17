@@ -46,7 +46,7 @@ static ssize_t http2_on_send_callback(nghttp2_session *session, const uint8_t *d
     if (httpsocket)
     {
         rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
-        result = rebrick_http2socket_send(httpsocket,data, length, func);
+        result = rebrick_http2socket_send(httpsocket,cast(data,uint8_t*), length, func);
         if (result < 0)
         {
             rebrick_log_error("nghttp2 send callback failed with error:%d\n", result);
@@ -410,4 +410,49 @@ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer,
     if (socket->tls)
         return rebrick_tlssocket_send(cast_to_tls_socket(socket), buffer, len, cleanfunc);
     return rebrick_tcpsocket_send(cast_to_tcp_socket(socket), buffer, len, cleanfunc);
+}
+
+
+/* static void clean_buffer(void *buffer)
+{
+    rebrick_buffer_t *tmp = cast(buffer, rebrick_buffer_t *);
+    if (tmp)
+    {
+        rebrick_buffer_destroy(tmp);
+    }
+} */
+
+int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket,int32_t *stream_id,int32_t flags, rebrick_http_header_t *header){
+    unused(socket);
+    unused(stream_id);
+    unused(header);
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if(!socket || !stream_id | !header)
+    return REBRICK_ERR_BAD_ARGUMENT;
+
+    rebrick_buffer_t *buffer;
+    result = rebrick_http_header_to_http2_buffer(header, &buffer);
+    if (result < 0)
+    {
+        rebrick_log_error("http2 sending header failed with error:%d\n", result);
+        return result;
+    }
+
+    result=nghttp2_submit_headers(socket->parsing_params.session,flags|NGHTTP2_FLAG_END_HEADERS,*stream_id,NULL,cast(buffer->buf,nghttp2_nv*),buffer->len/sizeof(nghttp2_nv),NULL);
+    if(result<0){
+     const char *errstr = nghttp2_strerror(result);
+    rebrick_log_error("http2 failed with error :%d %s\n", REBRICK_ERR_HTTP2 + result, errstr);
+    rebrick_buffer_destroy(buffer);
+    return REBRICK_ERR_HTTP2 + result;
+
+    }
+    if(result>0)//new stream id
+    *stream_id=result;
+    rebrick_buffer_destroy(buffer);
+    result=nghttp2_session_send(socket->parsing_params.session);
+    check_nghttp2_result(result);
+
+    return REBRICK_SUCCESS;
 }

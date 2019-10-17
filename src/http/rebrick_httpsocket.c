@@ -192,7 +192,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
                 if (is_request_header)
                 {
-                    result = rebrick_http_header_new2(&httpsocket->header,
+                    result = rebrick_http_header_new2(&httpsocket->header,NULL,0,NULL,0,
                                                       httpsocket->parsing_params.method,
                                                       httpsocket->parsing_params.method_len,
                                                       httpsocket->parsing_params.path,
@@ -245,7 +245,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                     result = rebrick_http_header_get_header(httpsocket->header, "upgrade", &upgrade);
                     if (!result && upgrade)
                     {
-                        upgrade_socket_type_t upgrade_type = http2;
+                        rebrick_upgrade_socket_type_t upgrade_type = http2;
                         //http2 upgrade
                         if (strcasecmp("h2c", upgrade) == 0 || strcasecmp("h2",upgrade))
                         {
@@ -431,7 +431,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id,int32_t flags, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
@@ -439,11 +439,11 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
     unused(current_time_str);
     //not used, only for compability with http2
     unused(stream_id);
-
+    unused(flags);
     if (!socket || !header)
         return REBRICK_ERR_BAD_ARGUMENT;
     rebrick_buffer_t *buffer;
-    result = rebrick_http_header_to_buffer(header, &buffer);
+    result = rebrick_http_header_to_http_buffer(header, &buffer);
     if (result < 0)
     {
         rebrick_log_error("http sending header failed with error:%d\n", result);
@@ -452,13 +452,16 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
     rebrick_clean_func_t cleanfunc = {.func = clean_buffer, .ptr = buffer};
     return rebrick_httpsocket_send(socket, buffer->buf, buffer->len, cleanfunc);
 }
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id,int32_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     int32_t result;
     unused(result);
     char current_time_str[32] = {0};
+    //this parameter is significant for http2
     unused(stream_id);
+    //this parameter is significant for http2
+    unused(flags);
     unused(current_time_str);
     if (!socket || !buffer)
         return REBRICK_ERR_BAD_ARGUMENT;
