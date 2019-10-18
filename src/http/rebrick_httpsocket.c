@@ -5,7 +5,7 @@ static void local_on_error_occured_callback(rebrick_socket_t *ssocket, void *cal
     unused(ssocket);
     unused(callbackdata);
     unused(error);
-    rebrick_httpsocket_t *httpsocket = cast(ssocket, rebrick_httpsocket_t *);
+    rebrick_httpsocket_t *httpsocket = cast_to_http_socket(ssocket);
     if (httpsocket)
     {
         if (httpsocket->override_override_on_error_occured)
@@ -26,7 +26,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     int32_t result;
     unused(result);
 
-    rebrick_httpsocket_t *httpsocket = cast(ssocket, rebrick_httpsocket_t *);
+    rebrick_httpsocket_t *httpsocket = cast_to_http_socket(ssocket);
     if (httpsocket)
     {
         if (httpsocket->override_override_on_connection_accepted)
@@ -43,7 +43,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
     int32_t result;
     unused(result);
 
-    rebrick_httpsocket_t *httpsocket = cast(ssocket, rebrick_httpsocket_t *);
+    rebrick_httpsocket_t *httpsocket = cast_to_http_socket(ssocket);
 
     if (httpsocket)
     {
@@ -69,7 +69,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     int32_t result;
     unused(result);
 
-    rebrick_httpsocket_t *httpsocket = cast(ssocket, rebrick_httpsocket_t *);
+    rebrick_httpsocket_t *httpsocket = cast_to_http_socket(ssocket);
 
     if (httpsocket)
     {
@@ -295,7 +295,7 @@ static struct rebrick_tcpsocket *local_create_client()
     unused(current_time_str);
     rebrick_httpsocket_t *client = new (rebrick_httpsocket_t);
     constructor(client, rebrick_httpsocket_t);
-    return cast(client, rebrick_tcpsocket_t *);
+    return cast_to_tcp_socket(client);
 }
 
 int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,

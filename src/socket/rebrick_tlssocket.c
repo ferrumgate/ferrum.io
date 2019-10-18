@@ -318,7 +318,7 @@ static void local_on_error_occured_callback(rebrick_socket_t *socket, void *call
     unused(current_time_str);
     unused(error);
     unused(callbackdata);
-    rebrick_tlssocket_t *tlssocket = cast(socket, rebrick_tlssocket_t *);
+    rebrick_tlssocket_t *tlssocket = cast_to_tls_socket(socket);
 
     if (tlssocket && tlssocket->override_on_error_occured)
         tlssocket->override_on_error_occured(cast_to_base_socket(tlssocket), tlssocket->override_callback_data, error);
@@ -340,7 +340,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
     unused(callback_data);
     int32_t result;
 
-    rebrick_tlssocket_t *tlsserver = cast(serversocket, rebrick_tlssocket_t *);
+    rebrick_tlssocket_t *tlsserver = cast_to_tls_socket(serversocket);
 
     if (!tlsserver)
     {
@@ -351,7 +351,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
     rebrick_tlssocket_t *tlsclient = NULL;
     //server ise client_handle yeni handle'dır yoksa, server handle ile aynıdır
     if (tlsserver->is_server)
-        tlsclient = cast(client_handle, rebrick_tlssocket_t *);
+        tlsclient = cast_to_tls_socket(client_handle);
     else
         tlsclient = tlsserver;
 
@@ -439,7 +439,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *
     char current_time_str[32] = {0};
     unused(current_time_str);
     unused(callback_data);
-    rebrick_tlssocket_t *tlssocket = cast(socket, rebrick_tlssocket_t *);
+    rebrick_tlssocket_t *tlssocket = cast_to_tls_socket(socket);
 
     if (!tlssocket)
     {
@@ -485,7 +485,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
     int32_t n;
     int32_t status;
 
-    rebrick_tlssocket_t *tlssocket = cast(socket, rebrick_tlssocket_t *);
+    rebrick_tlssocket_t *tlssocket = cast_to_tls_socket(socket);
 
     char buftemp[4096];
     if (!tlssocket)
@@ -569,7 +569,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *socket, void *callba
     unused(current_time_str);
     unused(callback_data);
 
-    rebrick_tlssocket_t *tlssocket = cast(socket, rebrick_tlssocket_t *);
+    rebrick_tlssocket_t *tlssocket = cast_to_tls_socket(socket);
     if (!tlssocket)
     {
         rebrick_log_fatal("callback_data casting is null\n");
@@ -596,7 +596,7 @@ static struct rebrick_tcpsocket *local_create_client()
     unused(current_time_str);
     rebrick_tlssocket_t *client = new (rebrick_tlssocket_t);
     constructor(client, rebrick_tlssocket_t);
-    return cast(client, rebrick_tcpsocket_t *);
+    return cast_to_tcp_socket(client);
 }
 
 int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
@@ -717,7 +717,7 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket)
             rebrick_tcpsocket_t *el, *tmp;
             DL_FOREACH_SAFE(socket->clients, el, tmp)
             {
-                rebrick_tlssocket_t *tsocket = cast(el, rebrick_tlssocket_t *);
+                rebrick_tlssocket_t *tsocket = cast_to_tls_socket(el);
                 int32_t result = SSL_shutdown(tsocket->tls->ssl);
                 check_ssl_status(tsocket, result);
             }

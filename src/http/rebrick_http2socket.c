@@ -22,6 +22,30 @@
         return;                                                                                                  \
     }
 
+
+
+static int32_t rebrick_http2stream_new(rebrick_http2stream_t **stream,int32_t stream_id){
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_http2stream_t *tmp=new(rebrick_http2stream_t);
+    constructor(tmp,rebrick_http2stream_t);
+    tmp->stream_id=stream_id;
+    *stream=tmp;
+    return REBRICK_SUCCESS;
+}
+
+static int32_t rebrick_http2stream_destroy(rebrick_http2stream_t *stream){
+    if(stream){
+        if(stream->buffer)
+        rebrick_buffer_destroy(stream->buffer);
+        if(stream->header)
+        rebrick_http_header_destroy(stream->header);
+        free(stream);
+    }
+    return REBRICK_SUCCESS;
+}
+
+
 static void http2_stream_error(nghttp2_session *session, int32_t stream_id, uint32_t error_code)
 {
     char current_time_str[32] = {0};
@@ -42,7 +66,7 @@ static ssize_t http2_on_send_callback(nghttp2_session *session, const uint8_t *d
     unused(user_data);
     int32_t result;
     unused(result);
-    rebrick_http2socket_t *httpsocket = cast(user_data, rebrick_http2socket_t *);
+    rebrick_http2socket_t *httpsocket = cast_to_http2_socket(user_data);
     if (httpsocket)
     {
         rebrick_clean_func_t func = {.func = NULL, .ptr = NULL};
@@ -88,6 +112,19 @@ static int http2_on_stream_close_callback(nghttp2_session *session, int32_t stre
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_log_debug("closing stream\n");
+    if(!user_data){
+        return 0;//burası bilerek böyle yazıldı.
+    }
+    rebrick_http2socket_t *socket=cast_to_http2_socket(user_data);
+    rebrick_http2stream_t *stream=NULL;
+    HASH_FIND_INT(socket->streams, &stream_id, stream );
+    if(stream){
+
+        HASH_DEL(socket->streams,stream);
+        rebrick_http2stream_destroy(stream);
+    }
+
+    // TODO burada on stream close callback çağırsak iyi olur
     return 0;
 }
 
@@ -107,10 +144,19 @@ static int http2_on_data_chunk_recv_callback(nghttp2_session *session, uint8_t f
     unused(user_data);
     char current_time_str[32] = {0};
     unused(current_time_str);
-    rebrick_log_debug("closing stream\n");
+    rebrick_log_debug("data chunk received from stream %d\n",stream_id);
+    if(!session || !data || !len || !user_data)
+    return 0;
+
+    rebrick_http2socket_t *socket=cast_to_http2_socket(user_data);
+    if(socket->on_http_body_received)
+    socket->on_http_body_received(cast_to_base_socket(socket),stream_id,socket->override_override_callback_data,&socket->bind_addr.base,data,len);
+
+
 
     return 0;
 }
+
 
 static int http2_on_begin_headers_callback(nghttp2_session *session,
                                            const nghttp2_frame *frame,
@@ -120,12 +166,21 @@ static int http2_on_begin_headers_callback(nghttp2_session *session,
     unused(session);
     unused(frame);
     unused(user_data);
+      char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_log_debug("begined headers type:%d\n",frame->hd.type);
+    if(!session || !frame || !user_data)
+    return 0;//expecially returning 0;
 
-    if (frame->hd.type != NGHTTP2_HEADERS ||
-        frame->headers.cat != NGHTTP2_HCAT_REQUEST)
+    if (frame->hd.type != NGHTTP2_HEADERS || frame->headers.cat != NGHTTP2_HCAT_REQUEST)
     {
+        rebrick_http2socket_t *socket=cast_to_http2_socket(user_data);
+
+
+
         return 0;
     }
+
     /* stream_data = create_http2_stream_data(session_data, frame->hd.stream_id);
   nghttp2_session_set_stream_user_data(session, frame->hd.stream_id,
                                        stream_data); */
@@ -141,6 +196,7 @@ static void setup_nghttp2_callbacks(nghttp2_session_callbacks *callbacks)
 
     nghttp2_session_callbacks_set_on_data_chunk_recv_callback(callbacks, http2_on_data_chunk_recv_callback);
     nghttp2_session_callbacks_set_on_begin_headers_callback(callbacks, http2_on_begin_headers_callback);
+
     nghttp2_session_callbacks_set_before_frame_send_callback(callbacks, http2_on_before_frame_send_callback);
 }
 
@@ -151,7 +207,7 @@ static void local_on_error_occured_callback(rebrick_socket_t *ssocket, void *cal
     unused(error);
     char current_time_str[32] = {0};
     unused(current_time_str);
-    rebrick_http2socket_t *httpsocket = cast(ssocket, rebrick_http2socket_t *);
+    rebrick_http2socket_t *httpsocket = cast_to_http2_socket(ssocket);
     if (httpsocket)
     {
         rebrick_log_error("an error occured with error:%d\n", error);
@@ -172,7 +228,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     int32_t result;
     unused(result);
 
-    rebrick_http2socket_t *httpsocket = cast(ssocket, rebrick_http2socket_t *);
+    rebrick_http2socket_t *httpsocket = cast_to_http2_socket(ssocket);
     if (!httpsocket)
     {
         rebrick_log_fatal("socket casting to http2socket is null\n");
@@ -230,7 +286,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
     int32_t result;
     unused(result);
 
-    rebrick_http2socket_t *httpsocket = cast(ssocket, rebrick_http2socket_t *);
+    rebrick_http2socket_t *httpsocket = cast_to_http2_socket(ssocket);
 
     if (httpsocket)
     {
@@ -257,7 +313,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     int32_t result;
     unused(result);
 
-    rebrick_http2socket_t *httpsocket = cast(ssocket, rebrick_http2socket_t *);
+    rebrick_http2socket_t *httpsocket = cast_to_http2_socket(ssocket);
 
     if (httpsocket)
     {
@@ -321,7 +377,7 @@ static struct rebrick_tcpsocket *local_create_client()
     {
         rebrick_log_fatal("no delay failed\n");
     }
-    return cast(client, rebrick_tcpsocket_t *);
+    return cast_to_tcp_socket(client);
 }
 
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr, void *callback_data,
@@ -332,6 +388,9 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
                                  rebrick_on_data_sended_callback_t on_data_sended,
                                  rebrick_on_error_occured_callback_t on_error_occured,
                                  int32_t backlog_or_isclient,
+                                 rebrick_on_http_header_received_callback_t on_http_header_received,
+                                    rebrick_on_http_body_received_callback_t on_http_body_received,
+                                    rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade,
                                  rebrick_tcpsocket_create_client_t create_client)
 {
 
@@ -363,7 +422,9 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     httpsocket->override_override_on_data_sended = on_data_sended;
     httpsocket->override_override_on_error_occured = on_error_occured;
     httpsocket->override_override_callback_data = callback_data;
-
+    httpsocket->on_http_body_received=on_http_body_received;
+    httpsocket->on_http_header_received=on_http_header_received;
+    httpsocket->on_socket_needs_upgrade=on_socket_needs_upgrade;
     return REBRICK_SUCCESS;
 }
 
@@ -373,7 +434,10 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
                                 rebrick_on_connection_closed_callback_t on_connection_closed,
                                 rebrick_on_data_received_callback_t on_data_received,
                                 rebrick_on_data_sended_callback_t on_data_sended,
-                                rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient)
+                                rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                                rebrick_on_http_header_received_callback_t on_http_header_received,
+                                rebrick_on_http_body_received_callback_t on_http_body_received,
+                                rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade)
 {
 
     char current_time_str[32] = {0};
@@ -385,6 +449,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
 
     result = rebrick_http2socket_init(httpsocket, sni_pattern_or_name, tls, addr,
                                       callback_data, settings, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient,
+                                      on_http_header_received,on_http_body_received,on_socket_needs_upgrade,
                                       local_create_client);
     if (result < 0)
     {
@@ -393,6 +458,23 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
         return result;
     }
     *socket = httpsocket;
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket)
+{
+    unused(socket);
+    if (socket)
+    {
+        if (socket->tls_context)
+        {
+            return rebrick_tlssocket_destroy(cast_to_tls_socket(socket));
+        }
+        else
+        {
+            return rebrick_tcpsocket_destroy(cast_to_tcp_socket(socket));
+        }
+    }
     return REBRICK_SUCCESS;
 }
 
@@ -407,7 +489,7 @@ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer,
     if (!socket || !buffer | !len)
         return REBRICK_ERR_BAD_ARGUMENT;
 
-    if (socket->tls)
+    if (socket->tls_context)
         return rebrick_tlssocket_send(cast_to_tls_socket(socket), buffer, len, cleanfunc);
     return rebrick_tcpsocket_send(cast_to_tcp_socket(socket), buffer, len, cleanfunc);
 }
@@ -448,9 +530,27 @@ int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket,int32_t *s
     return REBRICK_ERR_HTTP2 + result;
 
     }
-    if(result>0)//new stream id
-    *stream_id=result;
+    //buffer burada destroy edilmeli, yoksa gözden kaçacak
     rebrick_buffer_destroy(buffer);
+    if(result>0){//new stream id
+    *stream_id=result;
+    //create new stream object
+        rebrick_http2stream_t *stream=NULL;
+        HASH_FIND_INT(socket->streams, &result, stream );
+        if(stream){
+            HASH_DEL(socket->streams,stream);
+            rebrick_http2stream_destroy(stream);
+        }
+        result=rebrick_http2stream_new(&stream,result);
+        if(result<0){
+            rebrick_log_error("malloc problem\n");
+            return result;
+        }
+        HASH_ADD_INT(socket->streams,stream_id,stream);
+
+
+    }
+
     result=nghttp2_session_send(socket->parsing_params.session);
     check_nghttp2_result(result);
 

@@ -157,7 +157,7 @@ static void http2_socket_as_client_create_get(void **start){
                 &settings,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0);
+                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
@@ -167,8 +167,10 @@ static void http2_socket_as_client_create_get(void **start){
     result=rebrick_http_header_new(&header,"http","localhost:8080","GET","/index.html",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     int stream_id=-1;
+    is_bodyreaded=FALSE;
     rebrick_http2socket_send_header(socket,&stream_id,NGHTTP2_FLAG_NONE,header);
-    loop(counter,1000,TRUE);
+    loop(counter,1000,!is_bodyreaded);
+    assert_true(strstr(readedbufferbody,"it works"));
 
 
     /*rebrick_http_header_t *header;
@@ -227,10 +229,10 @@ static void http2_socket_as_client_create_get(void **start){
     assert_null(socket->header);
     assert_int_equal(socket->header_len,0);
     assert_int_equal(socket->is_header_parsed,0);
-    assert_null(socket->tmp_buffer);
+    assert_null(socket->tmp_buffer);*/
 
-    rebrick_httpsocket_destroy(socket);
-    loop(counter,100,TRUE); */
+    rebrick_http2socket_destroy(socket);
+    loop(counter,100,TRUE);
 }
 
 

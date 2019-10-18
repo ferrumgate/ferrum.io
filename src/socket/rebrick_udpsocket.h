@@ -10,6 +10,8 @@ public_ typedef struct rebrick_udpsocket
 
 } rebrick_udpsocket_t;
 
+#define cast_to_udp_socket(x)  cast((x),rebrick_udpsocket_t*)
+
 /**
  * @brief
  *

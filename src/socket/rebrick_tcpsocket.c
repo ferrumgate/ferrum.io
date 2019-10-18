@@ -13,7 +13,7 @@ static void on_send(uv_write_t *req, int status)
     if (req->handle && req->handle->data)
 
     {
-        const rebrick_tcpsocket_t *socket = cast(req->handle->data, rebrick_tcpsocket_t *);
+        const rebrick_tcpsocket_t *socket = cast_to_tcp_socket(req->handle->data);
 
         if (status < 0)
         {
@@ -71,7 +71,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    const rebrick_tcpsocket_t *socket = cast(handle->data, rebrick_tcpsocket_t *);
+    const rebrick_tcpsocket_t *socket = cast_to_tcp_socket(handle->data);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
 
@@ -118,7 +118,7 @@ static void on_connect(uv_connect_t *connection, int status)
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_tcpsocket_t *serversocket = cast(connection->data, rebrick_tcpsocket_t *);
+    rebrick_tcpsocket_t *serversocket = cast_to_tcp_socket(connection->data);
 
     if (serversocket)
     {
@@ -163,7 +163,7 @@ static void on_connection(uv_stream_t *server, int status)
     }
 
     uv_tcp_t *tcp = cast(server, uv_tcp_t *);
-    rebrick_tcpsocket_t *serversocket = cast(tcp->data, rebrick_tcpsocket_t *);
+    rebrick_tcpsocket_t *serversocket = cast_to_tcp_socket(tcp->data);
 
     if (status < 0)
     {
@@ -359,7 +359,7 @@ static void on_close(uv_handle_t *handle)
     if (handle)
         if (handle->data && uv_is_closing(handle))
         {
-            rebrick_tcpsocket_t *socket = cast(handle->data, rebrick_tcpsocket_t *);
+            rebrick_tcpsocket_t *socket = cast_to_tcp_socket(handle->data);
             handle->data = NULL;
 
             if (socket->on_connection_closed)

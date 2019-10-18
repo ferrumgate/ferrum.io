@@ -14,7 +14,7 @@ static void on_send(uv_udp_send_t *req, int status)
     if (req->handle && req->handle->data)
     {
 
-        const rebrick_udpsocket_t *socket = cast(req->handle->data, rebrick_udpsocket_t *);
+        const rebrick_udpsocket_t *socket = cast_to_udp_socket(req->handle->data);
         if (status >= 0)
         {
             if (socket->on_data_sended)
@@ -71,7 +71,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     char current_time_str[32] = {0};
     unused(current_time_str);
     unused(flags);
-    const rebrick_udpsocket_t *socket = cast(handle->data, rebrick_udpsocket_t *);
+    const rebrick_udpsocket_t *socket = cast_to_udp_socket(handle->data);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
 
@@ -187,7 +187,7 @@ static void on_close(uv_handle_t *handle)
     if (handle)
         if (handle->data)
         {
-            rebrick_udpsocket_t *socket = cast(handle->data, rebrick_udpsocket_t *);
+            rebrick_udpsocket_t *socket = cast_to_udp_socket(handle->data);
             if (socket)
                 free(socket);
         }
