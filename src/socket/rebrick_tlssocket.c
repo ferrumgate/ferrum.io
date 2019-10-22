@@ -643,6 +643,8 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
     tlssocket->override_on_error_occured = on_error_occured;
     tlssocket->tls_context = tls_context;
 
+
+
     //this is OOP inheritance with c
     //base class init function call.
     result = rebrick_tcpsocket_init(cast_to_tcp_socket(tlssocket), addr, tlssocket, local_on_connection_accepted_callback,
@@ -653,6 +655,8 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
         rebrick_log_fatal("tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
         return result;
     }
+
+    //rebrick_tcpsocket_nodelay(cast_to_tcp_socket(tlssocket),1);
 
     return REBRICK_SUCCESS;
 }

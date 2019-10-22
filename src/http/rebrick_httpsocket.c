@@ -50,8 +50,13 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
         if (httpsocket->tmp_buffer)
             rebrick_buffer_destroy(httpsocket->tmp_buffer);
 
-        if (httpsocket->header)
-            rebrick_http_header_destroy(httpsocket->header);
+        if (httpsocket->received_header)
+            rebrick_http_header_destroy(httpsocket->received_header);
+
+
+        if (httpsocket->send_header)
+            rebrick_http_header_destroy(httpsocket->send_header);
+
 
         if (httpsocket->override_override_on_connection_closed)
             httpsocket->override_override_on_connection_closed(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data);
@@ -148,7 +153,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
         }
         //small lower buffer of started data
 
-        if ((httpsocket->header == NULL && strncasecmp(cast(httpsocket->tmp_buffer->buf, const char *), "HTTP/", 5) == 0) || !httpsocket->header->is_request)
+        if ((httpsocket->received_header == NULL && strncasecmp(cast(httpsocket->tmp_buffer->buf, const char *), "HTTP/", 5) == 0) || !httpsocket->received_header->is_request)
         {
             pret = phr_parse_response(cast(httpsocket->tmp_buffer->buf, const char *),
                                       httpsocket->tmp_buffer->len,
@@ -187,12 +192,12 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
         httpsocket->parsing_params.pos = pret;
         if (pret > 0)
         {
-            if (!httpsocket->header)
+            if (!httpsocket->received_header)
             {
 
                 if (is_request_header)
                 {
-                    result = rebrick_http_header_new2(&httpsocket->header,NULL,0,NULL,0,
+                    result = rebrick_http_header_new2(&httpsocket->received_header, NULL, 0, NULL, 0,
                                                       httpsocket->parsing_params.method,
                                                       httpsocket->parsing_params.method_len,
                                                       httpsocket->parsing_params.path,
@@ -202,7 +207,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                 }
                 else
                 {
-                    result = rebrick_http_header_new4(&httpsocket->header,
+                    result = rebrick_http_header_new4(&httpsocket->received_header,
                                                       httpsocket->parsing_params.status,
                                                       httpsocket->parsing_params.status_msg,
                                                       httpsocket->parsing_params.status_msg_len,
@@ -219,7 +224,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
             for (size_t i = 0; i < httpsocket->parsing_params.num_headers; ++i)
             {
                 struct phr_header *header = httpsocket->parsing_params.headers + i;
-                result = rebrick_http_header_add_header2(httpsocket->header, header->name, header->name_len, header->value, header->value_len);
+                result = rebrick_http_header_add_header2(httpsocket->received_header, cast(header->name,uint8_t*), header->name_len,cast(header->value,uint8_t*), header->value_len);
                 if (result < 0)
                 {
                     rebrick_log_error("adding header to headers error\n");
@@ -232,43 +237,41 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
             //http header finished
             if (httpsocket->on_http_header_received)
-                httpsocket->on_http_header_received(cast_to_base_socket(httpsocket), 0, httpsocket->override_override_callback_data, httpsocket->header);
+                httpsocket->on_http_header_received(cast_to_base_socket(httpsocket), 0, httpsocket->override_override_callback_data, httpsocket->received_header);
 
             //http upgrade protocol check
             if (httpsocket->is_server && httpsocket->on_socket_needs_upgrade)
             {
                 const char *connection_value = NULL;
-                result = rebrick_http_header_get_header(httpsocket->header, "connection", &connection_value);
+                result = rebrick_http_header_get_header(httpsocket->received_header, "connection", &connection_value);
                 if (!result && connection_value && strcasecmp(connection_value, "upgrade") == 0)
                 {
                     const char *upgrade = NULL;
-                    result = rebrick_http_header_get_header(httpsocket->header, "upgrade", &upgrade);
+                    result = rebrick_http_header_get_header(httpsocket->received_header, "upgrade", &upgrade);
                     if (!result && upgrade)
                     {
                         rebrick_upgrade_socket_type_t upgrade_type = http2;
                         //http2 upgrade
-                        if (strcasecmp("h2c", upgrade) == 0 || strcasecmp("h2",upgrade))
+                        if (strcasecmp("h2c", upgrade) == 0 || strcasecmp("h2", upgrade))
                         {
                             upgrade_type = http2;
                             const char *extra_value = NULL;
-                            result = rebrick_http_header_get_header(httpsocket->header, "HTTP2-Settings", &extra_value);
+                            result = rebrick_http_header_get_header(httpsocket->received_header, "HTTP2-Settings", &extra_value);
                             if (!result && extra_value)
                             {
-                                httpsocket->on_socket_needs_upgrade(cast_to_base_socket(httpsocket),httpsocket->override_override_callback_data,upgrade_type,httpsocket->header);
-
+                                httpsocket->on_socket_needs_upgrade(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
                             }
                         }
 
-                         //websocket upgrade
+                        //websocket upgrade
                         if (strcasecmp("websocket", upgrade) == 0)
                         {
                             upgrade_type = websocket;
                             if (!result)
                             {
-                                httpsocket->on_socket_needs_upgrade(cast_to_base_socket(httpsocket),httpsocket->override_override_callback_data,upgrade_type,httpsocket->header);
+                                httpsocket->on_socket_needs_upgrade(cast_to_base_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
                             }
                         }
-
                     }
                 }
             }
@@ -397,10 +400,14 @@ int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket)
             rebrick_buffer_destroy(socket->tmp_buffer);
         socket->tmp_buffer = NULL;
 
-        if (socket->header)
-            rebrick_http_header_destroy(socket->header);
-        socket->header = NULL;
+        if (socket->received_header)
+            rebrick_http_header_destroy(socket->received_header);
+        if (socket->send_header)
+            rebrick_http_header_destroy(socket->send_header);
+        socket->received_header = NULL;
+        socket->send_header = NULL;
         socket->is_header_parsed = FALSE;
+
         socket->content_received_length = 0;
         socket->header_len = 0;
     }
@@ -431,7 +438,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id,int32_t flags, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int32_t flags, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
@@ -442,6 +449,7 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
     unused(flags);
     if (!socket || !header)
         return REBRICK_ERR_BAD_ARGUMENT;
+
     rebrick_buffer_t *buffer;
     result = rebrick_http_header_to_http_buffer(header, &buffer);
     if (result < 0)
@@ -449,10 +457,14 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
         rebrick_log_error("http sending header failed with error:%d\n", result);
         return result;
     }
+    ///save current sended header
+    if (socket->send_header)
+        rebrick_http_header_destroy(socket->send_header);
+    socket->send_header = header;
     rebrick_clean_func_t cleanfunc = {.func = clean_buffer, .ptr = buffer};
     return rebrick_httpsocket_send(socket, buffer->buf, buffer->len, cleanfunc);
 }
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id,int32_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, int32_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     int32_t result;
@@ -466,6 +478,6 @@ int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t strea
     if (!socket || !buffer)
         return REBRICK_ERR_BAD_ARGUMENT;
 
-    //rebrick_clean_func_t cleanfunc={.func=clean_buffer,.ptr=buffer};
+
     return rebrick_httpsocket_send(socket, buffer, len, cleanfunc);
 }

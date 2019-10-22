@@ -31,6 +31,7 @@
         "udpecho.h": "c",
         "tcpecho.h": "c",
         "unistd.h": "c",
-        "cmocka.h": "c"
+        "cmocka.h": "c",
+        "rebrick_http2socket.h": "c"
     }
 }

@@ -54,7 +54,8 @@ public_ typedef struct rebrick_httpsocket
     private_ void *override_override_callback_data;
 
 
-    public_ readonly_ rebrick_http_header_t *header;
+    public_ readonly_  rebrick_http_header_t *received_header;
+    public_ readonly_  rebrick_http_header_t *send_header;
 
 
 

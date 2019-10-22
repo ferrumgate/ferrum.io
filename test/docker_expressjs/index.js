@@ -5,6 +5,7 @@ let express = require('express');
 let bodyParser = require('body-parser');
 const https = require('https');
 const fs = require('fs')
+const http2 = require('http2');
 // Initialize the app
 let app = express();
 // Configure bodyparser to handle post requests
@@ -18,38 +19,68 @@ app.get('/', (req, res) => res.send('Hello World with Express'));
 // Use Api routes in the App
 app.get('/api/get', (req, res) => {
     console.log("/api/get/ -> "+ JSON.stringify(req.body));
-    res.send("get captured successfully");
+    res.send("hello http");
 });
 app.use('/api/post', (req, res) => {
     console.log("/api/post/ -> "+JSON.stringify(req.body));
     res.json(req.body);
 });
-app.use('/api/box/conf', (req, res) => {
-    console.log(req.body);
-    res.json({});
-});
-app.use('/api/box/createroamingclient', (req, res) => {
-    console.log(req.body);
-    res.json({});
-});
-app.use('/api/box/getbox', (req, res) => {
-    console.log(req.body);
-    res.json({});
-});
-app.use('/api/box/metrics', (req, res) => {
-    console.log(req.body);
-    res.json({});
-});
-// Launch app to listen to specified port
+
+// http without tls
 app.listen(port, function () {
-    console.log("Running  on port " + port);
+    console.log("http without ssl listening  on port " + port);
 });
+
+///http with tls
 
 https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
   }, app)
   .listen(3000, function () {
-    console.log('ssl listening on port 3000! Go to https://localhost:3000/')
+    console.log('http with ssl listening on port 3000')
   })
+
+  //// http2 without tls
+
+  const http2server = http2.createServer();
+
+http2server.on('error', (err) => console.error(err));
+
+http2server.listen(9191,function(){
+    console.log("http2 without ssl listening on port 9191");
+})
+
+http2server.on('stream', (stream, headers) => {
+  let body='';
+
+  if(headers[":method"]=='GET'){
+    console.log('getting http2')
+    stream.respond({
+      'content-type': 'text/plain',
+      ':status': 200
+    });
+    stream.end('hello http2');
+
+  }
+  stream.on('data',(data)=>{
+    console.log("data from stream:"+data);
+    body=data;
+  })
+  if(headers[":method"]=='POST'){
+    console.log('posting http2 '+body)
+    stream.respond({
+      'content-type': 'text/plain',
+      ':status': 200
+    });
+    stream.end('hello http2 post:'+body);
+
+  }
+
+
+});
+
+
+
+
 //# sourceMappingURL=index.js.map

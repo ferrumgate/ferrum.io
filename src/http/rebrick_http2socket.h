@@ -14,14 +14,15 @@ public_ typedef struct rebrick_http2_socket_settings
     size_t settings_count;
 } rebrick_http2_socket_settings_t;
 
-private_ typedef struct rebrick_http2stream
+public_ typedef struct rebrick_http2stream
 {
     base_object();
-    int32_t stream_id;
-    rebrick_buffer_t *buffer;
-    rebrick_http_header_t *header;
+    public_ readonly_ int32_t stream_id;
+    private_ rebrick_buffer_t *buffer;
+    public_ readonly_ rebrick_http_header_t *received_header;
+    public_ readonly_ rebrick_http_header_t *send_header;
     //make this hashtable
-    UT_hash_handle hh;
+    private_ UT_hash_handle hh;
 } rebrick_http2stream_t;
 
 
@@ -82,7 +83,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_
                                  rebrick_tcpsocket_create_client_t create_client);
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
-int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+protected_ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 /**
  * @brief
  *
@@ -94,5 +95,8 @@ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer,
  */
 int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int32_t flags, rebrick_http_header_t *header);
 int32_t rebrick_http2socket_send_body(rebrick_http2socket_t *socket, int32_t stream_id, int32_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+
+int32_t rebrick_http2socket_get_stream(rebrick_http2socket_t *socket,int32_t stream_id,rebrick_http2stream_t **stream);
+
 
 #endif

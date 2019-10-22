@@ -9,7 +9,7 @@ static void on_send(uv_udp_send_t *req, int status)
     rebrick_log_debug("socket on send called and status:%d\n", status);
 
     rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
-    void *source = clean_func ? clean_func->anydata.ptr : NULL;
+    void *source = (clean_func && clean_func->anydata.ptr) ? clean_func->anydata.ptr : NULL;
 
     if (req->handle && req->handle->data)
     {

@@ -144,7 +144,7 @@ static void http2_socket_as_client_create_get(void **start){
 
     rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "8080", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -164,72 +164,45 @@ static void http2_socket_as_client_create_get(void **start){
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"http","localhost:8080","GET","/index.html",2,0);
+    result=rebrick_http_header_new(&header,"http","localhost:8080","GET","/",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     int stream_id=-1;
     is_bodyreaded=FALSE;
-    rebrick_http2socket_send_header(socket,&stream_id,NGHTTP2_FLAG_NONE,header);
-    loop(counter,1000,!is_bodyreaded);
-    assert_true(strstr(readedbufferbody,"it works"));
-
-
-    /*rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"GET", "/api/get",1,1);
+    result=rebrick_http2socket_send_header(socket,&stream_id,NGHTTP2_FLAG_NONE,header);
     assert_int_equal(result,REBRICK_SUCCESS);
-    rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_http_buffer(header,&buffer);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    assert_non_null(buffer);
-
-    sended=FALSE;
+    assert_int_equal(stream_id,1);
     header_received=FALSE;
-    is_bodyreaded=FALSE;
-    rebrick_clean_func_t cleanfunc;
-    cleanfunc.func=deletesendata;
-    cleanfunc.ptr=buffer;
-    //send data
-    result=rebrick_httpsocket_send(socket,0,buffer->buf,buffer->len,cleanfunc);
-    assert_int_equal(result,REBRICK_SUCCESS);
-    loop(counter,1000,(!sended));
-    assert_int_equal(sended,TRUE);
-    loop(counter,100,!header_received);
-    assert_int_equal(header_received,TRUE);
+    loop(counter,1000,!header_received);
     loop(counter,100,!is_bodyreaded);
-    assert_int_equal(is_bodyreaded,TRUE);
-    assert_non_null(socket->header);
-    assert_int_equal(socket->header->major_version,1);
-    assert_int_equal(socket->header->minor_version,1);
-    assert_int_equal(socket->header->is_request,FALSE);
-    assert_string_equal(socket->header->path,"");
-    assert_string_equal(socket->header->method,"");
-    assert_string_equal(socket->header->status_code_str,"OK");
-    assert_int_equal(socket->header->status_code,200);
-    const char *value;
-    rebrick_http_header_get_header(socket->header,"X-Powered-By",&value);
-    assert_string_equal(value,"Express");
-    rebrick_http_header_get_header(socket->header,"Content-Type",&value);
-    assert_string_equal(value,"text/html; charset=utf-8");
-    rebrick_http_header_get_header(socket->header,"Content-Length",&value);
-    assert_string_equal(value,"25");
+    assert_true(strstr(readedbufferbody,"hello http2"));
 
-     rebrick_http_header_get_header(socket->header,"Connection",&value);
-    assert_string_equal(value,"keep-alive");
+    rebrick_http2stream_t *stream;
+    result=rebrick_http2socket_get_stream(socket,stream_id,&stream);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_non_null(stream);
+    assert_non_null(stream->received_header);
+    assert_non_null(stream->send_header);
 
+    assert_memory_equal(stream->send_header,header,sizeof(rebrick_http_header_t));
 
-    assert_string_equal(readedbufferbody,"get captured successfully");
-
-
+    int32_t is_header_exits;
+    assert_int_equal(stream->received_header->is_request,FALSE);
+    assert_string_equal(stream->received_header->host,"");
+    assert_string_equal(stream->received_header->path,"");
+    assert_string_equal(stream->received_header->method,"");
+    assert_string_equal(stream->received_header->scheme,"");
+    assert_int_equal(stream->received_header->major_version,2);
+    assert_int_equal(stream->received_header->minor_version,0);
+    assert_int_equal(stream->received_header->status_code,200);
+    assert_string_equal(stream->received_header->status_code_str,"OK");
+    //TODO diğer headerlar yazılmalı
 
 
-    rebrick_http_header_destroy(header);
 
-    assert_int_equal(socket->content_received_length,25);
-    rebrick_httpsocket_reset(socket);
-    assert_int_equal(socket->content_received_length,0);
-    assert_null(socket->header);
-    assert_int_equal(socket->header_len,0);
-    assert_int_equal(socket->is_header_parsed,0);
-    assert_null(socket->tmp_buffer);*/
+
+
+
+
 
     rebrick_http2socket_destroy(socket);
     loop(counter,100,TRUE);

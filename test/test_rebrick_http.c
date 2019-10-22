@@ -163,6 +163,12 @@ static void rebrick_http_header_to_http_buffer_test(void **state){
     result=rebrick_http_header_add_header(header,"content-type","application/json");
     assert_int_equal(result,REBRICK_SUCCESS);
 
+    int32_t count;
+    result=rebrick_http_header_count(header,&count);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_int_equal(count,1);
+
+
     assert_int_equal(result,REBRICK_SUCCESS);
     rebrick_buffer_t *buffer;
     result=rebrick_http_header_to_http_buffer(header,&buffer);

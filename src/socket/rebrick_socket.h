@@ -63,8 +63,7 @@ typedef struct rebrick_clean_func{
 #define rebrick_clean_func_clone(x,y) \
 rebrick_clean_func_t *newptr=new(rebrick_clean_func_t);\
 constructor(newptr,rebrick_clean_func_t);\
-newptr->func=(x)->func;\
-newptr->ptr=(x)->ptr;\
+memcpy(newptr,(x),sizeof(rebrick_clean_func_t));\
 (y)=newptr;
 
 ////////////////////////// base socket //////////////////////////////
