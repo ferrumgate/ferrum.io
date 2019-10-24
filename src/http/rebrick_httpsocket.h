@@ -85,31 +85,29 @@ public_ typedef struct rebrick_httpsocket
 
 
 
-#define cast_to_http_socket(x) cast(x,rebrick_httpsocket_t*);
+#define cast_to_httpsocket(x) cast(x,rebrick_httpsocket_t*);
+
+
+#define base_httpsocket_callbacks() \
+    base_tlssocket_callbacks();\
+    rebrick_on_http_header_received_callback_t on_http_header_received;\
+    rebrick_on_http_body_received_callback_t on_http_body_received;\
+    rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
+
+typedef struct rebrick_httpsocket_callbacks{
+    base_httpsocket_callbacks();
+}rebrick_httpsocket_callbacks_t;
+
+#define cast_to_httpsocket_callbacks(x) cast(x,rebrick_httpsocket_callbacks_t*)
 
 
 
 int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket,const char *sni_pattern_or_name, rebrick_tls_context_t *tls,rebrick_sockaddr_t addr,
-                                    void *callback_data,int32_t backlog_or_isclient,
-                                    rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                    rebrick_on_connection_closed_callback_t on_connection_closed,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured,
-                                    rebrick_on_http_header_received_callback_t on_http_header_received,
-                                    rebrick_on_http_body_received_callback_t on_http_body_received,
-                                    rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade);
+                                    int32_t backlog_or_isclient,const rebrick_httpsocket_callbacks_t *callbacks);
 
 int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls,rebrick_sockaddr_t addr,
-                                    void *callback_data, int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
-                                    rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                    rebrick_on_connection_closed_callback_t on_connection_closed,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured,
-                                    rebrick_on_http_header_received_callback_t after_http_request_received,
-                                    rebrick_on_http_body_received_callback_t after_http_body_received,
-                                    rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade);
+                                    int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
+                                    const rebrick_httpsocket_callbacks_t *callbacks);
 
 int32_t rebrick_httpsocket_destroy(rebrick_httpsocket_t *socket);
 int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);

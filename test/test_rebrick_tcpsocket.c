@@ -25,12 +25,11 @@ struct callbackdata
     char buffer[1024];
 };
 
-
-static void on_error_occured(rebrick_socket_t *socket,void *callbackdata,int32_t error){
+static void on_error_occured(rebrick_socket_t *socket, void *callbackdata, int32_t error)
+{
     unused(socket);
     unused(callbackdata);
     unused(error);
-
 }
 
 int client_connected = 0;
@@ -46,7 +45,6 @@ static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata
     data->client = client_handle;
     data->addr = cast(addr, struct sockaddr *);
     client_connected = 1;
-
 }
 
 static void on_read(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
@@ -58,8 +56,6 @@ static void on_read(rebrick_socket_t *socket, void *callback_data, const struct 
     struct callbackdata *data = cast(callback_data, struct callbackdata *);
     memset(data->buffer, 0, 1024);
     memcpy(data->buffer, buffer, len);
-
-
 }
 
 static void rebrick_tcpsocket_asserver_communication(void **start)
@@ -71,8 +67,13 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
     struct callbackdata data;
     int32_t result = rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
     assert_int_equal(result, 0);
+    new2(rebrick_tcpsocket_callbacks_t, callbacks);
+    callbacks.callback_data = &data;
+    callbacks.on_connection_accepted = on_newclient_connection;
+    callbacks.on_data_received = on_read;
+    callbacks.on_error_occured = on_error_occured;
 
-    result = rebrick_tcpsocket_new(&server, addr, &data,10, on_newclient_connection, NULL, on_read, NULL,on_error_occured);
+    result = rebrick_tcpsocket_new(&server, addr, 10, &callbacks);
     assert_int_equal(result, 0);
 
     client_connected = 0;
@@ -105,8 +106,8 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
     assert_string_equal(data.buffer, hello);
 
     char *world = "world";
-    rebrick_clean_func_t clean={};
-    result = rebrick_tcpsocket_send(data.client,cast(world,uint8_t*), strlen(world), clean);
+    rebrick_clean_func_t clean = {};
+    result = rebrick_tcpsocket_send(data.client, cast(world, uint8_t *), strlen(world), clean);
     assert_int_equal(result, 0);
 
     //check loop
@@ -154,7 +155,6 @@ static void on_connection_accepted(rebrick_socket_t *socket, void *callbackdata,
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
     connected_toserver = 1;
-
 }
 
 static void on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
@@ -163,7 +163,6 @@ static void on_connection_closed(rebrick_socket_t *socket, void *callbackdata)
     unused(callbackdata);
     struct callbackdata *data = cast(callbackdata, struct callbackdata *);
     unused(data);
-
 }
 static int datareceived_ok = 0;
 static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
@@ -172,22 +171,20 @@ static void on_datarecevied(rebrick_socket_t *socket, void *callback_data, const
     unused(addr);
 
     unused(socket);
-    if(len>0){
-    struct callbackdata *data = cast(callback_data, struct callbackdata *);
-    memset(data->buffer, 0, 1024);
-    memcpy(data->buffer, buffer, len);
-    datareceived_ok = 1;
+    if (len > 0)
+    {
+        struct callbackdata *data = cast(callback_data, struct callbackdata *);
+        memset(data->buffer, 0, 1024);
+        memcpy(data->buffer, buffer, len);
+        datareceived_ok = 1;
     }
-
 }
 
-static void on_datasend(rebrick_socket_t *socket, void *callback_data,void *source)
+static void on_datasend(rebrick_socket_t *socket, void *callback_data, void *source)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
-
-
 }
 
 static void rebrick_tcpsocket_asclient_communication(void **start)
@@ -206,7 +203,15 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
     result = tcp_echo_listen();
 
-    result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured);
+    new2(rebrick_tcpsocket_callbacks_t, callbacks);
+    callbacks.callback_data = &data;
+    callbacks.on_connection_accepted = on_connection_accepted;
+    callbacks.on_connection_closed = on_connection_closed;
+    callbacks.on_data_received = on_datarecevied;
+    callbacks.on_data_sended = on_datasend;
+    callbacks.on_error_occured = on_error_occured;
+
+    result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
 
     //check a little
     int counter = 10;
@@ -241,8 +246,8 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
     assert_int_equal(datareceived_ok, 1);
 
     assert_string_equal(data.buffer, "deneme");
-    rebrick_clean_func_t cleanfunc={};
-    rebrick_tcpsocket_send(client,cast("valla",uint8_t*), 6, cleanfunc);
+    rebrick_clean_func_t cleanfunc = {};
+    rebrick_tcpsocket_send(client, cast("valla", uint8_t *), 6, cleanfunc);
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
@@ -263,16 +268,16 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
 ////////////////////////// memory tests /////////////////////////////////////
 
-static void on_error_occured_memorytest(rebrick_socket_t *socket,void *callbackdata,int32_t error){
+static void on_error_occured_memorytest(rebrick_socket_t *socket, void *callbackdata, int32_t error)
+{
     unused(socket);
     unused(callbackdata);
     unused(error);
-    rebrick_tcpsocket_destroy(cast(socket,rebrick_tcpsocket_t*));
-
+    rebrick_tcpsocket_destroy(cast(socket, rebrick_tcpsocket_t *));
 }
 
 int connected_to_memorytest = 0;
-int connected_to_memorytest_counter=0;
+int connected_to_memorytest_counter = 0;
 rebrick_tcpsocket_t *connected_client;
 static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle)
 {
@@ -285,11 +290,10 @@ static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *ca
     connected_to_memorytest = 1;
     connected_to_memorytest_counter++;
     connected_client = cast(client_handle, rebrick_tcpsocket_t *);
-
 }
 
 int connection_closed_memorytest = 0;
-int connection_closed_memorytestcounter=0;
+int connection_closed_memorytestcounter = 0;
 static void on_connection_closed_memorytest(rebrick_socket_t *socket, void *callbackdata)
 {
     unused(socket);
@@ -297,7 +301,6 @@ static void on_connection_closed_memorytest(rebrick_socket_t *socket, void *call
 
     connection_closed_memorytest = 1;
     connection_closed_memorytestcounter++;
-
 }
 static int datareceived_ok_memorytest = 0;
 static char memorytestdata[1024 * 1024];
@@ -313,17 +316,15 @@ static void on_datarecevied_memorytest(rebrick_socket_t *socket, void *callback_
 
     datareceived_ok_memorytest = len;
     datareceived_ok_total_memorytest += len;
-
 }
 
 static int datasended_memorytest = 0;
-static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data,void *source)
+static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data, void *source)
 {
     unused(callback_data);
     unused(source);
     unused(socket);
     datasended_memorytest = 10;
-
 }
 
 /**
@@ -350,10 +351,18 @@ Accept: text/html\r\n\
 \r\n";
 #define COUNTER 100
 
+    new2(rebrick_tcpsocket_callbacks_t, callbacks);
+    callbacks.callback_data = &data;
+    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
+    callbacks.on_connection_closed = on_connection_closed_memorytest;
+    callbacks.on_data_received = on_datarecevied_memorytest;
+    callbacks.on_data_sended = on_datasend_memorytest;
+    callbacks.on_error_occured = on_error_occured_memorytest;
+
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        int32_t result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
+        int32_t result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -367,8 +376,8 @@ Accept: text/html\r\n\
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
-        rebrick_clean_func_t cleanfunc={};
-        result = rebrick_tcpsocket_send(client, cast(head,uint8_t*), strlen(head) + 1, cleanfunc);
+        rebrick_clean_func_t cleanfunc = {};
+        result = rebrick_tcpsocket_send(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -416,11 +425,19 @@ Accept: text/html\r\n\
 \r\n";
 #define COUNTER 100
 
+    new2(rebrick_tcpsocket_callbacks_t, callbacks);
+    callbacks.callback_data = &data;
+    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
+    callbacks.on_connection_closed = on_connection_closed_memorytest;
+    callbacks.on_data_received = on_datarecevied_memorytest;
+    callbacks.on_data_sended = on_datasend_memorytest;
+    callbacks.on_error_occured = on_error_occured_memorytest;
+
     for (int i = 0; i < COUNTER; ++i)
     {
 
-connection_closed_memorytest = 0;
-        int32_t result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
+        connection_closed_memorytest = 0;
+        int32_t result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -433,8 +450,8 @@ connection_closed_memorytest = 0;
 
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
-        rebrick_clean_func_t cleanfunc={};
-        result = rebrick_tcpsocket_send(client, cast(head,uint8_t*), strlen(head) + 1, cleanfunc);
+        rebrick_clean_func_t cleanfunc = {};
+        result = rebrick_tcpsocket_send(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         datareceived_ok_total_memorytest = 1;
@@ -446,7 +463,7 @@ connection_closed_memorytest = 0;
         }
         if (!connection_closed_memorytest)
         {
-            counter=100;
+            counter = 100;
             rebrick_tcpsocket_destroy(client);
 
             while (counter-- && !connection_closed_memorytest)
@@ -501,19 +518,27 @@ Accept-Ranges: bytes\r\n\
 </html>";
 #undef COUNTER
 #define COUNTER 100
+
+    new2(rebrick_tcpsocket_callbacks_t, callbacks);
+    callbacks.callback_data = &data;
+    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
+    callbacks.on_connection_closed = on_connection_closed_memorytest;
+    callbacks.on_data_received = on_datarecevied_memorytest;
+    callbacks.on_data_sended = on_datasend_memorytest;
+    callbacks.on_error_occured = on_error_occured_memorytest;
     rebrick_tcpsocket_t *server;
 
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        connected_client=NULL;
-        int32_t result = rebrick_tcpsocket_new(&server, addr, &data,10, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
+        connected_client = NULL;
+        int32_t result = rebrick_tcpsocket_new(&server, addr, 10, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
         int counter = 100;
         connected_to_memorytest = 0;
-        connected_to_memorytest_counter=0;
+        connected_to_memorytest_counter = 0;
         while (--counter && !connected_to_memorytest)
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
@@ -523,7 +548,7 @@ Accept-Ranges: bytes\r\n\
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
-        connection_closed_memorytestcounter=0;
+        connection_closed_memorytestcounter = 0;
 
         counter = 100;
         while (--counter && !datareceived_ok_memorytest)
@@ -531,28 +556,26 @@ Accept-Ranges: bytes\r\n\
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             usleep(100);
         }
-        rebrick_clean_func_t cleanfunc={};
+        rebrick_clean_func_t cleanfunc = {};
         //assert_true(datareceived_ok_memorytest > 0);
-        if(connected_client)
-        result = rebrick_tcpsocket_send(connected_client, cast(html,uint8_t*), strlen(html) + 1, cleanfunc);
+        if (connected_client)
+            result = rebrick_tcpsocket_send(connected_client, cast(html, uint8_t *), strlen(html) + 1, cleanfunc);
 
         counter = 100;
         while (--counter && !datasended_memorytest)
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             usleep(100);
-
         }
         //assert_int_equal(datasended_memorytest, 10); //this value is used above
 
         rebrick_tcpsocket_destroy(server);
         counter = 100;
-        while (--counter && connection_closed_memorytestcounter!=2)
+        while (--counter && connection_closed_memorytestcounter != 2)
         {
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
             usleep(100);
         }
-
 
         //assert_true(connected_to_memorytest!=0);
     }
@@ -565,8 +588,8 @@ int test_rebrick_tcpsocket(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(rebrick_tcpsocket_asserver_communication),
         cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
-          cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
-         cmocka_unit_test(rebrick_tcp_client_download_data),
+        cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
+        cmocka_unit_test(rebrick_tcp_client_download_data),
         cmocka_unit_test(rebrick_tcpsocket_asserver_memory)
 
     };

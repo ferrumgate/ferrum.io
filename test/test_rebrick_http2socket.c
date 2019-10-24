@@ -153,11 +153,17 @@ static void http2_socket_as_client_create_get(void **start){
     settings.entries[0]=maxstream;
     settings.settings_count=1;
 
-    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,0,
-                &settings,
-                on_connection_accepted_callback,
-                on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,on_http_header_received,on_body_read_callback,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+    new2(rebrick_http2socket_callbacks_t,callbacks);
+    callbacks.on_connection_accepted=on_connection_accepted_callback;
+    callbacks.on_connection_closed=on_connection_closed_callback;
+    callbacks.on_data_received=on_data_read_callback;
+    callbacks.on_data_sended=on_data_send;
+    callbacks.on_error_occured=on_error_occured_callback;
+    callbacks.on_http_header_received=on_http_header_received;
+    callbacks.on_http_body_received=on_body_read_callback;
+
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination,0,
+                &settings,&callbacks);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
@@ -224,12 +230,17 @@ static void http2_socket_as_client_create_post(void **start){
     settings.entries[0]=maxstream;
     settings.settings_count=1;
 
-    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,0,
-                &settings,
-                on_connection_accepted_callback,
-                on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,
-                on_http_header_received,on_body_read_callback,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+    new2(rebrick_http2socket_callbacks_t,callbacks);
+    callbacks.on_connection_accepted=on_connection_accepted_callback;
+    callbacks.on_connection_closed=on_connection_closed_callback;
+    callbacks.on_data_received=on_data_read_callback;
+    callbacks.on_data_sended=on_data_send;
+    callbacks.on_error_occured=on_error_occured_callback;
+    callbacks.on_http_header_received=on_http_header_received;
+    callbacks.on_http_body_received=on_body_read_callback;
+
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination,0,
+                &settings,&callbacks);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);

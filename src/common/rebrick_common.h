@@ -94,6 +94,11 @@
                          fill_zero(x,sizeof(y));\
                          strcpy(x->type_name,#y);
 
+#define new2(y,x) \
+          y x; \
+          fill_zero(&x,sizeof(y));\
+          strcpy(x.type_name,#y)
+
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
 #define cast(x, y) ((y)x)

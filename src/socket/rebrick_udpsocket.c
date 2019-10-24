@@ -14,16 +14,16 @@ static void on_send(uv_udp_send_t *req, int status)
     if (req->handle && req->handle->data)
     {
 
-        const rebrick_udpsocket_t *socket = cast_to_udp_socket(req->handle->data);
+        const rebrick_udpsocket_t *socket = cast_to_udpsocket(req->handle->data);
         if (status >= 0)
         {
             if (socket->on_data_sended)
-                socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source);
+                socket->on_data_sended(cast_to_socket(socket), socket->callback_data, source);
         }
         else
         {
             if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
+                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
         }
     }
 
@@ -48,7 +48,7 @@ int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *
 
     uv_udp_send_t *request = new (uv_udp_send_t);
     fill_zero(request, sizeof(uv_udp_send_t));
-    uv_buf_t buf = uv_buf_init(cast(buffer,char*), len);
+    uv_buf_t buf = uv_buf_init(cast(buffer, char *), len);
 
     rebrick_clean_func_clone(&func, request->data);
 
@@ -71,21 +71,20 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     char current_time_str[32] = {0};
     unused(current_time_str);
     unused(flags);
-    const rebrick_udpsocket_t *socket = cast_to_udp_socket(handle->data);
+    const rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
 
-
     if (socket)
     {
-        if (nread <= 0)//error or closed
+        if (nread <= 0) //error or closed
         {
             if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_IO_CLOSED);
+                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_IO_CLOSED);
         }
         else if (socket->on_data_received)
         {
-            socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, addr,cast(rcvbuf->base,uint8_t*), nread);
+            socket->on_data_received(cast_to_socket(socket), socket->callback_data, addr, cast(rcvbuf->base, uint8_t *), nread);
         }
     }
 
@@ -145,11 +144,8 @@ static int32_t create_socket(rebrick_udpsocket_t *socket)
 }
 
 int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
-                                    rebrick_sockaddr_t bind_addr,
-                                    void *callback_data,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured)
+                              rebrick_sockaddr_t bind_addr,
+                              const rebrick_udpsocket_callbacks_t *callbacks)
 {
 
     char current_time_str[32] = {0};
@@ -159,15 +155,15 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
     constructor(tmp, rebrick_udpsocket_t);
 
     //burası önemli,callback data
-    tmp->callback_data = callback_data;
+    tmp->callback_data = callbacks ? callbacks->callback_data : NULL;
 
     tmp->bind_addr = bind_addr;
     rebrick_util_addr_to_ip_string(&tmp->bind_addr, tmp->bind_ip);
     rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port),
 
-        tmp->on_data_received = on_data_received;
-    tmp->on_data_sended = on_data_sended;
-    tmp->on_error_occured=on_error_occured;
+    tmp->on_data_received = callbacks ? callbacks->on_data_received : NULL;
+    tmp->on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
+    tmp->on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
 
     result = create_socket(tmp);
     if (result < 0)
@@ -187,7 +183,7 @@ static void on_close(uv_handle_t *handle)
     if (handle)
         if (handle->data)
         {
-            rebrick_udpsocket_t *socket = cast_to_udp_socket(handle->data);
+            rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
             if (socket)
                 free(socket);
         }

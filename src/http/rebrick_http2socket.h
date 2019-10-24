@@ -64,7 +64,7 @@ public_ typedef struct rebrick_http2socket
     private_ rebrick_on_ping_received_callback_t on_ping_received;
     private_ rebrick_on_push_received_callback_t on_push_received;
     private_ rebrick_on_goaway_received_callback_t on_goaway_received;
-    private_ rebrick_on_window_update_callback_t on_window_update_recevied;
+    private_ rebrick_on_window_update_callback_t on_window_update_received;
     private_ void *override_override_callback_data;
     protected_ int32_t is_goaway_sended;
     protected_ int32_t is_goaway_received;
@@ -84,43 +84,34 @@ public_ typedef struct rebrick_http2socket
 
 } rebrick_http2socket_t;
 
-#define cast_to_http2_socket(socket) cast(socket, rebrick_http2socket_t *)
+
+#define cast_to_http2socket(socket) cast(socket, rebrick_http2socket_t *)
+
+#define base_http2socket_callbacks() \
+        base_tlssocket_callbacks();\
+        rebrick_on_http_header_received_callback_t on_http_header_received;\
+        rebrick_on_http_body_received_callback_t on_http_body_received;\
+        rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;\
+        rebrick_on_stream_closed_callback_t on_stream_closed;\
+        rebrick_on_settings_received_callback_t on_settings_received;\
+        rebrick_on_ping_received_callback_t on_ping_received;\
+        rebrick_on_push_received_callback_t on_push_received;\
+        rebrick_on_goaway_received_callback_t on_goaway_received;\
+        rebrick_on_window_update_callback_t on_window_update_received;\
+
+typedef struct rebrick_http2socket_callbacks{
+    base_http2socket_callbacks();
+}rebrick_http2socket_callbacks_t;
+
+#define cast_to_http2socket_callbacks(x) cast(x,rebrick_http2socket_callbacks_t*)
 
 int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
-                                void *callback_data,int32_t backlog_or_isclient,
-                                const rebrick_http2_socket_settings_t *settings,
-                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                rebrick_on_connection_closed_callback_t on_connection_closed,
-                                rebrick_on_data_received_callback_t on_data_received,
-                                rebrick_on_data_sended_callback_t on_data_sended,
-                                rebrick_on_error_occured_callback_t on_error_occured,
-                                rebrick_on_http_header_received_callback_t on_http_header_received,
-                                rebrick_on_http_body_received_callback_t on_http_body_received,
-                                rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade,
-                                rebrick_on_stream_closed_callback_t on_stream_closed,
-                                rebrick_on_settings_received_callback_t on_settings_received,
-                                rebrick_on_ping_received_callback_t on_ping_received,
-                                rebrick_on_push_received_callback_t on_push_received,
-                                rebrick_on_goaway_received_callback_t on_goaway_received,
-                                rebrick_on_window_update_callback_t on_window_update_recevied);
+                                int32_t backlog_or_isclient,
+                                const rebrick_http2_socket_settings_t *settings,const rebrick_http2socket_callbacks_t *callbacks);
 
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
-                                 void *callback_data,int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
-                                 const rebrick_http2_socket_settings_t *settings,
-                                 rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                 rebrick_on_connection_closed_callback_t on_connection_closed,
-                                 rebrick_on_data_received_callback_t on_data_received,
-                                 rebrick_on_data_sended_callback_t on_data_sended,
-                                 rebrick_on_error_occured_callback_t on_error_occured,
-                                 rebrick_on_http_header_received_callback_t on_http_header_received,
-                                 rebrick_on_http_body_received_callback_t on_http_body_received,
-                                 rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade,
-                                 rebrick_on_stream_closed_callback_t on_stream_closed,
-                                 rebrick_on_settings_received_callback_t on_settings_received,
-                                 rebrick_on_ping_received_callback_t on_ping_received,
-                                 rebrick_on_push_received_callback_t on_push_received,
-                                 rebrick_on_goaway_received_callback_t on_goaway_received,
-                                 rebrick_on_window_update_callback_t on_window_update_received);
+                                 int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
+                                 const rebrick_http2_socket_settings_t *settings,const rebrick_http2socket_callbacks_t *callbacks);
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
 protected_ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);

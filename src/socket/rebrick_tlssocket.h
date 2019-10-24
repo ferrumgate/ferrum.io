@@ -55,7 +55,18 @@ public_ typedef struct rebrick_tlssocket
 
 
 
-#define cast_to_tls_socket(x) cast(x, rebrick_tlssocket_t *)
+#define cast_to_tlssocket(x) cast(x, rebrick_tlssocket_t *)
+
+#define base_tlssocket_callbacks() \
+    base_tcpsocket_callbacks();
+
+typedef struct rebrick_tlssocket_callbacks{
+    base_tlssocket_callbacks();
+}rebrick_tlssocket_callbacks_t;
+
+#define cast_to_tlssocket_callbacks(x) cast(x,rebrick_tlssocket_callbacks_t*);
+
+
 
 
 /*
@@ -70,12 +81,7 @@ public_ typedef struct rebrick_tlssocket
  * @return int32_t
  */
 int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
-                                     void *callback_data,int32_t backlog_or_isclient,
-                                    rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                    rebrick_on_connection_closed_callback_t on_connection_closed,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured);
+                                     int32_t backlog_or_isclient,const rebrick_tlssocket_callbacks_t *callbacks);
 
 /**
  * @brief inits a socket, think init functions like contructors in OOP
@@ -93,13 +99,9 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
  * @param create_client
  * @return int32_t
  */
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
                                     int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
-                                    rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                                    rebrick_on_connection_closed_callback_t on_connection_closed,
-                                    rebrick_on_data_received_callback_t on_data_received,
-                                    rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured);
+                                    const rebrick_tlssocket_callbacks_t *callbacks);
 
 int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket);
 int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);

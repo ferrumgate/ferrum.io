@@ -69,6 +69,22 @@ memcpy(newptr,(x),sizeof(rebrick_clean_func_t));\
 ////////////////////////// base socket //////////////////////////////
 
 
+#define base_callbacks() \
+    base_object();  \
+    protected_ void *callback_data;\
+    protected_ rebrick_on_data_received_callback_t on_data_received;\
+    protected_ rebrick_on_data_sended_callback_t on_data_sended;\
+    protected_ rebrick_on_error_occured_callback_t on_error_occured;\
+
+
+typedef struct base_socket_callbacks{
+    base_callbacks();
+}rebrick_basesocket_callbacks_t;
+
+#define cast_to_base_socket_callbacks(x)  cast(((rebrick_basesocket_callbacks_t)(x)))
+
+
+
 #define base_socket() \
     base_object();                    \
     public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];\
@@ -89,7 +105,7 @@ public_ typedef struct rebrick_socket{
     base_socket();
 }rebrick_socket_t;
 
-#define cast_to_base_socket(x)  cast((x),rebrick_socket_t*)
+#define cast_to_socket(x)  cast((x),rebrick_socket_t*)
 
 
 #endif

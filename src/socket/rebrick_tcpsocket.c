@@ -13,15 +13,15 @@ static void on_send(uv_write_t *req, int status)
     if (req->handle && req->handle->data)
 
     {
-        const rebrick_tcpsocket_t *socket = cast_to_tcp_socket(req->handle->data);
+        const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(req->handle->data);
 
         if (status < 0)
         {
             if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_base_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
+                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
         }
         else if (socket->on_data_sended)
-            socket->on_data_sended(cast_to_base_socket(socket), socket->callback_data, source);
+            socket->on_data_sended(cast_to_socket(socket), socket->callback_data, source);
     }
 
     if (clean_func)
@@ -71,19 +71,19 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    const rebrick_tcpsocket_t *socket = cast_to_tcp_socket(handle->data);
+    const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
 
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
 
     if (nread <= 0)
     {
         if (socket->on_error_occured)
-            socket->on_error_occured(cast_to_base_socket(socket), NULL, REBRICK_ERR_IO_CLOSED);
+            socket->on_error_occured(cast_to_socket(socket), NULL, REBRICK_ERR_IO_CLOSED);
     }
     else if (socket->on_data_received)
     {
 
-        socket->on_data_received(cast_to_base_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
+        socket->on_data_received(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
     }
 
     free(rcvbuf->base);
@@ -118,18 +118,18 @@ static void on_connect(uv_connect_t *connection, int status)
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_tcpsocket_t *serversocket = cast_to_tcp_socket(connection->data);
+    rebrick_tcpsocket_t *serversocket = cast_to_tcpsocket(connection->data);
 
     if (serversocket)
     {
         if (status < 0)
         {
             if (serversocket->on_error_occured)
-                serversocket->on_error_occured(cast_to_base_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
+                serversocket->on_error_occured(cast_to_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
         }
         else if (serversocket->on_connection_accepted)
         {
-            serversocket->on_connection_accepted(cast_to_base_socket(serversocket), serversocket->callback_data, NULL, serversocket);
+            serversocket->on_connection_accepted(cast_to_socket(serversocket), serversocket->callback_data, NULL, serversocket);
         }
     }
 
@@ -163,13 +163,13 @@ static void on_connection(uv_stream_t *server, int status)
     }
 
     uv_tcp_t *tcp = cast(server, uv_tcp_t *);
-    rebrick_tcpsocket_t *serversocket = cast_to_tcp_socket(tcp->data);
+    rebrick_tcpsocket_t *serversocket = cast_to_tcpsocket(tcp->data);
 
     if (status < 0)
     {
         rebrick_log_debug("error on_new_connection\n");
         if (server && serversocket->on_error_occured)
-            serversocket->on_error_occured(cast_to_base_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
+            serversocket->on_error_occured(cast_to_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
         return;
     }
 
@@ -215,7 +215,7 @@ static void on_connection(uv_stream_t *server, int status)
 
     if (serversocket->on_connection_accepted)
     {
-        serversocket->on_connection_accepted(cast_to_base_socket(serversocket), client->callback_data, &client->bind_addr.base, client);
+        serversocket->on_connection_accepted(cast_to_socket(serversocket), client->callback_data, &client->bind_addr.base, client);
     }
 }
 
@@ -283,28 +283,24 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr,
                                int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t createclient,
-                               rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                               rebrick_on_connection_closed_callback_t on_connection_closed,
-                               rebrick_on_data_received_callback_t on_data_received,
-                               rebrick_on_data_sended_callback_t on_data_sended,
-                               rebrick_on_error_occured_callback_t on_error_occured)
+                               const rebrick_tcpsocket_callbacks_t *callbacks)
 {
     char current_time_str[32] = {0};
     int32_t result;
     //burası önemli,callback data
-    socket->callback_data = callback_data;
+    socket->callback_data =callbacks?callbacks->callback_data:NULL;
 
     socket->bind_addr = addr;
     rebrick_util_addr_to_ip_string(&socket->bind_addr, socket->bind_ip);
     rebrick_util_addr_to_port_string(&socket->bind_addr, socket->bind_port),
 
-        socket->on_data_received = on_data_received;
-    socket->on_data_sended = on_data_sended;
-    socket->on_connection_accepted = on_connection_accepted;
-    socket->on_connection_closed = on_connection_closed;
-    socket->on_error_occured = on_error_occured;
+    socket->on_data_received = callbacks?callbacks->on_data_received:NULL;
+    socket->on_data_sended = callbacks?callbacks->on_data_sended:NULL;
+    socket->on_connection_accepted = callbacks?callbacks->on_connection_accepted:NULL;
+    socket->on_connection_closed = callbacks?callbacks->on_connection_closed:NULL;
+    socket->on_error_occured = callbacks?callbacks->on_error_occured:NULL;
     socket->create_client = createclient;
 
     if (backlog_or_isclient)
@@ -323,21 +319,15 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
 }
 
 int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
-                              rebrick_sockaddr_t bind_addr,
-                              void *callback_data,int32_t backlog_or_isclient,
-                              rebrick_on_connection_accepted_callback_t on_connection_accepted,
-                              rebrick_on_connection_closed_callback_t on_connection_closed,
-                              rebrick_on_data_received_callback_t on_data_received,
-                              rebrick_on_data_sended_callback_t on_data_sended,
-                              rebrick_on_error_occured_callback_t on_error_occured)
+                              rebrick_sockaddr_t bind_addr,int32_t backlog_or_isclient,
+                              const rebrick_tcpsocket_callbacks_t *callbacks)
 {
     char current_time_str[32] = {0};
     int32_t result;
     rebrick_tcpsocket_t *data = new (rebrick_tcpsocket_t);
     constructor(data, rebrick_tcpsocket_t);
 
-    result = rebrick_tcpsocket_init(data, bind_addr, callback_data,backlog_or_isclient, create_client, on_connection_accepted, on_connection_closed,
-    on_data_received, on_data_sended, on_error_occured);
+    result = rebrick_tcpsocket_init(data, bind_addr,backlog_or_isclient, create_client,callbacks);
     if (result < 0)
     {
         rebrick_log_fatal("create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);
@@ -358,13 +348,13 @@ static void on_close(uv_handle_t *handle)
     if (handle)
         if (handle->data && uv_is_closing(handle))
         {
-            rebrick_tcpsocket_t *socket = cast_to_tcp_socket(handle->data);
+            rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
             handle->data = NULL;
 
             if (socket->on_connection_closed)
             {
                 rebrick_log_debug("handle closed\n");
-                socket->on_connection_closed(cast_to_base_socket(socket), socket->callback_data);
+                socket->on_connection_closed(cast_to_socket(socket), socket->callback_data);
             }
             //server is closing
             if (!socket->parent_socket)
