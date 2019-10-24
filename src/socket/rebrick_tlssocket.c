@@ -599,12 +599,13 @@ static struct rebrick_tcpsocket *local_create_client()
     return cast_to_tcp_socket(client);
 }
 
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
+                                void *callback_data,int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
                                rebrick_on_data_sended_callback_t on_data_sended,
-                               rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client)
+                               rebrick_on_error_occured_callback_t on_error_occured)
 {
 
     char current_time_str[32] = {0};
@@ -647,8 +648,8 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
 
     //this is OOP inheritance with c
     //base class init function call.
-    result = rebrick_tcpsocket_init(cast_to_tcp_socket(tlssocket), addr, tlssocket, local_on_connection_accepted_callback,
-                                    local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient, create_client);
+    result = rebrick_tcpsocket_init(cast_to_tcp_socket(tlssocket), addr, tlssocket, backlog_or_isclient, create_client, local_on_connection_accepted_callback,
+                                    local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback);
     if (result)
     {
         int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
@@ -661,12 +662,13 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tlscontext, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tlscontext, rebrick_sockaddr_t addr,
+                               void *callback_data,int32_t backlog_or_isclient,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
                                rebrick_on_data_sended_callback_t on_data_sended,
-                               rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient)
+                               rebrick_on_error_occured_callback_t on_error_occured)
 {
 
     char current_time_str[32] = {0};
@@ -690,7 +692,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
     rebrick_tlssocket_t *tlssocket = new (rebrick_tlssocket_t);
     constructor(tlssocket, rebrick_tlssocket_t);
 
-    result = rebrick_tlssocket_init(tlssocket,sni_pattern_or_name, sni_context, addr, callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient, local_create_client);
+    result = rebrick_tlssocket_init(tlssocket,sni_pattern_or_name, sni_context, addr, callback_data, backlog_or_isclient, local_create_client, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured);
     if (result < 0)
     {
         free(tlssocket);

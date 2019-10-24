@@ -120,7 +120,7 @@ int main()
   //test_tcpecho_client();
 
 
-  if (test_rebrick_util())
+  /*if (test_rebrick_util())
     exit(1);
   if (test_rebrick_config())
     exit(1);
@@ -130,7 +130,7 @@ int main()
   if (test_rebrick_context())
     exit(1);
 
- /* if (test_rebrick_buffer())
+  if (test_rebrick_buffer())
     exit(1);
 
   if (test_rebrick_buffers())
@@ -145,12 +145,12 @@ int main()
   if (test_rebrick_tls())
     exit(1);
   if (test_rebrick_tlssocket())
-    exit(1);*/
-   if (test_rebrick_http())
     exit(1);
+   if (test_rebrick_http())
+    exit(1);*/
 
- // if (test_rebrick_httpsocket())
-//    exit(1);
+  if (test_rebrick_httpsocket())
+    exit(1);
    if (test_rebrick_http2socket())
     exit(1);
   //kill(getpid(), SIGSEGV);

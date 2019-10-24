@@ -120,7 +120,8 @@ static void ssl_client(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_tlssocket_t *tlsclient;
-    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify_none, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_error_occured_callback, 0);
+    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify_none, destination, NULL,0, on_connection_accepted_callback, on_connection_closed_callback,
+     on_data_read_callback, NULL,on_error_occured_callback);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -275,7 +276,8 @@ static void ssl_server(void **start)
     rebrick_util_ip_port_to_addr("0.0.0.0", "9797", &listen);
     client_count = 0;
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver,NULL, context_server, listen, NULL, on_serverconnection_accepted_callback, on_serverconnection_closed_callback, on_serverdata_read_callback, NULL,on_serverconnection_error_occured_callback, 100);
+    result = rebrick_tlssocket_new(&tlsserver,NULL, context_server, listen, NULL,100, on_serverconnection_accepted_callback, on_serverconnection_closed_callback,
+    on_serverdata_read_callback, NULL,on_serverconnection_error_occured_callback);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
@@ -307,7 +309,8 @@ static void ssl_client_verify(void **start)
 
     rebrick_tlssocket_t *tlsclient;
     lastError=0;
-    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_serverconnection_error_occured_callback, 0);
+    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify, destination, NULL,0, on_connection_accepted_callback, on_connection_closed_callback,
+    on_data_read_callback, NULL,on_serverconnection_error_occured_callback);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -351,7 +354,8 @@ static void ssl_client_download_data(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     rebrick_tlssocket_t *tlsclient;
-    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify_none, destination, NULL, on_connection_accepted_callback, on_connection_closed_callback, on_data_read_callback, NULL,on_error_occured_callback, 0);
+    result = rebrick_tlssocket_new(&tlsclient,NULL, context_verify_none, destination, NULL,0, on_connection_accepted_callback, on_connection_closed_callback,
+     on_data_read_callback, NULL,on_error_occured_callback);
     assert_int_equal(result, 0);
     int counter = 100;
     is_connected = 1;
@@ -432,7 +436,7 @@ static void ssl_server_for_manual(void **start)
     rebrick_util_ip_port_to_addr("0.0.0.0", "8443", &listen);
     client_count = 0;
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver,NULL, context_servermanual, listen, NULL, NULL, NULL, NULL, NULL,on_error_occured_callback, 100);
+    result = rebrick_tlssocket_new(&tlsserver,NULL, context_servermanual, listen, NULL,100, NULL, NULL, NULL, NULL,on_error_occured_callback);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
@@ -463,7 +467,7 @@ static void ssl_server_for_manual_sni(void **start)
     rebrick_util_ip_port_to_addr("0.0.0.0", "8443", &listen);
     client_count = 0;
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver, "hamzakilic.com",context_test_com, listen, NULL, NULL, NULL, NULL, NULL,on_error_occured_callback, 100);
+    result = rebrick_tlssocket_new(&tlsserver, "hamzakilic.com",context_test_com, listen, NULL,10, NULL, NULL, NULL, NULL,on_error_occured_callback);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;

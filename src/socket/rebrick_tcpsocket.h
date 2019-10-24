@@ -64,11 +64,12 @@ public_ typedef struct rebrick_tcpsocket
  * @return int32_t
  */
 int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t addr, void *callback_data,
+                                     int32_t backlog_or_isclient,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient);
+                                    rebrick_on_error_occured_callback_t on_error_occured);
 
 
 /**
@@ -88,12 +89,12 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t a
  */
 
 int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr, void *callback_data,
+                                    int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
                                     rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                     rebrick_on_connection_closed_callback_t on_connection_closed,
                                     rebrick_on_data_received_callback_t on_data_received,
                                     rebrick_on_data_sended_callback_t on_data_sended,
-                                    rebrick_on_error_occured_callback_t on_error_occured,
-                                    int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client);
+                                    rebrick_on_error_occured_callback_t on_error_occured);
 int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket,int enable);
 int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket,int enable,int delay);
 int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket,int enable);

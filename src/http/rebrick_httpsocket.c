@@ -301,16 +301,16 @@ static struct rebrick_tcpsocket *local_create_client()
     return cast_to_tcp_socket(client);
 }
 
-int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
+                                void *callback_data,int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                 rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                 rebrick_on_connection_closed_callback_t on_connection_closed,
                                 rebrick_on_data_received_callback_t on_data_received,
                                 rebrick_on_data_sended_callback_t on_data_sended,
-                                rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                                rebrick_on_error_occured_callback_t on_error_occured,
                                 rebrick_on_http_header_received_callback_t on_http_header_received,
                                 rebrick_on_http_body_received_callback_t on_http_body_received,
-                                rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade,
-                                rebrick_tcpsocket_create_client_t create_client)
+                                rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade)
 
 {
     char current_time_str[32] = {0};
@@ -320,11 +320,11 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     httpsocket->override_override_tls_context = tls_context;
     if (tls_context)
     {
-        result = rebrick_tlssocket_init(cast_to_tls_socket(httpsocket), sni_pattern_or_name, tls_context, addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient, create_client);
+        result = rebrick_tlssocket_init(cast_to_tls_socket(httpsocket), sni_pattern_or_name, tls_context, addr, NULL, backlog_or_isclient, create_client,local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback);
     }
     else
     {
-        result = rebrick_tcpsocket_init(cast_to_tcp_socket(httpsocket), addr, NULL, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback, backlog_or_isclient, create_client);
+        result = rebrick_tcpsocket_init(cast_to_tcp_socket(httpsocket), addr, NULL, backlog_or_isclient, create_client, local_on_connection_accepted_callback, local_on_connection_closed_callback, local_after_data_received_callback, local_on_data_sended_callback, local_on_error_occured_callback);
     }
     if (result < 0)
     {
@@ -344,12 +344,13 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr, void *callback_data,
+int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
+                               void *callback_data,int32_t backlog_or_isclient,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
                                rebrick_on_data_sended_callback_t on_data_sended,
-                               rebrick_on_error_occured_callback_t on_error_occured, int32_t backlog_or_isclient,
+                               rebrick_on_error_occured_callback_t on_error_occured,
                                rebrick_on_http_header_received_callback_t on_http_header_received,
                                rebrick_on_http_body_received_callback_t on_http_body_received,
                                rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade)
@@ -363,8 +364,8 @@ int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pa
     constructor(httpsocket, rebrick_httpsocket_t);
 
     result = rebrick_httpsocket_init(httpsocket, sni_pattern_or_name, tls_context, addr,
-                                     callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured, backlog_or_isclient,
-                                     on_http_header_received, on_http_body_received, on_socket_needs_upgrade, local_create_client);
+                                     callback_data,backlog_or_isclient,local_create_client, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured,
+                                     on_http_header_received, on_http_body_received, on_socket_needs_upgrade);
     if (result < 0)
     {
         rebrick_log_error("http socket init failed with error:%d\n", result);
@@ -438,7 +439,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int32_t flags, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
@@ -464,7 +465,7 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
     rebrick_clean_func_t cleanfunc = {.func = clean_buffer, .ptr = buffer};
     return rebrick_httpsocket_send(socket, buffer->buf, buffer->len, cleanfunc);
 }
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, int32_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, int64_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     int32_t result;

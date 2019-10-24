@@ -153,18 +153,18 @@ static void http2_socket_as_client_create_get(void **start){
     settings.entries[0]=maxstream;
     settings.settings_count=1;
 
-    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,0,
                 &settings,
                 on_connection_accepted_callback,
                 on_connection_closed_callback,
-                on_data_read_callback, on_data_send,on_error_occured_callback,0,on_http_header_received,on_body_read_callback,NULL);
+                on_data_read_callback, on_data_send,on_error_occured_callback,on_http_header_received,on_body_read_callback,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"http","localhost:8080","GET","/",2,0);
+    result=rebrick_http_header_new(&header,"http","localhost:9191","GET","/",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     int stream_id=-1;
     is_bodyreaded=FALSE;
@@ -185,7 +185,7 @@ static void http2_socket_as_client_create_get(void **start){
 
     assert_memory_equal(stream->send_header,header,sizeof(rebrick_http_header_t));
 
-    int32_t is_header_exits;
+
     assert_int_equal(stream->received_header->is_request,FALSE);
     assert_string_equal(stream->received_header->host,"");
     assert_string_equal(stream->received_header->path,"");
@@ -195,12 +195,70 @@ static void http2_socket_as_client_create_get(void **start){
     assert_int_equal(stream->received_header->minor_version,0);
     assert_int_equal(stream->received_header->status_code,200);
     assert_string_equal(stream->received_header->status_code_str,"OK");
-    //TODO diğer headerlar yazılmalı
+    const char *value;
+    result=rebrick_http_header_get_header(header,"content-type",&value);
+    assert_non_null(value);
+    assert_string_equal(value,"text/plain");
+
+
+    rebrick_http2socket_destroy(socket);
+    loop(counter,100,TRUE);
+}
 
 
 
 
+static void http2_socket_as_client_create_post(void **start){
+    unused(start);
+    int32_t result;
+    int32_t counter;
 
+    rebrick_sockaddr_t destination;
+
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
+
+    rebrick_http2socket_t *socket;
+    is_connected=FALSE;
+    rebrick_http2_socket_settings_t settings;
+    rebrick_http2_settings_entry maxstream={NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,100};
+    settings.entries[0]=maxstream;
+    settings.settings_count=1;
+
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination, NULL,0,
+                &settings,
+                on_connection_accepted_callback,
+                on_connection_closed_callback,
+                on_data_read_callback, on_data_send,on_error_occured_callback,
+                on_http_header_received,on_body_read_callback,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+    assert_int_equal(result, 0);
+
+    loop(counter,1000,!is_connected);
+    assert_int_equal(is_connected,TRUE);
+    loop(counter,1000,1);
+    rebrick_http_header_t *header;
+    result=rebrick_http_header_new(&header,"http","localhost:9191","POST","/",2,0);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    const char *data="hello world";
+    rebrick_http_header_add_header(header,"content-type","text/plain");
+    rebrick_http_header_add_header(header,"content-length","11");
+    int stream_id=-1;
+    is_bodyreaded=FALSE;
+    result=rebrick_http2socket_send_header(socket,&stream_id,NGHTTP2_FLAG_NONE,header);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_int_equal(stream_id,1);
+    rebrick_clean_func_t func={.ptr=0,.func=0};
+
+    result=rebrick_http2socket_send_body(socket,stream_id,(NGHTTP2_FLAG_END_STREAM<<8)|NGHTTP2_DATA_FLAG_EOF,cast(data,uint8_t*),11,func);
+    loop(counter,1000,TRUE);
+    header_received=FALSE;
+    loop(counter,1000,!header_received);
+    loop(counter,100,!is_bodyreaded);
+    assert_true(strstr(readedbufferbody,"hello http2 post:hello world"));
+
+    rebrick_http2stream_t *stream;
+    result=rebrick_http2socket_get_stream(socket,stream_id,&stream);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_null(stream);
 
 
 
@@ -224,7 +282,9 @@ static void http2_socket_as_client_create_get(void **start){
 int test_rebrick_http2socket(void) {
     const struct CMUnitTest tests[] = {
 
-        cmocka_unit_test(http2_socket_as_client_create_get)
+        //cmocka_unit_test(http2_socket_as_client_create_get),
+        cmocka_unit_test(http2_socket_as_client_create_post),
+
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

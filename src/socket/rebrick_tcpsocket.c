@@ -284,12 +284,12 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
 }
 
 int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr, void *callback_data,
+                               int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t createclient,
                                rebrick_on_connection_accepted_callback_t on_connection_accepted,
                                rebrick_on_connection_closed_callback_t on_connection_closed,
                                rebrick_on_data_received_callback_t on_data_received,
                                rebrick_on_data_sended_callback_t on_data_sended,
-                               rebrick_on_error_occured_callback_t on_error_occured,
-                               int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t createclient)
+                               rebrick_on_error_occured_callback_t on_error_occured)
 {
     char current_time_str[32] = {0};
     int32_t result;
@@ -324,21 +324,20 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
 
 int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
                               rebrick_sockaddr_t bind_addr,
-                              void *callback_data,
+                              void *callback_data,int32_t backlog_or_isclient,
                               rebrick_on_connection_accepted_callback_t on_connection_accepted,
                               rebrick_on_connection_closed_callback_t on_connection_closed,
                               rebrick_on_data_received_callback_t on_data_received,
                               rebrick_on_data_sended_callback_t on_data_sended,
-                              rebrick_on_error_occured_callback_t on_error_occured,
-                              int32_t backlog_or_isclient)
+                              rebrick_on_error_occured_callback_t on_error_occured)
 {
     char current_time_str[32] = {0};
     int32_t result;
     rebrick_tcpsocket_t *data = new (rebrick_tcpsocket_t);
     constructor(data, rebrick_tcpsocket_t);
 
-    result = rebrick_tcpsocket_init(data, bind_addr, callback_data, on_connection_accepted, on_connection_closed, on_data_received, on_data_sended, on_error_occured,
-                                    backlog_or_isclient, create_client);
+    result = rebrick_tcpsocket_init(data, bind_addr, callback_data,backlog_or_isclient, create_client, on_connection_accepted, on_connection_closed,
+    on_data_received, on_data_sended, on_error_occured);
     if (result < 0)
     {
         rebrick_log_fatal("create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);

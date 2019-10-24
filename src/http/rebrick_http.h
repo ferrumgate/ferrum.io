@@ -80,6 +80,7 @@ int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header,rebric
 
 
 
+
 /*! Enum for the HTTP status codes.
  */
 enum Rebrick_HttpStatus_Code

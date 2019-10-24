@@ -64,8 +64,8 @@ http2server.on('stream', (stream, headers) => {
 
   }
   stream.on('data',(data)=>{
-    console.log("data from stream:"+data);
-    body=data;
+    console.log("data from stream "+stream.id+":"+data);
+
   })
   if(headers[":method"]=='POST'){
     console.log('posting http2 '+body)
@@ -73,7 +73,15 @@ http2server.on('stream', (stream, headers) => {
       'content-type': 'text/plain',
       ':status': 200
     });
-    stream.end('hello http2 post:'+body);
+
+    stream.on('data',(data)=>{
+
+      body=data;
+      let datax='hello http2 post:'+body;
+      console.log(datax);
+      stream.end(datax);
+    })
+
 
   }
 

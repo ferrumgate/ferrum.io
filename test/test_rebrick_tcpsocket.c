@@ -72,7 +72,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
     int32_t result = rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
     assert_int_equal(result, 0);
 
-    result = rebrick_tcpsocket_new(&server, addr, &data, on_newclient_connection, NULL, on_read, NULL,on_error_occured, 10);
+    result = rebrick_tcpsocket_new(&server, addr, &data,10, on_newclient_connection, NULL, on_read, NULL,on_error_occured);
     assert_int_equal(result, 0);
 
     client_connected = 0;
@@ -206,7 +206,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
     result = tcp_echo_listen();
 
-    result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured, 0);
+    result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted, on_connection_closed, on_datarecevied, on_datasend,on_error_occured);
 
     //check a little
     int counter = 10;
@@ -353,7 +353,7 @@ Accept: text/html\r\n\
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        int32_t result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
+        int32_t result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -420,7 +420,7 @@ Accept: text/html\r\n\
     {
 
 connection_closed_memorytest = 0;
-        int32_t result = rebrick_tcpsocket_new(&client, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 0);
+        int32_t result = rebrick_tcpsocket_new(&client, addr, &data,0, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -507,7 +507,7 @@ Accept-Ranges: bytes\r\n\
     {
 
         connected_client=NULL;
-        int32_t result = rebrick_tcpsocket_new(&server, addr, &data, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest, 10);
+        int32_t result = rebrick_tcpsocket_new(&server, addr, &data,10, on_connection_accepted_memorytest, on_connection_closed_memorytest, on_datarecevied_memorytest, on_datasend_memorytest,on_error_occured_memorytest);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little

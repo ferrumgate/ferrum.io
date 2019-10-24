@@ -44,6 +44,7 @@
 
 
 
+
 #define REBRICK_ERR_TLS_INIT -20
 #define REBRICK_ERR_TLS_NEW -21
 #define REBRICK_ERR_TLS_ERR -22
@@ -57,6 +58,9 @@
 #define REBRICK_ERR_NOT_FOUND -50
 
 #define REBRICK_ERR_HTTP_HEADER_PARSE -100
+
+#define REBRICK_ERR_HTTP2_STREAM_NOT_FOUND -500
+#define REBRICK_ERR_HTTP2_GOAWAY -501
 
 
 #define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
@@ -79,6 +83,8 @@
 
 
 /* @brief allocation methods */
+#define rmalloc(x)  malloc(x)
+#define rfree(x)  free(x)
 #define new(x) malloc(sizeof(x))
 #define constructor(x,y) \
                             if(!x) { \
