@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 extern int test_rebrick_util();
+extern int test_rebrick_resolve();
 extern int test_rebrick_config();
 extern int test_rebrick_metrics();
 extern int test_rebrick_context();
@@ -19,6 +20,7 @@ extern int test_rebrick_tls();
 extern int test_rebrick_tlssocket();
 extern int test_rebrick_http();
 extern int test_rebrick_httpsocket();
+extern int test_rebrick_http2socket();
 /*static void test_udpecho_server(){
     fprintf(stdout, "starting udp test server\n");
     udp_echo_start(8888);
@@ -122,6 +124,9 @@ int main()
 
   if (test_rebrick_util())
     exit(1);
+
+  if(test_rebrick_resolve())
+  exit(1);
   if (test_rebrick_config())
     exit(1);
 
@@ -130,7 +135,7 @@ int main()
   if (test_rebrick_context())
     exit(1);
 
-  if (test_rebrick_buffer())
+ /* if (test_rebrick_buffer())
     exit(1);
 
   if (test_rebrick_buffers())
@@ -152,7 +157,7 @@ int main()
   if (test_rebrick_httpsocket())
     exit(1);
    if (test_rebrick_http2socket())
-    exit(1);
+    exit(1);*/
   //kill(getpid(), SIGSEGV);
   //    getchar();
 

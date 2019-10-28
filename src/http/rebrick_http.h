@@ -186,7 +186,7 @@ enum Rebrick_HttpStatus_Code
  * \return The standard HTTP reason phrase for the given \p code or \c NULL if no standard
  * phrase for the given \p code is known.
  */
-const char* Rebrick_HttpStatus_ReasonPhrase(int code);
+const char* rebrick_httpstatus_reasonphrase(int code);
 
 
 

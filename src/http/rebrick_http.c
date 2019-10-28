@@ -501,7 +501,7 @@ int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header, rebri
 }
 
 
-const char* Rebrick_HttpStatus_ReasonPhrase(int code)
+const char* rebrick_httpstatus_reasonphrase(int code)
 {
 	switch (code)
 	{

@@ -40,6 +40,7 @@
 #define REBRICK_ERR_IO_CLOSING -11
 #define REBRICK_ERR_IO_ERR -12
 #define REBRICK_ERR_LEN_NOT_ENOUGH -13
+#define REBRICK_ERR_UNSUPPORT_IPFAMILY -14
 
 
 
@@ -61,6 +62,7 @@
 
 #define REBRICK_ERR_HTTP2_STREAM_NOT_FOUND -500
 #define REBRICK_ERR_HTTP2_GOAWAY -501
+#define REBRICK_ERR_HTTP2_PUSH_NOTSUPPORT -502
 
 
 #define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
@@ -75,6 +77,8 @@
  * @brief ip max string len
  */
 #define REBRICK_IP_STR_LEN 64
+
+#define REBRICK_DOMAIN_LEN 2048
 
 #define REBRICK_PORT_STR_LEN 8
 

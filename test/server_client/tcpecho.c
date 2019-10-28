@@ -16,7 +16,7 @@ static int server_fd, client_fd=-1;
 int err;
 static struct sockaddr_in server, client;
 static int is_server = 0;
-int on_error(const char *msg)
+static int on_error(const char *msg)
 {
     fprintf(stderr, "%s", msg);
     return -1;

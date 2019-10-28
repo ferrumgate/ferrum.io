@@ -3,6 +3,12 @@
 #include "cmocka.h"
 #include "unistd.h"
 
+
+
+#define loop(var,a,x) \
+    var=a; \
+ while (var-- && (x)){ usleep(100); uv_run(uv_default_loop(), UV_RUN_NOWAIT);}
+
 #define UDPSERVER_PORT "9999"
 static int setup(void **state)
 {
@@ -93,6 +99,7 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     //check for received data
     int32_t max_check = 10;
+    //loop(max_check,10,!flag)
     while (!flag && max_check)
     {
         usleep(10000);
@@ -305,20 +312,22 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
         rebrick_udpsocket_send(dnsclient, &destination,cast(testdata,uint8_t*), datalen, clean);
 
         int counter = 10000;
-        while (counter-- && !sended_count)
+        loop(counter,10000,!sended_count);
+        /* while (counter-- && !sended_count)
         {
             usleep(100);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        }
+        } */
         assert_int_equal(sended_count, 1);
         //data sended
 
-        counter = 1000;
-        while (counter-- && !received_count)
+        counter = 10000;
+        loop(counter,10000,!received_count);
+        /* while (counter-- && !received_count)
         {
             usleep(1000);
             uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        }
+        } */
         assert_true(received_count > 0);
     }
     rebrick_udpsocket_destroy(dnsclient);
@@ -370,12 +379,13 @@ static void test_rebrick_udpsocket_check_memory3(void **state)
 
     rebrick_udpsocket_destroy(dnsclient);
     int32_t counter = 100;
-    while (counter)
+    loop(counter,1000,TRUE);
+   /*  while (counter)
     {
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         counter--;
-    }
+    } */
     //assert_true(received_count > 0);
 }
 
