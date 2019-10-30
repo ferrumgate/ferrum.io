@@ -37,8 +37,8 @@ https.createServer({
     key: fs.readFileSync('server.key'),
     cert: fs.readFileSync('server.cert')
   }, app)
-  .listen(3000, function () {
-    console.log('http with ssl listening on port 3000')
+  .listen(5000, function () {
+    console.log('http with ssl listening on port 5000')
   })
 
   //// http2 without tls
@@ -54,7 +54,7 @@ http2server.listen(9191,function(){
 http2server.on('stream', (stream, headers) => {
   let body='';
 
-  if(headers[":method"]=='GET'){
+  if(headers[":method"]=='GET' && headers[":path"]=="/"){
     console.log('getting http2')
     stream.respond({
       'content-type': 'text/plain',
@@ -63,6 +63,40 @@ http2server.on('stream', (stream, headers) => {
     stream.end('hello http2');
 
   }
+
+
+  if(headers[":method"]=='GET' && headers[":path"]=="/push"){
+    console.log('getting http2 for push')
+    stream.respond({
+      'content-type': 'text/plain',
+      ':status': 200
+    });
+    stream.end('hello push1');
+
+    stream.pushStream({":path":"/deneme2.jpg"},(err,pushStream)=>{
+      if(err)
+      console.log(err);
+      pushStream.respond({
+        'content-type': 'text/plain',
+        ':status': 200
+      });
+      pushStream.end('hello push2')
+    })
+    stream.pushStream({":path":"/deneme3.jpg"},(err,pushStream)=>{
+      if(err)
+      console.log(err);
+      pushStream.respond({
+        'content-type': 'text/plain',
+        ':status': 200
+      });
+      pushStream.end('hello push3')
+    })
+
+
+
+
+  }
+
   stream.on('data',(data)=>{
     console.log("data from stream "+stream.id+":"+data);
 
@@ -81,6 +115,7 @@ http2server.on('stream', (stream, headers) => {
       console.log(datax);
       stream.end(datax);
     })
+
 
 
   }

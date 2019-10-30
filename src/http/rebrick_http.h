@@ -1,6 +1,7 @@
 #ifndef __REBRICK_HTTP_H__
 #define __REBRICK_HTTP_H__
 
+#include "../common/rebrick_log.h"
 #include "../socket/rebrick_tlssocket.h"
 #include "../common/rebrick_buffer.h"
 #include "../lib/picohttpparser.h"
@@ -73,7 +74,7 @@ int32_t rebrick_http_header_remove_key(rebrick_http_header_t *header,const char 
 int32_t rebrick_http_header_destroy(rebrick_http_header_t *header);
 int32_t rebrick_http_header_count(rebrick_http_header_t *header,int32_t *count);
 int32_t rebrick_http_header_to_http_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
-int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
+int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header,nghttp2_nv **hdrs,size_t *hdrs_len);
 
 
 

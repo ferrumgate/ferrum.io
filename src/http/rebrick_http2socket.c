@@ -30,13 +30,14 @@
         return;                                                                                                                                      \
     }
 
-static int32_t rebrick_http2_stream_new(rebrick_http2_stream_t **stream, int32_t stream_id)
+static int32_t rebrick_http2_stream_new(rebrick_http2_stream_t **stream, int32_t stream_id, int32_t parent_stream_id)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_http2_stream_t *tmp = new (rebrick_http2_stream_t);
     constructor(tmp, rebrick_http2_stream_t);
     tmp->stream_id = stream_id;
+    tmp->parent_stream_id = parent_stream_id;
     *stream = tmp;
     return REBRICK_SUCCESS;
 }
@@ -69,7 +70,7 @@ static int32_t destroy_stream(rebrick_http2socket_t *socket, int32_t stream_id)
     return REBRICK_SUCCESS;
 }
 
-static inline int32_t create_stream(rebrick_http2socket_t *socket, rebrick_http2_stream_t **destination, int32_t stream_id)
+static inline int32_t create_stream(rebrick_http2socket_t *socket, rebrick_http2_stream_t **destination, int32_t stream_id, int32_t parent_stream_id)
 {
     //create new stream object
     int32_t result;
@@ -82,7 +83,7 @@ static inline int32_t create_stream(rebrick_http2socket_t *socket, rebrick_http2
         HASH_DEL(socket->streams, stream);
         rebrick_http2_stream_destroy(stream);
     }
-    result = rebrick_http2_stream_new(&stream, stream_id);
+    result = rebrick_http2_stream_new(&stream, stream_id, parent_stream_id);
     if (result < 0)
     {
         rebrick_log_error("http2 stream create error malloc problem with %d:\n", result);
@@ -161,13 +162,13 @@ static inline int32_t create_header(rebrick_http2socket_t *socket, rebrick_http_
     return REBRICK_SUCCESS;
 }
 
-static void http2_stream_error(nghttp2_session *session, int32_t stream_id, uint32_t error_code)
+/* static void http2_stream_error(nghttp2_session *session, int32_t stream_id, uint32_t error_code)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
     rebrick_log_error("http2 stream error with error code:%d\n", error_code);
     nghttp2_submit_rst_stream(session, NGHTTP2_FLAG_NONE, stream_id, error_code);
-}
+} */
 
 static ssize_t http2_on_send_callback(nghttp2_session *session, const uint8_t *data, size_t length, int flags, void *user_data)
 {
@@ -278,17 +279,23 @@ static int http2_on_begin_headers_callback(nghttp2_session *session,
     rebrick_log_debug("begined headers type:%d\n", frame->hd.type);
     if (!session || !frame || !user_data)
         return 0; //expecially returning 0;
+    int32_t result;
 
     if (frame->hd.type == NGHTTP2_HEADERS)
     {
-        printf("on headers called\n");
+
         rebrick_http2socket_t *socket = cast_to_http2socket(user_data);
         //find and delete the previous received header
         rebrick_http2_stream_t *stream = NULL;
         int32_t stream_id = frame->hd.stream_id;
         HASH_FIND_INT(socket->streams, &stream_id, stream);
+        if (!stream)
+        {
+            result = create_stream(socket, &stream, frame->hd.stream_id, frame->hd.stream_id);
+            check_error(socket, result, "create stream from push promise failed with error %d\n", 0);
+        }
 
-        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST)
+        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST || frame->headers.cat == NGHTTP2_HCAT_PUSH_RESPONSE)
             if (stream && stream->received_header)
             {
                 socket->last_received_stream_id = stream_id;
@@ -296,6 +303,23 @@ static int http2_on_begin_headers_callback(nghttp2_session *session,
                 rebrick_http_header_destroy(stream->received_header);
                 stream->received_header = NULL;
             }
+    }
+
+    if (frame->hd.type == NGHTTP2_PUSH_PROMISE)
+    {
+
+        rebrick_http2socket_t *socket = cast_to_http2socket(user_data);
+        //find and delete the previous received header
+        rebrick_http2_stream_t *stream = NULL;
+        // int32_t stream_id = frame->push_promise.promised_stream_id;
+        // HASH_FIND_INT(socket->streams, &stream_id, stream);
+
+        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST || frame->headers.cat == NGHTTP2_HCAT_PUSH_RESPONSE)
+        {
+
+            result = create_stream(socket, &stream, frame->push_promise.promised_stream_id, frame->hd.stream_id);
+            check_error(socket, result, "create stream from push promise failed with error %d\n", 0);
+        }
     }
 
     return 0;
@@ -321,18 +345,19 @@ static int http2_on_header_callback(nghttp2_session *session,
 
     if (!session || !frame || !user_data)
         return 0; //expecially returning 0;
-
     rebrick_http2socket_t *socket = cast_to_http2socket(user_data);
     rebrick_http2_stream_t *stream = NULL;
-    int32_t result = frame->hd.stream_id;
-    HASH_FIND_INT(socket->streams, &result, stream);
-    if (!stream)
-        return 0; //expecially returning 0;
+    int32_t result;
+
     switch (frame->hd.type)
     {
     case NGHTTP2_HEADERS:
 
-        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST)
+        result = frame->hd.stream_id;
+        HASH_FIND_INT(socket->streams, &result, stream);
+        if (!stream)
+            return 0; //expecially returning 0;
+        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST || frame->headers.cat == NGHTTP2_HCAT_PUSH_RESPONSE)
         {
 
             if (!stream->received_header)
@@ -343,6 +368,37 @@ static int http2_on_header_callback(nghttp2_session *session,
             result = add_to_header(stream->received_header, name, namelen, value, valuelen);
             check_error(socket, result, "http header create failed with error: %d\n", 0);
         }
+        break;
+
+    case NGHTTP2_PUSH_PROMISE:
+
+        result = frame->push_promise.promised_stream_id;
+        HASH_FIND_INT(socket->streams, &result, stream);
+        if (!stream)
+            return 0; //expecially returning 0;
+        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE)
+        {
+
+            if (!stream->received_header)
+            {
+                result = rebrick_http_header_new5(&stream->received_header, frame->headers.cat == NGHTTP2_HCAT_REQUEST, 2, 0);
+                check_error(socket, result, "http header create failed with error:%d\n", 0)
+            }
+            result = add_to_header(stream->received_header, name, namelen, value, valuelen);
+            check_error(socket, result, "http header create failed with error: %d\n", 0);
+        }
+        if (frame->headers.cat == NGHTTP2_HCAT_REQUEST)
+        {
+
+            if (!stream->send_header)
+            {
+                result = rebrick_http_header_new5(&stream->send_header, frame->headers.cat == NGHTTP2_HCAT_REQUEST, 2, 0);
+                check_error(socket, result, "http header create failed with error:%d\n", 0)
+            }
+            result = add_to_header(stream->send_header, name, namelen, value, valuelen);
+            check_error(socket, result, "http header create failed with error: %d\n", 0);
+        }
+        break;
     }
     return 0;
 }
@@ -360,22 +416,23 @@ static int http2_on_frame_recv_callback(nghttp2_session *session, const nghttp2_
 
     rebrick_http2socket_t *socket = cast_to_http2socket(user_data);
     rebrick_http2_stream_t *stream = NULL;
-    int32_t result = frame->hd.stream_id;
-    HASH_FIND_INT(socket->streams, &result, stream);
-    if (!stream)
-        return 0; //expecially returning 0;
-
-    rebrick_http2_stream_t *pushstream=NULL;
+    int32_t result;
 
     switch (frame->hd.type)
     {
     case NGHTTP2_HEADERS:
-        if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST)
+        result = frame->hd.stream_id;
+        HASH_FIND_INT(socket->streams, &result, stream);
+        if (stream)
         {
+            if (frame->headers.cat == NGHTTP2_HCAT_RESPONSE || frame->headers.cat == NGHTTP2_HCAT_REQUEST || frame->headers.cat == NGHTTP2_HCAT_PUSH_RESPONSE)
+            {
 
-            if (socket->on_http_header_received)
-                socket->on_http_header_received(cast_to_socket(socket), frame->hd.stream_id, socket->override_override_callback_data, stream->received_header);
+                if (socket->on_http_header_received)
+                    socket->on_http_header_received(cast_to_socket(socket), frame->hd.stream_id, socket->override_override_callback_data, stream->received_header);
+            }
         }
+
         break;
     case NGHTTP2_PING:
 
@@ -401,25 +458,11 @@ static int http2_on_frame_recv_callback(nghttp2_session *session, const nghttp2_
         break;
     case NGHTTP2_PUSH_PROMISE:
         //create new stream object
-
-        result = create_stream(socket, &pushstream, frame->push_promise.promised_stream_id);
-        if (result < 0)
-        {
-            rebrick_log_error("create stream failed with error %d\n", result);
-            return 0;
-        }
-
-        rebrick_http_header_t *header;
-        result = create_header(socket, &header, TRUE, frame->push_promise.nva, frame->push_promise.nvlen);
-        if (result < 0)
-        {
-            destroy_stream(socket, pushstream->stream_id);
-            rebrick_log_error("creating header failed with error:%d\n", result);
-            return 0;
-        }
-        stream->send_header = header;
-        if(socket->on_push_received)
-        socket->on_push_received(cast_to_socket(socket),socket->override_override_callback_data,frame->push_promise.hd.stream_id,frame->push_promise.promised_stream_id,header);
+        result = frame->push_promise.promised_stream_id;
+        HASH_FIND_INT(socket->streams, &result, stream);
+        if (stream)
+            if (socket->on_push_received)
+                socket->on_push_received(cast_to_socket(socket), socket->override_override_callback_data, frame->hd.stream_id, frame->push_promise.promised_stream_id, stream->send_header);
 
         break;
     default:
@@ -545,12 +588,20 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
 
     if (httpsocket)
     {
+        rebrick_http2_stream_t *tmp,*stmp;
+        HASH_ITER(hh,httpsocket->streams,tmp,stmp){
+            HASH_DEL(httpsocket->streams,tmp);
+            rebrick_http2_stream_destroy(tmp);
+        }
+
+
         //nghtt2p destroy everythign
         if (httpsocket->parsing_params.session_callback)
             nghttp2_session_callbacks_del(httpsocket->parsing_params.session_callback);
 
         if (httpsocket->parsing_params.session)
             nghttp2_session_del(httpsocket->parsing_params.session);
+
 
         if (httpsocket->override_override_on_connection_closed)
             httpsocket->override_override_on_connection_closed(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
@@ -717,6 +768,7 @@ int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket)
     unused(socket);
     if (socket)
     {
+
         if (socket->tls_context)
         {
             return rebrick_tlssocket_destroy(cast_to_tlssocket(socket));
@@ -755,7 +807,7 @@ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer,
     }
 } */
 
-int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
+int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags,rebrick_http_header_t *header)
 {
     unused(socket);
     unused(stream_id);
@@ -769,35 +821,49 @@ int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *
     if (socket->is_goaway_received || socket->is_goaway_sended)
         return REBRICK_ERR_HTTP2_GOAWAY;
 
-    rebrick_buffer_t *buffer;
-    result = rebrick_http_header_to_http2_buffer(header, &buffer);
+    nghttp2_nv *nv;
+    size_t nvlen;
+
+    #define destory_nv() \
+        for(size_t tt=0;tt<nvlen;++tt){ free(nv[tt].name);free(nv[tt].value);}\
+        free(nv);
+
+
+    result = rebrick_http_header_to_http2_buffer(header, &nv,&nvlen);
     if (result < 0)
     {
         rebrick_log_error("http2 sending header failed with error:%d\n", result);
         return result;
     }
 
-    result = nghttp2_submit_headers(socket->parsing_params.session, flags | NGHTTP2_FLAG_END_HEADERS, *stream_id, NULL, cast(buffer->buf, nghttp2_nv *), buffer->len / sizeof(nghttp2_nv), NULL);
+    result = nghttp2_submit_headers(socket->parsing_params.session, flags | NGHTTP2_FLAG_END_HEADERS, *stream_id, NULL,nv, nvlen, NULL);
     if (result < 0)
     {
         const char *errstr = nghttp2_strerror(result);
         rebrick_log_error("http2 failed with error :%d %s\n", REBRICK_ERR_HTTP2 + result, errstr);
-        rebrick_buffer_destroy(buffer);
+
+        //destory nghttp2_vn
+        destory_nv();
+
         return REBRICK_ERR_HTTP2 + result;
     }
-    //buffer burada destroy edilmeli, yoksa gözden kaçacak
-    rebrick_buffer_destroy(buffer);
+
+
+    //destory nghttp2_vn
+   destory_nv();
+
     if (result > 0)
     { //new stream id
         *stream_id = result;
         //create new stream object
         rebrick_http2_stream_t *stream = NULL;
-        result = create_stream(socket, &stream, *stream_id);
-        if (result < 0)
-        {
 
-            return result;
-        }
+            result = create_stream(socket, &stream, *stream_id, *stream_id);
+            if (result < 0)
+            {
+                return result;
+            }
+
 
         stream->send_header = header;
     }

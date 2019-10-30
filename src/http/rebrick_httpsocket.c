@@ -432,7 +432,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags,rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;

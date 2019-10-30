@@ -29,6 +29,7 @@ public_ typedef struct rebrick_http2_stream
 {
     base_object();
     public_ readonly_ int32_t stream_id;
+    public_ readonly_ int32_t parent_stream_id;
     public_ readonly_ rebrick_buffer_t *buffer;
     public_ readonly_ int32_t flags;
     public_ readonly_ int32_t is_submitted;
@@ -126,7 +127,7 @@ protected_ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8
  * @param header
  * @return int32_t
  */
-int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header);
+int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags,rebrick_http_header_t *header);
 
 /**
  * @brief send body data after header

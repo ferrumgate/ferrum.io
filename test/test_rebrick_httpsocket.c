@@ -250,7 +250,7 @@ static void http_socket_as_client_create_post(void **start){
     result = rebrick_httpsocket_new(&socket,NULL, NULL, destination,0,&callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
 
-    loop(counter,1000,!is_connected);
+    loop(counter,10000,!is_connected);
     assert_int_equal(is_connected,TRUE);
 
     char temp[1024];
@@ -337,13 +337,17 @@ static void http_socket_as_client_create_post(void **start){
 
 
 
+
+
+
+
 static void http_socket_as_client_create_with_tls_post(void **start){
     unused(start);
     int32_t result;
     int32_t counter=0;
     rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "3000", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "5000", &destination);
 
     rebrick_httpsocket_t *socket;
     is_connected=FALSE;
@@ -360,7 +364,7 @@ static void http_socket_as_client_create_with_tls_post(void **start){
     result = rebrick_httpsocket_new(&socket,NULL, context_verify_none, destination,0,&callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
 
-    loop(counter,1000,!is_connected);
+    loop(counter,10000,!is_connected);
     assert_int_equal(is_connected,TRUE);
 
     char temp[1024];

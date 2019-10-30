@@ -190,11 +190,11 @@ static void rebrick_http_header_to_http2_buffer_test(void **state){
     assert_int_equal(result,REBRICK_SUCCESS);
 
 
-    rebrick_buffer_t *buffer;
-    result=rebrick_http_header_to_http2_buffer(header,&buffer);
+    nghttp2_nv *nv;
+    size_t nvlen;
+    result=rebrick_http_header_to_http2_buffer(header,&nv,&nvlen);
     assert_int_equal(result,REBRICK_SUCCESS);
-    nghttp2_nv *nv=cast(buffer->buf,nghttp2_nv*);
-    size_t nvlen=buffer->len/sizeof(nghttp2_nv);
+
     assert_int_equal(nvlen,5);
     assert_memory_equal(nv[0].name,":scheme",7);
     assert_int_equal(nv[0].namelen,7);
@@ -217,13 +217,18 @@ static void rebrick_http_header_to_http2_buffer_test(void **state){
     assert_int_equal(nv[3].valuelen,12);
 
 
-     assert_memory_equal(nv[4].name,"content-type",12);
+    assert_memory_equal(nv[4].name,"content-type",12);
     assert_int_equal(nv[4].namelen,12);
     assert_memory_equal(nv[4].value,"application/json",16);
     assert_int_equal(nv[4].valuelen,16);
 
+    for(size_t i=0;i<nvlen;++i)
+    {
+        free(nv[i].name);
+        free(nv[i].value);
 
-    rebrick_buffer_destroy(buffer);
+    }
+    free(nv);
     rebrick_http_header_destroy(header);
 
 }
