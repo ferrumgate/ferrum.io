@@ -302,7 +302,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
     socket->on_connection_closed = callbacks?callbacks->on_connection_closed:NULL;
     socket->on_error_occured = callbacks?callbacks->on_error_occured:NULL;
     socket->create_client = createclient;
-
+    socket->is_server=backlog_or_isclient;
     if (backlog_or_isclient)
     {
         result = create_server_socket(socket, backlog_or_isclient);

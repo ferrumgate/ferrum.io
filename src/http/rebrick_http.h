@@ -63,18 +63,18 @@ public_ typedef struct rebrick_http_header{
 
 int32_t rebrick_http_header_new(rebrick_http_header_t **header,const char *scheme,const char*host,const char *method,const char *path,int8_t major,int8_t minor);
 int32_t rebrick_http_header_new2(rebrick_http_header_t **header,const char *scheme,size_t scheme_len,const char*host,size_t host_len, const void *method,size_t method_len,const void *path,size_t path_len,int8_t major,int8_t minor);
-int32_t rebrick_http_header_new3(rebrick_http_header_t **header,int32_t status,const char *status_code,int8_t major,int8_t minor);
-int32_t rebrick_http_header_new4(rebrick_http_header_t **header,int32_t status,const void *status_code,size_t status_code_len,int8_t major,int8_t minor);
+int32_t rebrick_http_header_new3(rebrick_http_header_t **header,int32_t status,int8_t major,int8_t minor);
+int32_t rebrick_http_header_new4(rebrick_http_header_t **header,int32_t status,int8_t major,int8_t minor);
 int32_t rebrick_http_header_new5(rebrick_http_header_t **header,int32_t is_request,int8_t major,int8_t minor);
 int32_t rebrick_http_header_add_header(rebrick_http_header_t *header,const char *key,const char*value);
 int32_t rebrick_http_header_add_header2(rebrick_http_header_t *header,const uint8_t *key,size_t keylen,const uint8_t *value,size_t valuelen);
-int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header,const char *key,int32_t *founded);
-int32_t rebrick_http_header_get_header(rebrick_http_header_t *header,const char *key,const char **value);
+int32_t rebrick_http_header_contains_key(const rebrick_http_header_t *header,const char *key,int32_t *founded);
+int32_t rebrick_http_header_get_header(const rebrick_http_header_t *header,const char *key,const char **value);
 int32_t rebrick_http_header_remove_key(rebrick_http_header_t *header,const char *key);
 int32_t rebrick_http_header_destroy(rebrick_http_header_t *header);
-int32_t rebrick_http_header_count(rebrick_http_header_t *header,int32_t *count);
-int32_t rebrick_http_header_to_http_buffer(rebrick_http_header_t *header,rebrick_buffer_t **buffer);
-int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header,nghttp2_nv **hdrs,size_t *hdrs_len);
+int32_t rebrick_http_header_count(const rebrick_http_header_t *header,int32_t *count);
+int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header,rebrick_buffer_t **buffer);
+int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,nghttp2_nv **hdrs,size_t *hdrs_len);
 
 
 

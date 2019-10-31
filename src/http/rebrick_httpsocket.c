@@ -209,8 +209,6 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                 {
                     result = rebrick_http_header_new4(&httpsocket->received_header,
                                                       httpsocket->parsing_params.status,
-                                                      httpsocket->parsing_params.status_msg,
-                                                      httpsocket->parsing_params.status_msg_len,
                                                       httpsocket->parsing_params.minor_version == 1 ? 1 : 2,
                                                       httpsocket->parsing_params.minor_version);
                 }

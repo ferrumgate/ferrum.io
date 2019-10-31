@@ -204,3 +204,162 @@
    fun:__libc_dlopen_mode
    fun:nss_load_library
 }
+{
+   nghttp2-1
+   Memcheck:Value8
+   ...
+   fun:tolower
+   fun:rebrick_http_key_value_new2
+   fun:rebrick_http_header_add_header2
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   nghttp2-2
+   Memcheck:Cond
+   ...
+   fun:tolower
+   fun:rebrick_http_key_value_new2
+   fun:rebrick_http_header_add_header2
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   httpparser-1
+   Memcheck:Cond
+   ...
+   fun:parse_headers
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   httpparser-2
+   Memcheck:Value8
+   ...
+   fun:parse_headers
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-1
+   Memcheck:Cond
+   fun:strcmp
+   fun:string_equal_display_error
+   fun:_assert_string_equal
+   fun:http_socket_as_client_create_with_tls_post
+}
+{
+   tls problem-2
+   Memcheck:Cond
+   ...
+   fun:tolower
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   ...
+}
+{
+   tls problem-3
+   Memcheck:Value8
+   ...
+   fun:tolower
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   ...
+}
+{
+   tls problem-4
+   Memcheck:Cond
+   ...
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   ...
+}
+{
+   tls problem-5
+   Memcheck:Cond
+   fun:____strtol_l_internal
+   fun:atoi
+   fun:http_socket_as_client_create_with_tls_post
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_httpsocket
+   fun:main
+}
+{
+   tls problem-6
+   Memcheck:Cond
+   fun:parse_http_version
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-7
+   Memcheck:Cond
+   ...
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-8
+   Memcheck:Cond
+   fun:values_equal_display_error
+   fun:_assert_int_equal
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-9
+   Memcheck:Cond
+   fun:_assert_int_equal
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-10
+   Memcheck:Value8
+   fun:____strtol_l_internal
+   fun:atoi
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-11
+   Memcheck:Cond
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+

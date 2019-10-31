@@ -185,13 +185,14 @@ int32_t rebrick_http_header_new2(rebrick_http_header_t **header, const char *sch
     *header = tmp;
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_http_header_new3(rebrick_http_header_t **header, int32_t status, const char *status_code, int8_t major, int8_t minor)
+int32_t rebrick_http_header_new3(rebrick_http_header_t **header, int32_t status, int8_t major, int8_t minor)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
 
     rebrick_http_header_t *tmp = new (rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
+    const char *status_code=rebrick_httpstatus_reasonphrase(status);
     if (status_code)
     {
         size_t len = strlen(status_code);
@@ -207,16 +208,17 @@ int32_t rebrick_http_header_new3(rebrick_http_header_t **header, int32_t status,
     *header = tmp;
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_http_header_new4(rebrick_http_header_t **header, int32_t status, const void *status_code, size_t status_code_len, int8_t major, int8_t minor)
+int32_t rebrick_http_header_new4(rebrick_http_header_t **header, int32_t status, int8_t major, int8_t minor)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
 
     rebrick_http_header_t *tmp = new (rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
+    const char *status_code=rebrick_httpstatus_reasonphrase(status);
     if (status_code)
     {
-        size_t len = status_code_len;
+        size_t len = strlen(status_code);
         if (len > REBRICK_HTTP_MAX_STATUSCODE_LEN - 1)
             return REBRICK_ERR_BAD_ARGUMENT;
         memcpy(tmp->status_code_str, status_code, len);
@@ -275,7 +277,7 @@ int32_t rebrick_http_header_add_header2(rebrick_http_header_t *header, const uin
     HASH_ADD_STR(header->headers, key_lower, keyvalue);
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header, const char *key, int32_t *founded)
+int32_t rebrick_http_header_contains_key(const rebrick_http_header_t *header, const char *key, int32_t *founded)
 {
     if (!header || !key)
         return REBRICK_ERR_BAD_ARGUMENT;
@@ -290,7 +292,7 @@ int32_t rebrick_http_header_contains_key(rebrick_http_header_t *header, const ch
         *founded = TRUE;
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_http_header_get_header(rebrick_http_header_t *header, const char *key, const char **value)
+int32_t rebrick_http_header_get_header(const rebrick_http_header_t *header, const char *key, const char **value)
 {
     if (!header || !key)
         return REBRICK_ERR_BAD_ARGUMENT;
@@ -343,7 +345,7 @@ int32_t rebrick_http_header_destroy(rebrick_http_header_t *header)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_http_header_count(rebrick_http_header_t *header, int32_t *count)
+int32_t rebrick_http_header_count(const rebrick_http_header_t *header, int32_t *count)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -369,7 +371,7 @@ int32_t rebrick_http_header_count(rebrick_http_header_t *header, int32_t *count)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_http_header_to_http_buffer(rebrick_http_header_t *header, rebrick_buffer_t **rbuffer)
+int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, rebrick_buffer_t **rbuffer)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -449,7 +451,7 @@ static nghttp2_nv convert_to_http2_header(const char *name, size_t namelen, cons
     return nv;
 }
 
-int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header, nghttp2_nv **hdrss, size_t *hdrs_len)
+int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header, nghttp2_nv **hdrss, size_t *hdrs_len)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -479,18 +481,24 @@ int32_t rebrick_http_header_to_http2_buffer(rebrick_http_header_t *header, nghtt
         bytes_count += bytes_count_tmp;
     }
 
-    if (header->method)
+    if  (header->method && header->method[0] )
     {
         const char *path = header->method[0] ? header->method : "GET";
         size_t pathlen = strlen(path);
         hdrs[index++] = convert_to_http2_header(":method", 7, path, pathlen, &bytes_count_tmp);
         bytes_count += bytes_count_tmp;
     }
-    if (header->path)
+    if (header->path && header->path[0])
     {
         const char *path = header->path[0] ? header->path : "/";
         size_t pathlen = strlen(path);
         hdrs[index++] = convert_to_http2_header(":path", 5, path, pathlen, &bytes_count_tmp);
+        bytes_count += bytes_count_tmp;
+    }
+    if(header->status_code){
+        char status_tmp[16]={0};
+        sprintf(status_tmp,"%d",header->status_code);
+        hdrs[index++] = convert_to_http2_header(":status", 7, status_tmp, strlen(status_tmp), &bytes_count_tmp);
         bytes_count += bytes_count_tmp;
     }
 

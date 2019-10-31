@@ -119,7 +119,7 @@ static void rebrick_http_header_test3(void **state){
     unused(state);
     int32_t result;
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new3(&header,200,"OK",1,1);
+    result=rebrick_http_header_new3(&header,Rebrick_HttpStatus_OK,1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
 
     assert_int_equal(header->major_version,1);
@@ -138,7 +138,7 @@ static void rebrick_http_header_test4(void **state){
     unused(state);
     int32_t result;
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new4(&header,500,"INTERNAL ERROR",14,1,1);
+    result=rebrick_http_header_new4(&header,500,1,1);
     assert_int_equal(result,REBRICK_SUCCESS);
 
     assert_int_equal(header->major_version,1);
@@ -148,7 +148,7 @@ static void rebrick_http_header_test4(void **state){
     assert_string_equal(header->path,"");
     assert_string_equal(header->method,"");
     assert_int_equal(header->status_code,500);
-    assert_string_equal(header->status_code_str,"INTERNAL ERROR");
+    assert_string_equal(header->status_code_str,rebrick_httpstatus_reasonphrase(500));
 
     rebrick_http_header_destroy(header);
 }

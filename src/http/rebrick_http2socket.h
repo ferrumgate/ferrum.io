@@ -149,7 +149,7 @@ int32_t rebrick_http2socket_send_goaway(rebrick_http2socket_t *socket,uint8_t *o
 int32_t rebrick_http2socket_send_ping(rebrick_http2socket_t *socket,int64_t flags, uint8_t opaque_data[8]);
 
 int32_t rebrick_http2socket_send_window_update(rebrick_http2socket_t *socket,int32_t stream_id,int32_t increment);
-int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket);
+int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket,int32_t *pushstream_id,int32_t stream_id,rebrick_http_header_t *header);
 
 
 #endif

@@ -37,6 +37,7 @@ typedef struct rebrick_tcpsocket* (*rebrick_tcpsocket_create_client_t)();
     private_ struct rebrick_tcpsocket *prev; \
     private_ struct rebrick_tcpsocket *next; \
     public_ readonly_ struct rebrick_tcpsocket *parent_socket;\
+    public_ readonly_ int32_t is_server;\
     private_ rebrick_tcpsocket_create_client_t create_client;
 
 

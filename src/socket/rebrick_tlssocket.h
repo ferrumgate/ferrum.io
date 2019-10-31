@@ -39,7 +39,6 @@ protected_ typedef struct pending_data{
         private_ void *override_callback_data; \
         private_ pending_data_t *pending_write_list; \
         private_ int32_t called_override_after_connection_accepted; \
-        public_ readonly_ int32_t is_server;\
         private_ int32_t sslhandshake_initted;  \
         public_ readonly_ char sni_pattern_or_name[REBRICK_TLS_SNI_MAX_LEN];\
         public_ readonly_ char sni[REBRICK_TLS_SNI_MAX_LEN];
