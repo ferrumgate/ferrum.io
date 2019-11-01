@@ -362,4 +362,21 @@
    fun:http_socket_as_client_create_with_tls_post
    ...
 }
-
+{
+   tls proble-12
+   Memcheck:Cond
+   fun:rebrick_httpstatus_reasonphrase
+   fun:rebrick_http_header_new4
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls proble-13
+   Memcheck:Value8
+   fun:rebrick_httpstatus_reasonphrase
+   fun:rebrick_http_header_new4
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}

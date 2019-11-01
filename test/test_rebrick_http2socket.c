@@ -470,7 +470,7 @@ static void http2_socket_as_client_create_get_server_push_streams(void **start){
     loop(counter,100,TRUE);
 }
 
-void http2_socket_as_serverserver_create_get_server_push_streams(void **start){
+static void http2_socket_as_serverserver_get(void **start){
     unused(start);
     int32_t result;
     int32_t counter;
@@ -521,19 +521,122 @@ void http2_socket_as_serverserver_create_get_server_push_streams(void **start){
     loop(counter,10000,!is_header_received);
      int32_t streamid=last_headerstream_id;
     result=rebrick_http2socket_send_header(last_client_handle,&streamid,NGHTTP2_FLAG_NONE,header_response);
+    loop(counter,100,TRUE);
     const char *msg="hello http2 server";
     new2(rebrick_clean_func_t,func);
     rebrick_http2socket_send_body(last_client_handle,streamid,NGHTTP2_FLAG_END_STREAM,cast_to_uint8ptr(msg),strlen(msg),func);
-    loop(counter,10000,TRUE);
+    loop(counter,1000,TRUE);
     assert_int_equal(result,REBRICK_SUCCESS);
-    assert_int_equal(streamid,1);
+    uint8_t test[8]={1,2,3,4};
+    rebrick_http2socket_send_ping(last_client_handle,NGHTTP2_FLAG_NONE,test);
+    loop(counter,10000,TRUE);
+
+    }
 
 
-    rebrick_http_header_t *header1;
-    rebrick_http_header_new(&header1,"http","localhost:9292","GET","/test1.txt",2,0);
 
-    rebrick_http_header_t *header2;
-    rebrick_http_header_new(&header2,"http","localhost:9292","GET","/test2.txt",2,0);
+    rebrick_http2socket_destroy(socket);
+    loop(counter,100,TRUE);
+}
+
+
+
+static void http2_socket_as_serverserver_create_get_server_push_streams(void **start){
+    unused(start);
+    int32_t result;
+    int32_t counter;
+     char current_time_str[32] = {0};
+    unused(current_time_str);
+
+   /*  result=rebrick_resolve("nghttp2.org",A,on_resolve,NULL);
+    assert_int_equal(result,TRUE);
+    loop(counter,1000,!resolved);
+    assert_int_equal(resolved,TRUE); */
+
+     rebrick_sockaddr_t destination;
+
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
+
+    rebrick_http2socket_t *socket;
+    is_connected=FALSE;
+    rebrick_http2_socket_settings_t settings;
+    rebrick_http2_settings_entry maxstream={NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS,100};
+    settings.entries[0]=maxstream;
+    settings.settings_count=1;
+
+    new2(rebrick_http2socket_callbacks_t,callbacks);
+    callbacks.on_connection_accepted=on_connection_accepted_callback;
+    callbacks.on_connection_closed=on_connection_closed_callback;
+    callbacks.on_data_received=on_data_read_callback;
+    callbacks.on_data_sended=on_data_send;
+    callbacks.on_error_occured=on_error_occured_callback;
+    callbacks.on_http_header_received=on_http_header_received;
+    is_connected=FALSE;
+    is_header_received=FALSE;
+
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination,10,&settings,&callbacks);
+    printf("http2 server started on localhost:9292\n");
+    printf("execute nghttp -v http://localhost:9292/push\n");
+    assert_int_equal(result, 0);
+
+    loop(counter,100000,!is_connected);
+
+    if(is_connected){
+
+
+    rebrick_http_header_t *header_response;
+    rebrick_http_header_new3(&header_response,Rebrick_HttpStatus_OK,2,0);
+    rebrick_http_header_add_header(header_response,"content-type","text/plain");
+
+
+    loop(counter,10000,!is_header_received);
+     int32_t streamid=last_headerstream_id;
+    result=rebrick_http2socket_send_header(last_client_handle,&streamid,NGHTTP2_FLAG_NONE,header_response);
+     loop(counter,1000,TRUE);
+    const char *msg="hello http2 server\n";
+    new2(rebrick_clean_func_t,func);
+    rebrick_http2socket_send_body(last_client_handle,streamid,NGHTTP2_FLAG_END_STREAM,cast_to_uint8ptr(msg),strlen(msg),func);
+    loop(counter,1000,TRUE);
+    assert_int_equal(result,REBRICK_SUCCESS);
+
+    rebrick_http_header_t *header_p1;
+    rebrick_http_header_new(&header_p1,"http","localhost:9292","GET","/test1.txt",2,0);
+    rebrick_http_header_add_header(header_p1,"content-type","text/plain");
+    int32_t pushstream_id1=0;
+    result=rebrick_http2socket_send_push(last_client_handle,&pushstream_id1,streamid,header_p1);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_true(pushstream_id1);
+
+
+    rebrick_http_header_t *header_p2;
+    rebrick_http_header_new(&header_p2,"http","localhost:9292","GET","/test2.txt",2,0);
+    rebrick_http_header_add_header(header_p2,"content-type","text/plain");
+
+    int32_t pushstream_id2=0;
+    result=rebrick_http2socket_send_push(last_client_handle,&pushstream_id2,streamid,header_p2);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    assert_true(pushstream_id2);
+
+
+    rebrick_http_header_t *push_response1;
+    rebrick_http_header_new4(&push_response1,200,2,0);
+    rebrick_http_header_add_header(push_response1,"content-type","text/plain");
+    rebrick_http2socket_send_header(last_client_handle,&pushstream_id1,NGHTTP2_FLAG_NONE,push_response1);
+    const char *content1="hello content1\n";
+    new2(rebrick_clean_func_t,clean);
+    rebrick_http2socket_send_body(last_client_handle,pushstream_id1,NGHTTP2_FLAG_END_STREAM,cast_to_uint8ptr(content1),strlen(content1),clean);
+    loop(counter,100,TRUE);
+
+
+rebrick_http_header_t *push_response2;
+    rebrick_http_header_new4(&push_response2,200,2,0);
+    rebrick_http_header_add_header(push_response2,"content-type","text/plain");
+    rebrick_http2socket_send_header(last_client_handle,&pushstream_id2,NGHTTP2_FLAG_NONE,push_response2);
+    const char *content2="hello content2\n";
+
+    rebrick_http2socket_send_body(last_client_handle,pushstream_id2,NGHTTP2_FLAG_END_STREAM,cast_to_uint8ptr(content2),strlen(content1),clean);
+    loop(counter,100,TRUE);
+
 
     }
 
@@ -551,14 +654,13 @@ void http2_socket_as_serverserver_create_get_server_push_streams(void **start){
 
 
 
-
-
 int test_rebrick_http2socket(void) {
     const struct CMUnitTest tests[] = {
 
        /* cmocka_unit_test(http2_socket_as_client_create_get),
         cmocka_unit_test(http2_socket_as_client_create_post),
-        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),*/
+        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),
+        cmocka_unit_test(http2_socket_as_serverserver_get),*/
         cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams)
 
 
