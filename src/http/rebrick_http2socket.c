@@ -1102,6 +1102,9 @@ int32_t rebrick_http2socket_send_window_update(rebrick_http2socket_t *socket, in
     unused(result);
     if (!socket)
         return REBRICK_ERR_BAD_ARGUMENT;
+     if (socket->is_goaway_received || socket->is_goaway_sended)
+        return REBRICK_ERR_HTTP2_GOAWAY;
+
     result = nghttp2_submit_window_update(socket->parsing_params.session, NGHTTP2_FLAG_NONE, stream_id, increment);
     check_nghttp2_result(result);
     result=nghttp2_session_send(socket->parsing_params.session);
@@ -1119,6 +1122,8 @@ int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket, int32_t *pu
     unused(result);
     if (!socket)
         return REBRICK_ERR_BAD_ARGUMENT;
+     if (socket->is_goaway_received || socket->is_goaway_sended)
+        return REBRICK_ERR_HTTP2_GOAWAY;
     size_t counter = 0;
 
     while (counter < socket->received_settings.settings_count)
@@ -1161,5 +1166,25 @@ int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket, int32_t *pu
     check_nghttp2_result(result);
 
 
+    return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_http2socket_send_rststream(rebrick_http2socket_t *socket,int32_t stream_id,uint32_t errorcode){
+    unused(socket);
+    unused(stream_id);
+
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    unused(result);
+    if (!socket)
+        return REBRICK_ERR_BAD_ARGUMENT;
+     if (socket->is_goaway_received || socket->is_goaway_sended)
+        return REBRICK_ERR_HTTP2_GOAWAY;
+
+    result = nghttp2_submit_rst_stream(socket->parsing_params.session, NGHTTP2_FLAG_NONE, stream_id, errorcode);
+    check_nghttp2_result(result);
+    result=nghttp2_session_send(socket->parsing_params.session);
+    check_nghttp2_result(result);
     return REBRICK_SUCCESS;
 }

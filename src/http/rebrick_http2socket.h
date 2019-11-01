@@ -150,6 +150,7 @@ int32_t rebrick_http2socket_send_ping(rebrick_http2socket_t *socket,int64_t flag
 
 int32_t rebrick_http2socket_send_window_update(rebrick_http2socket_t *socket,int32_t stream_id,int32_t increment);
 int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket,int32_t *pushstream_id,int32_t stream_id,rebrick_http_header_t *header);
+int32_t rebrick_http2socket_send_rststream(rebrick_http2socket_t *socket,int32_t stream_id,uint32_t errorcode);
 
 
 #endif

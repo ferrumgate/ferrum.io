@@ -519,7 +519,11 @@ static void http2_socket_as_serverserver_get(void **start){
 
 
     loop(counter,10000,!is_header_received);
-     int32_t streamid=last_headerstream_id;
+
+    int32_t streamid=last_headerstream_id;
+
+    rebrick_http2socket_send_rststream(last_client_handle,streamid,10);
+    loop(counter,10000,TRUE);
     result=rebrick_http2socket_send_header(last_client_handle,&streamid,NGHTTP2_FLAG_NONE,header_response);
     loop(counter,100,TRUE);
     const char *msg="hello http2 server";
@@ -628,7 +632,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
     loop(counter,100,TRUE);
 
 
-rebrick_http_header_t *push_response2;
+    rebrick_http_header_t *push_response2;
     rebrick_http_header_new4(&push_response2,200,2,0);
     rebrick_http_header_add_header(push_response2,"content-type","text/plain");
     rebrick_http2socket_send_header(last_client_handle,&pushstream_id2,NGHTTP2_FLAG_NONE,push_response2);
@@ -659,8 +663,8 @@ int test_rebrick_http2socket(void) {
 
        /* cmocka_unit_test(http2_socket_as_client_create_get),
         cmocka_unit_test(http2_socket_as_client_create_post),
-        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),
-        cmocka_unit_test(http2_socket_as_serverserver_get),*/
+        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),*/
+        cmocka_unit_test(http2_socket_as_serverserver_get),
         cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams)
 
 
