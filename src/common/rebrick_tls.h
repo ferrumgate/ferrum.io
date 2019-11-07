@@ -8,6 +8,7 @@
 
 
 
+
 #define REBRICK_TLS_SNI_MAX_LEN 1024
 #define REBRICK_TLS_CONTEXT_SNI "CTX_SNI"
 #define REBRICK_TLS_FILE_MAX_LEN 1024
@@ -60,6 +61,9 @@ int32_t rebrick_tls_cleanup();
 
 struct rebrick_tls_ssl;
 
+typedef int (*rebrick_tls_alpn_select_callback_t)(unsigned char **out,unsigned char *outlen,const unsigned char *in,unsigned int inlen);
+typedef int (*rebrick_tls_npn_select_callback_t)(unsigned char **out,unsigned char *outlen,const unsigned char *in,unsigned int inlen);
+
 typedef struct rebrick_tls_context{
     base_object();
     private_ char key[REBRICK_TLS_KEY_LEN];
@@ -69,11 +73,16 @@ typedef struct rebrick_tls_context{
     private_ const char ca_verify_path[REBRICK_CA_VERIFY_PATH_MAX_LEN];
     public_ readonly_ char cert_file[REBRICK_TLS_FILE_MAX_LEN];
     public_ readonly_ char prv_file[REBRICK_TLS_FILE_MAX_LEN];
+    public_ readonly_ uint8_t alpn_protos[REBRICK_TLS_ALPN_MAX_LEN];
+    public_ readonly_ size_t alpn_protos_len;
 
 
 
      //this field is for list
     internal_ struct rebrick_tls_ssl *sni_pending_list;
+
+    internal_ rebrick_tls_alpn_select_callback_t alpn_select_callback;
+    internal_ rebrick_tls_npn_select_callback_t npn_select_callback;
 
 }rebrick_tls_context_t;
 
@@ -96,6 +105,8 @@ typedef struct rebrick_tls_context{
  */
 int32_t rebrick_tls_context_new(rebrick_tls_context_t **context,const char *key,int32_t ssl_verify,int32_t session_mode,int32_t options,int32_t clearoptions,const char *certificate_file,const char *private_file);
 int32_t rebrick_tls_context_destroy(rebrick_tls_context_t *context);
+int32_t rebrick_tls_context_set_alpn_protos(rebrick_tls_context_t *context,const unsigned char *protos,unsigned int protos_len,rebrick_tls_alpn_select_callback_t callback);
+int32_t rebrick_tls_context_set_npn_protos(rebrick_tls_context_t *context,const unsigned char *protos,unsigned int protos_len,rebrick_tls_npn_select_callback_t callback);
 
 /**
  * @brief returns context if its finds otherwise returns null
@@ -138,6 +149,15 @@ typedef struct rebrick_tls_ssl{
  * @return int32_t
  */
 int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl,const rebrick_tls_context_t *context);
+
+/**
+ * @brief for client creating with SNI
+ *
+ * @param ssl
+ * @param context
+ * @param servername SNI name
+ * @return int32_t
+ */
 int32_t rebrick_tls_ssl_new3(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t *context,const char *servername);
 
 /**

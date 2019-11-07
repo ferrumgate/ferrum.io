@@ -4,15 +4,41 @@
 #include <unistd.h>
 
 
+
+
+int rebrick_tls_alpn_select_callback(unsigned char **out,unsigned char *outlen,const unsigned char *in,unsigned int inlen){
+
+    int rv;
+    rv = nghttp2_select_next_protocol(cast(out,unsigned char**), outlen, in, inlen);
+    printf("result is %d\n",rv);
+
+    if (rv == -1) {
+        return SSL_TLSEXT_ERR_NOACK;
+    }
+
+    return SSL_TLSEXT_ERR_OK;
+
+}
+
 #define loop(var,a,x) \
     var=a; \
  while (var-- && (x)){ usleep(100); uv_run(uv_default_loop(), UV_RUN_NOWAIT);}
 
 static rebrick_tls_context_t *context_verify_none = NULL;
+
 static int setup(void**state){
+    int32_t result;
     unused(state);
     rebrick_tls_init();
-    rebrick_tls_context_new(&context_verify_none, "client", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL,0, NULL, NULL);
+    result=rebrick_tls_context_new(&context_verify_none, "client", SSL_VERIFY_NONE, SSL_SESS_CACHE_BOTH, SSL_OP_ALL | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 |
+                          SSL_OP_NO_COMPRESSION |
+                          SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION,0, NULL, NULL);
+    assert_int_equal(result,REBRICK_SUCCESS);
+    result=rebrick_tls_context_set_alpn_protos(context_verify_none,REBRICK_HTTP_ALPN_PROTO,REBRIKC_HTTP_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
+
+
+    assert_int_equal(result,REBRICK_SUCCESS);
+
     fprintf(stdout,"****  %s ****\n",__FILE__);
     return 0;
 }
@@ -33,7 +59,9 @@ static void on_error_occured_callback(rebrick_socket_t *socket,void *callback,in
     unused(socket);
     unused(callback);
     unused(error);
-
+        char current_time_str[32] = {0};
+    unused(current_time_str);
+    rebrick_log_debug("error:%d occured\n",error);
 
 }
 
@@ -148,14 +176,16 @@ static void deletesendata(void *ptr){
 
 
 
-static void http2_socket_as_client_create_get(void **start){
-    unused(start);
+static void http2_socket_as_client_create_get(void **tls){
+    unused(tls);
     int32_t result;
     int32_t counter;
 
     rebrick_sockaddr_t destination;
-
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
+    if(!*tls)
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
+    else
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9393", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -173,15 +203,20 @@ static void http2_socket_as_client_create_get(void **start){
     callbacks.on_http_header_received=on_http_header_received;
     callbacks.on_http_body_received=on_body_read_callback;
 
-    result = rebrick_http2socket_new(&socket,NULL, NULL, destination,0,
-                &settings,&callbacks);
+    if(!*tls)
+    result = rebrick_http2socket_new(&socket,NULL, NULL, destination,0,&settings,&callbacks);
+    else
+    result = rebrick_http2socket_new(&socket,"hamzakilic.com", context_verify_none, destination,0,&settings,&callbacks);
     assert_int_equal(result, 0);
 
     loop(counter,1000,!is_connected);
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"http","localhost:9191","GET","/",2,0);
+    if(!*tls)
+    result=rebrick_http_header_new(&header,"http","localhost:9292","GET","/",2,0);
+    else
+    result=rebrick_http_header_new(&header,"https","hamzakilic:9393","GET","/",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     int stream_id=-1;
     is_bodyreaded=FALSE;
@@ -190,7 +225,7 @@ static void http2_socket_as_client_create_get(void **start){
     assert_int_equal(stream_id,1);
     is_header_received=FALSE;
     loop(counter,1000,!is_header_received);
-    loop(counter,100,!is_bodyreaded);
+    loop(counter,1000,!is_bodyreaded);
     assert_true(strstr(readedbufferbody,"hello http2"));
 
     rebrick_http2_stream_t *stream;
@@ -223,6 +258,14 @@ static void http2_socket_as_client_create_get(void **start){
 }
 
 
+static void http2_socket_as_client_create_get_tls(void **start){
+        unused(start);
+        int32_t tmp=10;
+        int *val=&tmp;
+        http2_socket_as_client_create_get(cast(&val,void**));
+}
+
+
 
 
 static void http2_socket_as_client_create_post(void **start){
@@ -232,7 +275,7 @@ static void http2_socket_as_client_create_post(void **start){
 
     rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -258,7 +301,7 @@ static void http2_socket_as_client_create_post(void **start){
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"http","localhost:9191","POST","/",2,0);
+    result=rebrick_http_header_new(&header,"http","localhost:9292","POST","/",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     const char *data="hello world";
     rebrick_http_header_add_header(header,"content-type","text/plain");
@@ -372,7 +415,7 @@ static void http2_socket_as_client_create_get_server_push_streams(void **start){
 
      rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -398,7 +441,7 @@ static void http2_socket_as_client_create_get_server_push_streams(void **start){
     assert_int_equal(is_connected,TRUE);
     loop(counter,1000,1);
     rebrick_http_header_t *header;
-    result=rebrick_http_header_new(&header,"http","localhost:9191","GET","/push",2,0);
+    result=rebrick_http_header_new(&header,"http","localhost:9292","GET","/push",2,0);
     assert_int_equal(result,REBRICK_SUCCESS);
     int stream_id=-1;
     is_bodyreaded=FALSE;
@@ -441,23 +484,18 @@ static void http2_socket_as_client_create_get_server_push_streams(void **start){
     assert_int_equal(push_headers[0].is_request,TRUE);
     assert_true(strstr(push_headers[0].path,"/deneme"));
     assert_int_equal(push_headers[0].major_version,2);
-    assert_string_equal(push_headers[0].host,"localhost:9191");
+    assert_string_equal(push_headers[0].host,"localhost:9292");
 
     assert_int_equal(push_headers[1].is_request,TRUE);
     assert_true(strstr(push_headers[1].path,"/deneme"));
     assert_int_equal(push_headers[1].major_version,2);
-    assert_string_equal(push_headers[1].host,"localhost:9191");
+    assert_string_equal(push_headers[1].host,"localhost:9292");
 
 
 
     assert_true(strstr(readedbufferbody_push[0],"push"));
     assert_true(strstr(readedbufferbody_push[1],"push"));
     assert_true(strstr(readedbufferbody_push[2],"push"));
-
-
-
-
-
 
 
 
@@ -484,7 +522,7 @@ static void http2_socket_as_serverserver_get(void **start){
 
      rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9898", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -504,8 +542,8 @@ static void http2_socket_as_serverserver_get(void **start){
     is_header_received=FALSE;
 
     result = rebrick_http2socket_new(&socket,NULL, NULL, destination,10,&settings,&callbacks);
-    printf("http2 server started on localhost:9292\n");
-    printf("execute nghttp -v http://localhost:9292/push\n");
+    printf("http2 server started on localhost:9898\n");
+    printf("execute nghttp -v http://localhost:9898/push\n");
     assert_int_equal(result, 0);
 
     loop(counter,100000,!is_connected);
@@ -522,11 +560,11 @@ static void http2_socket_as_serverserver_get(void **start){
 
     int32_t streamid=last_headerstream_id;
 
-    rebrick_http2socket_send_rststream(last_client_handle,streamid,10);
-    loop(counter,10000,TRUE);
+    /* rebrick_http2socket_send_rststream(last_client_handle,streamid,10);
+    loop(counter,10000,TRUE); */
     result=rebrick_http2socket_send_header(last_client_handle,&streamid,NGHTTP2_FLAG_NONE,header_response);
     loop(counter,100,TRUE);
-    const char *msg="hello http2 server";
+    const char *msg="hello http2 server\n";
     new2(rebrick_clean_func_t,func);
     rebrick_http2socket_send_body(last_client_handle,streamid,NGHTTP2_FLAG_END_STREAM,cast_to_uint8ptr(msg),strlen(msg),func);
     loop(counter,1000,TRUE);
@@ -559,7 +597,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
 
      rebrick_sockaddr_t destination;
 
-    rebrick_util_ip_port_to_addr("127.0.0.1", "9292", &destination);
+    rebrick_util_ip_port_to_addr("127.0.0.1", "9898", &destination);
 
     rebrick_http2socket_t *socket;
     is_connected=FALSE;
@@ -579,8 +617,8 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
     is_header_received=FALSE;
 
     result = rebrick_http2socket_new(&socket,NULL, NULL, destination,10,&settings,&callbacks);
-    printf("http2 server started on localhost:9292\n");
-    printf("execute nghttp -v http://localhost:9292/push\n");
+    printf("http2 server started on localhost:9898\n");
+    printf("execute nghttp -v http://localhost:9898/push\n");
     assert_int_equal(result, 0);
 
     loop(counter,100000,!is_connected);
@@ -604,7 +642,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
     assert_int_equal(result,REBRICK_SUCCESS);
 
     rebrick_http_header_t *header_p1;
-    rebrick_http_header_new(&header_p1,"http","localhost:9292","GET","/test1.txt",2,0);
+    rebrick_http_header_new(&header_p1,"http","localhost:9898","GET","/test1.txt",2,0);
     rebrick_http_header_add_header(header_p1,"content-type","text/plain");
     int32_t pushstream_id1=0;
     result=rebrick_http2socket_send_push(last_client_handle,&pushstream_id1,streamid,header_p1);
@@ -613,7 +651,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
 
 
     rebrick_http_header_t *header_p2;
-    rebrick_http_header_new(&header_p2,"http","localhost:9292","GET","/test2.txt",2,0);
+    rebrick_http_header_new(&header_p2,"http","localhost:9898","GET","/test2.txt",2,0);
     rebrick_http_header_add_header(header_p2,"content-type","text/plain");
 
     int32_t pushstream_id2=0;
@@ -661,11 +699,12 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **s
 int test_rebrick_http2socket(void) {
     const struct CMUnitTest tests[] = {
 
-       /* cmocka_unit_test(http2_socket_as_client_create_get),
-        cmocka_unit_test(http2_socket_as_client_create_post),
-        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),*/
-        cmocka_unit_test(http2_socket_as_serverserver_get),
-        cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams)
+        cmocka_unit_test(http2_socket_as_client_create_get),
+        cmocka_unit_test(http2_socket_as_client_create_get_tls),
+     //   cmocka_unit_test(http2_socket_as_client_create_post),
+     //   cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),
+       // cmocka_unit_test(http2_socket_as_serverserver_get),
+       // cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams)
 
 
     };

@@ -1,7 +1,11 @@
 #include "rebrick_http.h"
 
+uint8_t REBRICK_HTTP_ALPN_PROTO[4]={2,'h','2',0};
+
 int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue, const char *key, const char *value)
 {
+
+
     char current_time_str[32] = {0};
     unused(current_time_str);
     size_t keylen = 0;

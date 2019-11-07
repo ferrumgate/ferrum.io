@@ -84,6 +84,7 @@
 
 #define REBRICK_TLS_KEY_LEN 128
 #define REBRICK_CA_VERIFY_PATH_MAX_LEN 1024
+#define REBRICK_TLS_ALPN_MAX_LEN  128
 
 
 /* @brief allocation methods */

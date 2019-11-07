@@ -582,6 +582,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     if (socket->is_server || httpsocket->is_server)
     {
         result = nghttp2_session_server_new(&socket->parsing_params.session, socket->parsing_params.session_callback, socket);
+        check_nghttp2_result_call_error(result, socket);
     }
     else
     {
@@ -592,15 +593,22 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
             rebrick_log_fatal("no delay for client failed\n");
         }
         result = nghttp2_session_client_new(&socket->parsing_params.session, socket->parsing_params.session_callback, socket);
+        check_nghttp2_result_call_error(result, socket);
+        /*result = nghttp2_session_send(socket->parsing_params.session);
+        check_nghttp2_result_call_error(result, socket);*/
+
 
     }
 
-    check_nghttp2_result_call_error(result, socket);
+
+
+
 
     result = nghttp2_submit_settings(socket->parsing_params.session, NGHTTP2_FLAG_NONE, socket->settings.entries, socket->settings.settings_count);
     check_nghttp2_result_call_error(result, socket);
-    result = nghttp2_session_send(socket->parsing_params.session);
-    check_nghttp2_result_call_error(result, socket);
+    //burasını açınca tls çalışmıyor
+   /* result = nghttp2_session_send(socket->parsing_params.session);
+    check_nghttp2_result_call_error(result, socket);*/
 
     if (socket->override_override_on_connection_accepted)
         socket->override_override_on_connection_accepted(cast_to_socket(httpsocket), socket->override_override_callback_data, addr, socket);
@@ -713,6 +721,9 @@ static struct rebrick_tcpsocket *local_create_client()
     return cast_to_tcpsocket(client);
 }
 
+
+
+
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
                                  int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                  const rebrick_http2_socket_settings_t *settings, const rebrick_http2socket_callbacks_t *callbacks)
@@ -732,8 +743,10 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
 
     if (tls)
     {
+
         //create a new tls socket
         result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls, addr, backlog_or_isclient, create_client, &local_callbacks);
+
     }
     else
     {
@@ -916,10 +929,11 @@ int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *
         }
         if(stream->send_header)
         rebrick_http_header_destroy(stream->send_header);
-        stream->send_header=header;
+
 
 
     }
+    stream->send_header=header;
 
     result = nghttp2_session_send(socket->parsing_params.session);
     check_nghttp2_result(result);

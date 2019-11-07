@@ -151,13 +151,15 @@ int main()
   if (test_rebrick_tls())
     exit(1);
   if (test_rebrick_tlssocket())
-    exit(1);*/
+    exit(1);
+
    if (test_rebrick_http())
     exit(1);
 
   if (test_rebrick_httpsocket())
-   exit(1);
-   if (test_rebrick_http2socket())
+   exit(1);*/
+
+  if (test_rebrick_http2socket())
     exit(1);
   //extern void http2_socket_as_serverserver_create_get_server_push_streams(void **start);
   //http2_socket_as_serverserver_create_get_server_push_streams(NULL);
