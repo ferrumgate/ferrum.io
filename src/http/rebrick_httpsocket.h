@@ -85,7 +85,7 @@ public_ typedef struct rebrick_httpsocket
 
 
 
-#define cast_to_httpsocket(x) cast(x,rebrick_httpsocket_t*);
+#define cast_to_httpsocket(x) cast(x,rebrick_httpsocket_t*)
 
 
 #define base_httpsocket_callbacks() \

@@ -15,7 +15,7 @@
 #define rebrick_log_fatal(fmt, ...) fprintf(stderr,"[%s] [FATAL] %s:%d - ",rebrick_util_time_r(current_time_str),__FILE__,__LINE__);\
                                      fprintf(stderr,fmt,##__VA_ARGS__)
 
-#define rebrick_log_error(fmt, ...) fprintf(stderr,"[%s] [FATAL] %s:%d - ",rebrick_util_time_r(current_time_str),__FILE__,__LINE__);\
+#define rebrick_log_error(fmt, ...) fprintf(stderr,"[%s] [ERROR] %s:%d - ",rebrick_util_time_r(current_time_str),__FILE__,__LINE__);\
                                      fprintf(stderr,fmt,##__VA_ARGS__)
 
 #endif

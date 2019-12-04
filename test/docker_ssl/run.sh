@@ -1,4 +1,5 @@
 #!/bin/bash
+sudo service apache2 stop
 mkdir -p /tmp/nginx
 docker run \
   --restart on-failure \

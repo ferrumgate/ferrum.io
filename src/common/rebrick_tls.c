@@ -142,6 +142,7 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg)
         {
 
             const char *servername = SSL_get_servername(s, TLSEXT_NAMETYPE_host_name);
+            DL_DELETE(context->sni_pending_list, el);
 
             if (servername || strlen(servername))
             {
@@ -150,15 +151,18 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg)
                 result = rebrick_tlssocket_change_context(tlssocket, servername);
                 if (result < 0)
                     return SSL_TLSEXT_ERR_ALERT_FATAL;
+                //TODO burada tls server name got methodu çağrılmalı
             }
 
-            DL_DELETE(context->sni_pending_list, el);
+
             break;
         }
     }
 
     return SSL_TLSEXT_ERR_OK;
 }
+
+
 
 int32_t rebrick_tls_init()
 {
@@ -454,6 +458,7 @@ int32_t rebrick_tls_context_set_npn_protos(rebrick_tls_context_t *context, const
     SSL_CTX_set_next_protos_advertised_cb(context->tls_ctx, tls_alpn_server_advertise_callback, context);
     SSL_CTX_set_next_proto_select_cb(context->tls_ctx, tls_npn_select_callback, context);
 
+
     return REBRICK_SUCCESS;
 }
 
@@ -504,6 +509,34 @@ int32_t rebrick_tls_context_get(const char *key, rebrick_tls_context_t **context
     {
         rebrick_log_debug("%s ssl context not found\n", key);
         *context = NULL;
+        return REBRICK_ERR_NOT_FOUND;
+    }
+    return REBRICK_SUCCESS;
+}
+
+
+int32_t rebrick_tls_context_search(const char *servername, rebrick_tls_context_t **context)
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+
+    struct rebrick_tls_context_hashitem *out;
+    //burada servername için arama yapılmalı, en uygun
+    //context geri dönülmeli.
+    //mesela *.rebrick.io context dönülmeli
+    //www.rebrick.io servername için
+    HASH_FIND_STR(ctx_map, servername, out);
+
+    if (out)
+    {
+        rebrick_log_debug("%s ssl context found\n", servername);
+        *context = out->ctx;
+    }
+    else
+    {
+        rebrick_log_debug("%s ssl context not found\n", servername);
+        *context = NULL;
+        return REBRICK_ERR_NOT_FOUND;
     }
     return REBRICK_SUCCESS;
 }
@@ -594,6 +627,11 @@ int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl, const char *server_indicat
         rebrick_log_fatal("sni context not found\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
+    if(!context){
+        rebrick_log_fatal("sni context not found\n");
+        return REBRICK_ERR_BAD_ARGUMENT;
+    }
+
     rebrick_tls_ssl_t *state;
     result = rebrick_tls_ssl_new(&state, context);
     if (result < 0)

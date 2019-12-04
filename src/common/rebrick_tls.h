@@ -109,13 +109,14 @@ int32_t rebrick_tls_context_set_alpn_protos(rebrick_tls_context_t *context,const
 int32_t rebrick_tls_context_set_npn_protos(rebrick_tls_context_t *context,const unsigned char *protos,unsigned int protos_len,rebrick_tls_npn_select_callback_t callback);
 
 /**
- * @brief returns context if its finds otherwise returns null
+ * @brief returns context if its finds otherwise returns null and NOT_FOUND error
  *
  * @param key  search key
  * @param context destination context ptr_ptr
  * @return int32_t returns REBRICK_SUCCESS else error
  */
 int32_t rebrick_tls_context_get(const char *key,rebrick_tls_context_t **context);
+int32_t rebrick_tls_context_search(const char *servername,rebrick_tls_context_t **context);
 
 
 

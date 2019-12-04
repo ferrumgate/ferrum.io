@@ -1,6 +1,9 @@
 #include "rebrick_http.h"
 
-uint8_t REBRICK_HTTP_ALPN_PROTO[4]={2,'h','2',0};
+uint8_t REBRICK_HTTP2_ALPN_PROTO[4]={2,'h','2',0};
+uint8_t REBRICK_HTTP_ALPN_PROTO[]={8,'h','t','t','p','/','1','.','1',0};
+uint8_t REBRICK_HTTP_HTTP2_ALPN_PROTO[13]={2,'h','2',8,'h','t','t','p','/','1','.','1',0};
+
 
 int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue, const char *key, const char *value)
 {

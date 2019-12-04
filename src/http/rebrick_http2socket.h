@@ -88,7 +88,7 @@ public_ typedef struct rebrick_http2socket
 } rebrick_http2socket_t;
 
 
-#define cast_to_http2socket(socket) cast(socket, rebrick_http2socket_t *)
+#define cast_to_http2socket(s) cast(s, rebrick_http2socket_t *)
 
 #define base_http2socket_callbacks() \
         base_tlssocket_callbacks();\

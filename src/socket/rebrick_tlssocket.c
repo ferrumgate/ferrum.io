@@ -608,18 +608,32 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
     unused(current_time_str);
     int32_t result;
 
-    if (!tls_context)
+    rebrick_tls_context_t *sni_context;
+    //if tlscontext is null, use default SNI context
+    if (tls_context)
+        sni_context =cast(tls_context,rebrick_tls_context_t*);
+    else
+    {
+        result = rebrick_tls_context_get(REBRICK_TLS_CONTEXT_SNI, &sni_context);
+        if (result < 0)
+        {
+            rebrick_log_fatal("sni tls context not found\n");
+            return result;
+        }
+    }
+
+    if (!sni_context)
     {
         rebrick_log_fatal("tls context is null\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
 
-    if (rebrick_tls_context_is_server(tls_context) && !backlog_or_isclient)
+    if (rebrick_tls_context_is_server(sni_context) && !backlog_or_isclient)
     {
         rebrick_log_fatal("tls context is server but backlog_or_isclient parameter is 0\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
-    if (!rebrick_tls_context_is_server(tls_context) && backlog_or_isclient)
+    if (!rebrick_tls_context_is_server(sni_context) && backlog_or_isclient)
     {
         rebrick_log_fatal("tls context is client but backlog_or_isclient parameter is server > 0\n");
         return REBRICK_ERR_BAD_ARGUMENT;
@@ -672,24 +686,12 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
     unused(current_time_str);
     int32_t result;
 
-     rebrick_tls_context_t *sni_context;
-    //if tlscontext is null, use default SNI context
-    if (tlscontext)
-        sni_context = tlscontext;
-    else
-    {
-        result = rebrick_tls_context_get(REBRICK_TLS_CONTEXT_SNI, &sni_context);
-        if (result < 0)
-        {
-            rebrick_log_fatal("sni tls context not found\n");
-            return result;
-        }
-    }
+
 
     rebrick_tlssocket_t *tlssocket = new (rebrick_tlssocket_t);
     constructor(tlssocket, rebrick_tlssocket_t);
 
-    result = rebrick_tlssocket_init(tlssocket,sni_pattern_or_name, sni_context, addr, backlog_or_isclient, local_create_client, callbacks);
+    result = rebrick_tlssocket_init(tlssocket,sni_pattern_or_name, tlscontext, addr, backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {
         free(tlssocket);
@@ -839,10 +841,12 @@ int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char
     }
 
     rebrick_tls_context_t *context;
-    result = rebrick_tls_context_get(servername, &context);
+    result = rebrick_tls_context_search(servername, &context);
     if (result < 0)
     {
         rebrick_log_error("error at finding context for servername:%s\n ", servername);
+        context=cast(socket->tls_context,rebrick_tls_context_t*);
+        if(!context)
         return result;
     }
     strncpy(socket->sni, servername, REBRICK_TLS_SNI_MAX_LEN - 1);

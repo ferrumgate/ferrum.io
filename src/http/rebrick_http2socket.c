@@ -724,6 +724,20 @@ static struct rebrick_tcpsocket *local_create_client()
 
 
 
+static int rebrick_tls_alpn_select_callback(unsigned char **out,unsigned char *outlen,const unsigned char *in,unsigned int inlen){
+
+    int rv;
+    rv = nghttp2_select_next_protocol(cast(out,unsigned char**), outlen, in, inlen);
+
+    if (rv == -1) {
+        return SSL_TLSEXT_ERR_NOACK;
+    }
+
+    return SSL_TLSEXT_ERR_OK;
+
+}
+
+
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
                                  int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                  const rebrick_http2_socket_settings_t *settings, const rebrick_http2socket_callbacks_t *callbacks)
@@ -741,11 +755,17 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     local_callbacks.on_data_sended = local_on_data_sended_callback;
     local_callbacks.on_error_occured = local_on_error_occured_callback;
 
-    if (tls)
+    if (tls || (sni_pattern_or_name && strlen(sni_pattern_or_name)))
     {
 
         //create a new tls socket
         result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls, addr, backlog_or_isclient, create_client, &local_callbacks);
+
+        if(!result && !tls->alpn_select_callback){
+        result=rebrick_tls_context_set_alpn_protos(tls,REBRICK_HTTP2_ALPN_PROTO,REBRIKC_HTTP2_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
+        //result|=rebrick_tls_context_set_npn_protos(tls,REBRICK_HTTP2_ALPN_PROTO,REBRIKC_HTTP2_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
+        }
+
 
     }
     else
