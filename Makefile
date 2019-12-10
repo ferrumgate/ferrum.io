@@ -64,7 +64,7 @@ testrunvalgrind: test
 clean:
 	find ./$(SRC) -name "*.o" -type f -delete
 	find ./$(TEST) -name "*.o" -type f -delete
-	rm -rf $(SRC)/rebrick
+	rm -rf $(SRC)/librebrick.a
 	rm -rf $(SRC)/librebrick.so*
 	rm -rf $(TEST)/test
 	rm -rf output

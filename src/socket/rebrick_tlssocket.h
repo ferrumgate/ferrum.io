@@ -26,7 +26,7 @@ protected_ typedef struct pending_data{
 }pending_data_t;
 
 
-typedef void (*rebrick_on_sni_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
+typedef void (*rebrick_tlssocket_on_sni_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
 
 
 
@@ -34,12 +34,12 @@ typedef void (*rebrick_on_sni_received_callback_t)(struct rebrick_socket *socket
         base_tcp_socket(); \
         private_ const rebrick_tls_context_t *tls_context; \
         private_ rebrick_tls_ssl_t *tls; \
-        private_ rebrick_on_connection_accepted_callback_t override_on_connection_accepted; \
-        private_ rebrick_on_connection_closed_callback_t override_on_connection_closed; \
-        private_ rebrick_on_data_received_callback_t override_on_data_received; \
-        private_ rebrick_on_data_sended_callback_t   override_on_data_sended; \
-        private_ rebrick_on_error_occured_callback_t override_on_error_occured;\
-        private_ rebrick_on_sni_received_callback_t override_on_sni_received;\
+        private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_on_connection_accepted; \
+        private_ rebrick_tcpsocket_on_connection_closed_callback_t override_on_connection_closed; \
+        private_ rebrick_socket_on_data_received_callback_t override_on_data_received; \
+        private_ rebrick_socket_on_data_sended_callback_t   override_on_data_sended; \
+        private_ rebrick_socket_on_error_occured_callback_t override_on_error_occured;\
+        private_ rebrick_tlssocket_on_sni_received_callback_t override_on_sni_received;\
         private_ void *override_callback_data; \
         private_ pending_data_t *pending_write_list; \
         private_ int32_t called_override_after_connection_accepted; \
@@ -62,7 +62,7 @@ public_ typedef struct rebrick_tlssocket
 
 #define base_tlssocket_callbacks() \
     base_tcpsocket_callbacks();\
-    protected_ rebrick_on_sni_received_callback_t on_sni_received;
+    protected_ rebrick_tlssocket_on_sni_received_callback_t on_sni_received;
 
 
 typedef struct rebrick_tlssocket_callbacks{

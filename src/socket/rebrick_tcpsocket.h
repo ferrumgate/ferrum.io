@@ -12,14 +12,14 @@ struct rebrick_tcpsocket;
  * @params addr
  * @params client_handle if client_handle is null then error occured
  */
-typedef void (*rebrick_on_connection_accepted_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle);
+typedef void (*rebrick_tcpsocket_on_connection_accepted_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle);
 
 /**
  * @brief after socket is closed this function is called
  * @param socket which socket is used
  * @param callback_data , data when used with @see rebrick_tcpsocket_new(...);
  */
-typedef void (*rebrick_on_connection_closed_callback_t)(struct rebrick_socket *socket, void *callback_data);
+typedef void (*rebrick_tcpsocket_on_connection_closed_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
 
 /**
@@ -31,8 +31,8 @@ typedef struct rebrick_tcpsocket* (*rebrick_tcpsocket_create_client_t)();
 
 #define base_tcp_socket()  \
     base_socket();\
-    private_ rebrick_on_connection_accepted_callback_t on_connection_accepted;\
-    private_ rebrick_on_connection_closed_callback_t on_connection_closed;\
+    private_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted;\
+    private_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;\
     private_ struct rebrick_tcpsocket *clients; \
     private_ struct rebrick_tcpsocket *prev; \
     private_ struct rebrick_tcpsocket *next; \
@@ -53,8 +53,8 @@ public_ typedef struct rebrick_tcpsocket
 
 #define base_tcpsocket_callbacks()  \
         base_callbacks(); \
-        protected_ rebrick_on_connection_accepted_callback_t on_connection_accepted; \
-        protected_ rebrick_on_connection_closed_callback_t on_connection_closed;
+        protected_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
+        protected_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;
 
 public_ typedef struct rebrick_tcpsocket_callbacks{
     base_tcpsocket_callbacks();

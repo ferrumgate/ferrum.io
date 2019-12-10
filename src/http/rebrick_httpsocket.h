@@ -20,18 +20,18 @@ struct rebrick_httpsocket;
  * @param header received header
  * @param status, result of parsing, parsed successfully or error
  */
-typedef void (*rebrick_on_http_header_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, rebrick_http_header_t *header);
+typedef void (*rebrick_httpsocket_on_http_header_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, rebrick_http_header_t *header);
 
 /**
  * @brief after header parsed finished, when body data starts to come,
  * this callback trigger,this is a synonym
- * @see rebrick_on_data_received_callback_t
+ * @see rebrick_socket_on_data_received_callback_t
  */
-typedef void (*rebrick_on_http_body_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
+typedef void (*rebrick_httpsocket_on_http_body_received_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
 
 
-typedef void (*rebrick_on_socket_needs_upgrade_callback_t)(struct rebrick_socket *socket,void *callback_data,rebrick_upgrade_socket_type_t type,void *extra_data);
+typedef void (*rebrick_httpsocket_on_socket_needs_upgrade_callback_t)(struct rebrick_socket *socket,void *callback_data,rebrick_upgrade_socket_type_t type,void *extra_data);
 
 /**
  * @brief http socket structure
@@ -42,14 +42,14 @@ public_ typedef struct rebrick_httpsocket
 {
     base_ssl_socket();
 
-    private_ rebrick_on_connection_accepted_callback_t override_override_on_connection_accepted;
-    private_ rebrick_on_connection_closed_callback_t override_override_on_connection_closed;
-    private_ rebrick_on_data_received_callback_t override_override_on_data_received;
-    private_ rebrick_on_data_sended_callback_t  override_override_on_data_sended;
-    private_ rebrick_on_error_occured_callback_t override_override_on_error_occured;
-    private_ rebrick_on_http_header_received_callback_t on_http_header_received;
-    private_ rebrick_on_http_body_received_callback_t on_http_body_received;
-    private_ rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
+    private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_override_on_connection_accepted;
+    private_ rebrick_tcpsocket_on_connection_closed_callback_t override_override_on_connection_closed;
+    private_ rebrick_socket_on_data_received_callback_t override_override_on_data_received;
+    private_ rebrick_socket_on_data_sended_callback_t  override_override_on_data_sended;
+    private_ rebrick_socket_on_error_occured_callback_t override_override_on_error_occured;
+    private_ rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;
+    private_ rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;
+    private_ rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
     private_ rebrick_tls_context_t *override_override_tls_context;
     private_ void *override_override_callback_data;
 
@@ -90,9 +90,9 @@ public_ typedef struct rebrick_httpsocket
 
 #define base_httpsocket_callbacks() \
     base_tlssocket_callbacks();\
-    rebrick_on_http_header_received_callback_t on_http_header_received;\
-    rebrick_on_http_body_received_callback_t on_http_body_received;\
-    rebrick_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
+    rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;\
+    rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;\
+    rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
 
 typedef struct rebrick_httpsocket_callbacks{
     base_httpsocket_callbacks();

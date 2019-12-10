@@ -15,7 +15,7 @@ struct rebrick_socket;
  * @param buffer data
  * @param len buffer lenght
  */
-typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
+typedef void (*rebrick_socket_on_data_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
 
 /**
@@ -24,7 +24,7 @@ typedef void (*rebrick_on_data_received_callback_t)(struct rebrick_socket *socke
  * @param callback_data,  this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
  * @param source,  this parameters used for source detection
  */
-typedef void (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source);
+typedef void (*rebrick_socket_on_data_sended_callback_t)(struct rebrick_socket *socket, void *callback_data,void *source);
 
 
 /**
@@ -34,7 +34,7 @@ typedef void (*rebrick_on_data_sended_callback_t)(struct rebrick_socket *socket,
  * @param after_sendata,  this parameters will be sended to this function
  * @param status, result of operation, if status=0 SUCCESS otherwise ERROR
  */
-typedef void (*rebrick_on_error_occured_callback_t)(struct rebrick_socket *socket, void *callback_data,int error);
+typedef void (*rebrick_socket_on_error_occured_callback_t)(struct rebrick_socket *socket, void *callback_data,int error);
 
 
 
@@ -72,9 +72,9 @@ memcpy(newptr,(x),sizeof(rebrick_clean_func_t));\
 #define base_callbacks() \
     base_object();  \
     protected_ void *callback_data;\
-    protected_ rebrick_on_data_received_callback_t on_data_received;\
-    protected_ rebrick_on_data_sended_callback_t on_data_sended;\
-    protected_ rebrick_on_error_occured_callback_t on_error_occured;\
+    protected_ rebrick_socket_on_data_received_callback_t on_data_received;\
+    protected_ rebrick_socket_on_data_sended_callback_t on_data_sended;\
+    protected_ rebrick_socket_on_error_occured_callback_t on_error_occured;\
 
 
 typedef struct base_socket_callbacks{
@@ -96,9 +96,9 @@ typedef struct base_socket_callbacks{
         uv_udp_t udp;\
     }handle;\
     public_ readonly_ rebrick_sockaddr_t bind_addr;\
-    protected_ rebrick_on_data_received_callback_t on_data_received;\
-    protected_ rebrick_on_data_sended_callback_t on_data_sended;\
-    protected_ rebrick_on_error_occured_callback_t on_error_occured;\
+    protected_ rebrick_socket_on_data_received_callback_t on_data_received;\
+    protected_ rebrick_socket_on_data_sended_callback_t on_data_sended;\
+    protected_ rebrick_socket_on_error_occured_callback_t on_error_occured;\
     protected_ void *callback_data;
 
 public_ typedef struct rebrick_socket{
