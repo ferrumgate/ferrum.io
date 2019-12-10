@@ -7,12 +7,8 @@
 
 extern int test_rebrick_util();
 extern int test_rebrick_resolve();
-extern int test_rebrick_config();
-extern int test_rebrick_metrics();
-extern int test_rebrick_context();
+extern int test_rebrick_timer();
 extern int test_rebrick_udpsocket();
-extern int test_rebrick_backend_group();
-extern int test_rebrick_backend();
 extern int test_rebrick_tcpsocket();
 extern int test_rebrick_buffer();
 extern int test_rebrick_buffers();
@@ -128,19 +124,16 @@ int main()
 
   if(test_rebrick_resolve())
   exit(1);
-  if (test_rebrick_config())
-    exit(1);
 
-  if (test_rebrick_metrics())
-    exit(1);
-  if (test_rebrick_context())
-    exit(1);
 
   if (test_rebrick_buffer())
     exit(1);
 
   if (test_rebrick_buffers())
     exit(1);
+
+  if(test_rebrick_timer())
+  exit(1);
 
    if (test_rebrick_udpsocket())
     exit(1);
@@ -156,6 +149,9 @@ int main()
    if (test_rebrick_http())
     exit(1);*/
 
+
+  if(test_rebrick_timer())
+  exit(1);
   if (test_rebrick_httpsocket())
    exit(1);
 

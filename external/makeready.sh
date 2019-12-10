@@ -56,7 +56,7 @@ cd $TMPFOLDER
 tar xvf nghttp2-1.39.2.tar.gz
 cd nghttp2-1.39.2
 ./configure --enable-lib-only --prefix=$DESTFOLDER
-make
+makeco
 make install
 
 

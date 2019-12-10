@@ -5,6 +5,7 @@
 #include "./common/rebrick_resolve.h"
 #include "./common/rebrick_util.h"
 #include "./common/rebrick_tls.h"
+#include "./common/rebrick_timer.h"
 #include "./socket/rebrick_socket.h"
 #include "./socket/rebrick_tcpsocket.h"
 #include "./socket/rebrick_udpsocket.h"
