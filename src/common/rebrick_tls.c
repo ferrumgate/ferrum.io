@@ -121,6 +121,7 @@ static uv_check_t check;
 
 extern int32_t rebrick_tlssocket_change_context(struct rebrick_tlssocket *socket, const char *servername);
 
+
 static int tls_servername_cb(SSL *s, int *ad, void *arg)
 {
     unused(s);
@@ -148,10 +149,12 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg)
             {
 
                 struct rebrick_tlssocket *tlssocket = cast(el->ref, struct rebrick_tlssocket *);
+                //change context and call received servername
                 result = rebrick_tlssocket_change_context(tlssocket, servername);
                 if (result < 0)
                     return SSL_TLSEXT_ERR_ALERT_FATAL;
-                //TODO burada tls server name got methodu çağrılmalı
+
+
             }
 
 

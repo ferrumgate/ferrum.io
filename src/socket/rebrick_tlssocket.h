@@ -26,6 +26,9 @@ protected_ typedef struct pending_data{
 }pending_data_t;
 
 
+typedef void (*rebrick_on_sni_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
+
+
 
 #define base_ssl_socket()   \
         base_tcp_socket(); \
@@ -36,6 +39,7 @@ protected_ typedef struct pending_data{
         private_ rebrick_on_data_received_callback_t override_on_data_received; \
         private_ rebrick_on_data_sended_callback_t   override_on_data_sended; \
         private_ rebrick_on_error_occured_callback_t override_on_error_occured;\
+        private_ rebrick_on_sni_received_callback_t override_on_sni_received;\
         private_ void *override_callback_data; \
         private_ pending_data_t *pending_write_list; \
         private_ int32_t called_override_after_connection_accepted; \
@@ -57,7 +61,9 @@ public_ typedef struct rebrick_tlssocket
 #define cast_to_tlssocket(x) cast(x, rebrick_tlssocket_t *)
 
 #define base_tlssocket_callbacks() \
-    base_tcpsocket_callbacks();
+    base_tcpsocket_callbacks();\
+    protected_ rebrick_on_sni_received_callback_t on_sni_received;
+
 
 typedef struct rebrick_tlssocket_callbacks{
     base_tlssocket_callbacks();

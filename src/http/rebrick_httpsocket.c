@@ -341,7 +341,7 @@ static int rebrick_tls_alpn_select_callback(unsigned char **out,unsigned char *o
     unused(inlen);
 
     int rv;
-    rv=SSL_select_next_proto(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
+    rv=SSL_select_next_proto(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const unsigned char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
      //rv = copied_from_nghttp2_select_next_protocol(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
 
     if (rv == -1) {

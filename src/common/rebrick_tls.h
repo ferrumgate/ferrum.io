@@ -73,13 +73,14 @@ typedef struct rebrick_tls_context{
     private_ const char ca_verify_path[REBRICK_CA_VERIFY_PATH_MAX_LEN];
     public_ readonly_ char cert_file[REBRICK_TLS_FILE_MAX_LEN];
     public_ readonly_ char prv_file[REBRICK_TLS_FILE_MAX_LEN];
-    public_ readonly_ uint8_t alpn_protos[REBRICK_TLS_ALPN_MAX_LEN];
-    public_ readonly_ size_t alpn_protos_len;
 
 
 
      //this field is for list
     internal_ struct rebrick_tls_ssl *sni_pending_list;
+
+    public_ readonly_ uint8_t alpn_protos[REBRICK_TLS_ALPN_MAX_LEN];
+    public_ readonly_ size_t alpn_protos_len;
 
     internal_ rebrick_tls_alpn_select_callback_t alpn_select_callback;
     internal_ rebrick_tls_npn_select_callback_t npn_select_callback;

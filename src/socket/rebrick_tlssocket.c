@@ -389,6 +389,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
     tlsclient->override_on_data_sended = tlsserver->override_on_data_sended;
     tlsclient->override_on_error_occured = tlsserver->override_on_error_occured;
     tlsclient->override_callback_data = tlsserver->override_callback_data;
+    tlsclient->override_on_sni_received=tlsserver->override_on_sni_received;
     //tlsclient için callback_data kendisi geçilir.
     tlsclient->callback_data = tlsclient;
 
@@ -652,6 +653,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,const char *sni_pa
     tlssocket->override_on_data_sended = callbacks?callbacks->on_data_sended:NULL;
     tlssocket->override_callback_data = callbacks?callbacks->callback_data:NULL;
     tlssocket->override_on_error_occured = callbacks?callbacks->on_error_occured:NULL;
+    tlssocket->override_on_sni_received=callbacks?callbacks->on_sni_received:NULL;
     tlssocket->tls_context = tls_context;
 
 
@@ -852,5 +854,8 @@ int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char
     strncpy(socket->sni, servername, REBRICK_TLS_SNI_MAX_LEN - 1);
     socket->tls_context = context;
     SSL_set_SSL_CTX(socket->tls->ssl, context->tls_ctx);
+    ///call sni callback
+    if(socket->override_on_sni_received)
+    socket->override_on_sni_received(cast_to_socket(socket),socket->override_callback_data,servername);
     return REBRICK_SUCCESS;
 }
