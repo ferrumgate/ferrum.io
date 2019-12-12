@@ -9,7 +9,13 @@ typedef int32_t (*rebrick_timer_callback_t)(void *data);
 
 typedef struct rebrick_timer{
     base_object();
-    void *private_data;
+    private_  rebrick_timer_callback_t callback;
+    private_ void *callback_data;
+    public_ readonly_ int32_t milisecond;
+
+    private_ uv_timer_t timer;
+    public_ readonly_ int32_t is_started;
+
 }rebrick_timer_t;
 
 int32_t rebrick_timer_new(rebrick_timer_t **timer,rebrick_timer_callback_t callback,void *data,uint32_t milisecond,int32_t start_immediatly);

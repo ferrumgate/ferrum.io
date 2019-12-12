@@ -151,4 +151,24 @@ typedef union rebrick_sockaddr {
     struct sockaddr_in6 v6;
 }rebrick_sockaddr_t;
 
+
+//////////////// rebrick clean func //////////////////////
+
+typedef void (*rebrick_clean_func_ptr_t)(void *ptr);
+
+typedef struct rebrick_clean_func{
+    base_object();
+    //free function
+    public_ rebrick_clean_func_ptr_t func;
+    //ptr for free
+    public_ void *ptr;
+    //any data for you
+    union{
+        int32_t source;
+        void *ptr;
+    }anydata;
+
+
+}rebrick_clean_func_t;
+
 #endif

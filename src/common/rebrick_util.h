@@ -95,6 +95,8 @@ int64_t rebrick_util_micro_time();
 //random
 int rebrick_util_rand();
 
+uint16_t roksit_util_rand16();
+
 //gets current time
 char *rebrick_util_time_r(char * str);
 

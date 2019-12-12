@@ -71,7 +71,7 @@ int32_t rebrick_buffer_add(rebrick_buffer_t *buffer, uint8_t *buf, size_t len)
 
     if (buffer->malloc_len - buffer->len < len)
     {
-        m_len = (((buffer->malloc_len-buffer->len-len) + malloc_size - 1) / malloc_size) * malloc_size+buffer->malloc_len;
+        m_len = ((abs(cast(buffer->malloc_len,int32_t)-cast(buffer->len,int32_t)-cast(len,int32_t)) + malloc_size - 1) / malloc_size) * malloc_size+buffer->malloc_len;
 
         buffer->buf = realloc(buffer->buf, m_len);
         if_is_null_then_die(buffer->buf, "malloc problem\n");

@@ -38,24 +38,7 @@ typedef void (*rebrick_socket_on_error_occured_callback_t)(struct rebrick_socket
 
 
 
-//////////////// rebrick clean func //////////////////////
 
-typedef void (*rebrick_clean_func_ptr_t)(void *ptr);
-
-typedef struct rebrick_clean_func{
-    base_object();
-    //free function
-    public_ rebrick_clean_func_ptr_t func;
-    //ptr for free
-    public_ void *ptr;
-    //any data for you
-    union{
-        int32_t source;
-        void *ptr;
-    }anydata;
-
-
-}rebrick_clean_func_t;
 
 
 
