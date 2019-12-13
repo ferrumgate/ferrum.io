@@ -7,6 +7,7 @@
 
 extern int test_rebrick_util();
 extern int test_rebrick_resolve();
+extern int test_rebrick_filestream();
 extern int test_rebrick_timer();
 extern int test_rebrick_udpsocket();
 extern int test_rebrick_tcpsocket();
@@ -117,7 +118,7 @@ int main()
   //test_tcpecho_server();
   //test_tcpecho_client();
 
-if (test_rebrick_buffer())
+if (test_rebrick_filestream())
     exit(1);
 
   /*if (test_rebrick_util())
@@ -151,10 +152,10 @@ if (test_rebrick_buffer())
     exit(1);*/
 
 
-  if(test_rebrick_timer())
+  /*if(test_rebrick_timer())
   exit(1);
   if (test_rebrick_httpsocket())
-   exit(1);
+   exit(1);*/
 
  // if (test_rebrick_http2socket())
   //  exit(1);

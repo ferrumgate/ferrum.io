@@ -1,4 +1,4 @@
-#include "./framework/common/rebrick_timer.h"
+#include "./common/rebrick_timer.h"
 #include "cmocka.h"
 #include <unistd.h>
 
