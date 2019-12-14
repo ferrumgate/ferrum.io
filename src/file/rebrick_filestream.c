@@ -222,7 +222,9 @@ int32_t rebrick_filestream_read_all(rebrick_filestream_t *stream,rebrick_buffer_
 
     rebrick_buffer_t *bf=NULL;
     int64_t offset_calculated=offset;
-    char tmp[readlen?readlen:4096];
+    size_t len=readlen?readlen:4096;
+    char tmp[len];
+    stream->read_buf=uv_buf_init(tmp,len);
     while(1){
         result= uv_fs_read(uv_default_loop(), &stream->read_request, stream->open_request.result, &stream->read_buf, 1, offset_calculated, NULL);
         offset_calculated=-1;
@@ -240,6 +242,8 @@ int32_t rebrick_filestream_read_all(rebrick_filestream_t *stream,rebrick_buffer_
     }
 
     *buffer=bf;
+    if(bf)
     return bf->len;
+    return REBRICK_SUCCESS;
 
 }
