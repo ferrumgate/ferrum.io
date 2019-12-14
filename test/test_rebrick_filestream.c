@@ -53,13 +53,13 @@ static void filestream_sync_read(void **start)
     ///start from beginning
     char buffer[1024] = {0};
     result = rebrick_filestream_read(file, cast(buffer, uint8_t *), 1024, -1);
-    assert_true(result == 0);
+    assert_true(result == 11);
     assert_string_equal(buffer, "hello world");
 
     //start reading from 6 offset
     memset(buffer, 0, sizeof(buffer));
     result = rebrick_filestream_read(file, cast(buffer, uint8_t *), 1024, 6);
-    assert_true(result == 0);
+    assert_true(result ==5);
     assert_string_equal(buffer, "world");
     rebrick_filestream_destroy(file);
     loop(counter, 1000, TRUE);
@@ -81,21 +81,21 @@ static void filestream_sync_write(void **start)
     ///start from beginning
     const char *buffer = "hello world";
     result = rebrick_filestream_write(file, cast(buffer, uint8_t *), strlen(buffer), -1);
-    assert_true(result == 0);
+    assert_true(result == 11);
     result = rebrick_filestream_write(file, cast(buffer, uint8_t *), strlen(buffer), -1);
-    assert_true(result == 0);
+    assert_true(result == 11);
 
     char readbuffer[1024] = {0};
     result = rebrick_filestream_read(file, cast(readbuffer, u_int8_t *), sizeof(readbuffer), 0);
-    assert_true(result == 0);
+    assert_true(result == 22);
     assert_string_equal(readbuffer, "hello worldhello world");
 
     const char *buffer2 = "hello";
     result = rebrick_filestream_write(file, cast(buffer2, uint8_t *), strlen(buffer2), 6);
-    assert_true(result == 0);
+    assert_true(result == 5);
 
     result = rebrick_filestream_read(file, cast(readbuffer, u_int8_t *), sizeof(readbuffer), 0);
-    assert_true(result == 0);
+    assert_true(result == 22);
     assert_string_equal(readbuffer, "hello hellohello world");
 
     rebrick_filestream_destroy(file);

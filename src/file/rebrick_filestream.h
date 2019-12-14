@@ -3,6 +3,7 @@
 
 #include "../common/rebrick_common.h"
 #include "../common/rebrick_log.h"
+#include "../common/rebrick_buffer.h"
 
 
 struct rebrick_filestream;
@@ -48,8 +49,9 @@ public_ typedef struct rebrick_filestream{
 #define cast_to_filestream(x)  cast(x,rebrick_filestream_t*)
 
 int32_t rebrick_filestream_new(rebrick_filestream_t **stream,const char *path,int32_t flag,int32_t mode,const rebrick_filestream_callbacks_t *callbacks);
-int32_t rebrick_filestream_read(rebrick_filestream_t *stream,uint8_t *buffer,size_t len,size_t offset);
-int32_t rebrick_filestream_write(rebrick_filestream_t *stream,uint8_t *buffer,size_t len,size_t offset);
+int32_t rebrick_filestream_read(rebrick_filestream_t *stream,uint8_t *buffer,size_t len,int64_t offset);
+int32_t rebrick_filestream_read_all(rebrick_filestream_t *stream,rebrick_buffer_t **buffer,size_t readlen, int64_t offset);
+int32_t rebrick_filestream_write(rebrick_filestream_t *stream,uint8_t *buffer,size_t len,int64_t offset);
 int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream);
 
 #endif

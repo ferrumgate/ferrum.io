@@ -92,7 +92,7 @@ void on_file_read(uv_fs_t *req)
     uv_fs_req_cleanup(&file->read_request);
 }
 
-int32_t rebrick_filestream_read(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, size_t offset)
+int32_t rebrick_filestream_read(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, int64_t offset)
 {
     char current_time_str[32] = {0};
     int32_t result;
@@ -106,8 +106,11 @@ int32_t rebrick_filestream_read(rebrick_filestream_t *stream,  uint8_t *buffer, 
         rebrick_log_error("file read failed %s with error %s\n", stream->path, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
-    if( !stream->on_read)
+    if( !stream->on_read){
     uv_fs_req_cleanup(&stream->read_request);
+    //sync function
+     return result;
+    }
     return REBRICK_SUCCESS;
 }
 
@@ -140,7 +143,7 @@ void on_file_write(uv_fs_t *req)
     uv_fs_req_cleanup(&file->write_request);
 }
 
-int32_t rebrick_filestream_write(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, size_t offset)
+int32_t rebrick_filestream_write(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, int64_t offset)
 {
     char current_time_str[32] = {0};
     int32_t result;
@@ -155,8 +158,11 @@ int32_t rebrick_filestream_write(rebrick_filestream_t *stream,  uint8_t *buffer,
         return REBRICK_ERR_UV + result;
     }
 
-    if( !stream->on_write)
+    if( !stream->on_write){
     uv_fs_req_cleanup(&stream->write_request);
+    //sync function
+    return result;
+    }
     return REBRICK_SUCCESS;
 }
 
@@ -204,4 +210,36 @@ int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream)
         }
     }
     return REBRICK_SUCCESS;
+}
+
+
+int32_t rebrick_filestream_read_all(rebrick_filestream_t *stream,rebrick_buffer_t **buffer,size_t readlen, int64_t offset){
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if (!stream || !buffer)
+        return REBRICK_ERR_BAD_ARGUMENT;
+
+    rebrick_buffer_t *bf=NULL;
+    int64_t offset_calculated=offset;
+    char tmp[readlen?readlen:4096];
+    while(1){
+        result= uv_fs_read(uv_default_loop(), &stream->read_request, stream->open_request.result, &stream->read_buf, 1, offset_calculated, NULL);
+        offset_calculated=-1;
+        if(result<0){
+            if(!bf)
+            rebrick_buffer_destroy(bf);
+            return result;
+        }
+        if(result==0)
+        break;
+         if(bf)
+        rebrick_buffer_add(bf,cast(tmp,uint8_t*),cast(result,size_t));
+        else
+        rebrick_buffer_new(&bf,cast(tmp,uint8_t*),cast(result,size_t),readlen*2);
+    }
+
+    *buffer=bf;
+    return bf->len;
+
 }
