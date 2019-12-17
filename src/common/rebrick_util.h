@@ -129,7 +129,7 @@ int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock,char buf
  * @param port
  * @return int32_t
  */
-int32_t rebrick_util_to_socket(rebrick_sockaddr_t *sock, const char *ip,const char*port);
+int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip,const char*port);
 
 int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock);
 

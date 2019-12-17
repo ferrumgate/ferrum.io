@@ -69,17 +69,17 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     const char *bind_ip = "0.0.0.0";
     const char *bind_port = "9090";
     rebrick_sockaddr_t bind;
-    rebrick_util_to_socket(&bind, bind_ip, bind_port);
+    rebrick_util_to_rebrick_sockaddr(&bind, bind_ip, bind_port);
 
     const char *localhost_ip = "127.0.0.1";
 
     rebrick_sockaddr_t localhost;
-    rebrick_util_to_socket(&localhost, localhost_ip, bind_port);
+    rebrick_util_to_rebrick_sockaddr(&localhost, localhost_ip, bind_port);
 
     const char *dest_ip = "127.0.0.1";
     const char *dest_port = "9999";
     rebrick_sockaddr_t client;
-    rebrick_util_to_socket(&client, dest_ip, dest_port);
+    rebrick_util_to_rebrick_sockaddr(&client, dest_ip, dest_port);
     new2(rebrick_udpsocket_callbacks_t,callbacks);
     callbacks.callback_data=cast(testdata,void*);
     callbacks.on_data_received=on_server_received;
@@ -203,10 +203,10 @@ static void test_rebrick_udpsocket_check_memory(void **state)
     const char *dest_ip = "127.0.0.1";
     const char *dest_port = "5555";
     rebrick_sockaddr_t destination;
-    rebrick_util_to_socket(&destination, dest_ip, dest_port);
+    rebrick_util_to_rebrick_sockaddr(&destination, dest_ip, dest_port);
 
     rebrick_sockaddr_t bindaddr;
-    rebrick_util_to_socket(&bindaddr, "0.0.0.0", "0");
+    rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
     rebrick_udpsocket_t *dnsclient;
 
     new2(rebrick_udpsocket_callbacks_t,callbacks);
@@ -285,10 +285,10 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
     const char *dest_ip = "127.0.0.1";
     const char *dest_port = "5555";
     rebrick_sockaddr_t destination;
-    rebrick_util_to_socket(&destination, dest_ip, dest_port);
+    rebrick_util_to_rebrick_sockaddr(&destination, dest_ip, dest_port);
 
     rebrick_sockaddr_t bindaddr;
-    rebrick_util_to_socket(&bindaddr, "0.0.0.0", "0");
+    rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
     rebrick_udpsocket_t *dnsclient;
 
      new2(rebrick_udpsocket_callbacks_t,callbacks);
@@ -353,7 +353,7 @@ static void test_rebrick_udpsocket_check_memory3(void **state)
 
     unused(state);
     rebrick_sockaddr_t bindaddr;
-    rebrick_util_to_socket(&bindaddr, "0.0.0.0", "9595");
+    rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "9595");
     rebrick_udpsocket_t *dnsclient;
 
      new2(rebrick_udpsocket_callbacks_t,callbacks);

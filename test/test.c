@@ -26,7 +26,7 @@ extern int test_rebrick_http2socket();
    const char *ip="192.168.1.1";
    const char *port="8080";
    rebrick_sockaddr_t addr;
-   rebrick_util_to_socket(&addr,ip,port);
+   rebrick_util_to_rebrick_sockaddr(&addr,ip,port);
 
 
    udp_echo_send2("deneme",&addr.v4);
