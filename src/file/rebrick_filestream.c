@@ -7,6 +7,7 @@ static void on_file_open(uv_fs_t *req)
     //assert(req == &open_req);
     char current_time_str[32] = {0};
     rebrick_filestream_t *file = cast_to_filestream(req->data);
+    uv_fs_req_cleanup(req);
 
     if (req->result >= 0)
     {
@@ -24,7 +25,7 @@ static void on_file_open(uv_fs_t *req)
             file->on_error(file, file->callback_data, req->result + REBRICK_ERR_UV);
         }
     }
-    uv_fs_req_cleanup(&file->open_request);
+
 
 }
 
@@ -69,6 +70,8 @@ void on_file_read(uv_fs_t *req)
     char current_time_str[32] = {0};
     rebrick_filestream_t *file = cast_to_filestream(req->data);
 
+    uv_fs_req_cleanup(req);
+
     if (req->result < 0)
     {
         rebrick_log_error("file read error %s with error %s\n", req->path, uv_strerror(req->result));
@@ -88,8 +91,7 @@ void on_file_read(uv_fs_t *req)
         if (file  && file->on_read)
             file->on_read(file, file->callback_data,cast_to_uint8ptr(file->read_buf.base), req->result);
     }
-    if(file)
-    uv_fs_req_cleanup(&file->read_request);
+
 }
 
 int32_t rebrick_filestream_read(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, int64_t offset)
@@ -120,6 +122,8 @@ void on_file_write(uv_fs_t *req)
     char current_time_str[32] = {0};
     rebrick_filestream_t *file = cast_to_filestream(req->data);
 
+    uv_fs_req_cleanup(req);
+
     if (req->result < 0)
     {
         rebrick_log_error("file write error %s with error %s\n", req->path, uv_strerror(req->result));
@@ -139,8 +143,7 @@ void on_file_write(uv_fs_t *req)
         if (file && file->on_write)
             file->on_write(file, file->callback_data,cast_to_uint8ptr(file->write_buf.base), req->result);
     }
-    if(file)
-    uv_fs_req_cleanup(&file->write_request);
+
 }
 
 int32_t rebrick_filestream_write(rebrick_filestream_t *stream,  uint8_t *buffer, size_t len, int64_t offset)
@@ -174,7 +177,7 @@ static void on_file_close(uv_fs_t *req)
         if (stream->on_close)
             stream->on_close(stream, stream->callback_data);
 
-        uv_fs_req_cleanup(&stream->close_request);
+        uv_fs_req_cleanup(req);
         free(stream);
     }
 }
