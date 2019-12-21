@@ -106,7 +106,7 @@
 
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
-#define cast(x, y) ((y)x)
+#define cast(x, y) ((y)(x))
 
 #define unused(x) (void)(x)
 #define if_is_null_then_die(x,y) if(!x){ \

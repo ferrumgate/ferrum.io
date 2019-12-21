@@ -207,3 +207,33 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket)
     }
     return REBRICK_SUCCESS;
 }
+
+
+int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket,int32_t *value){
+  char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if (socket){
+        result=uv_send_buffer_size(cast(&socket->handle.udp,uv_handle_t*),value);
+        if(result<0){
+            rebrick_log_error("send buffer size failed with error:%d %s\n",result,uv_strerror(result));
+            return REBRICK_ERR_UV+result;
+        }
+
+    }
+    return REBRICK_SUCCESS;
+}
+int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket,int32_t *value){
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if (socket){
+        result=uv_recv_buffer_size(cast(&socket->handle.udp,uv_handle_t*),value);
+        if(result<0){
+            rebrick_log_error("recv buffer size failed with error:%d %s\n",result,uv_strerror(result));
+            return REBRICK_ERR_UV+result;
+        }
+
+    }
+    return REBRICK_SUCCESS;
+}
