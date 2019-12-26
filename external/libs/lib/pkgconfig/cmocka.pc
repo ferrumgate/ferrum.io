@@ -1,5 +1,5 @@
 Name: cmocka
 Description: The cmocka unit testing library
 Version: 1.1.5
-Libs: -L/home/hframe/Desktop/roksit/kube/kube_code/dns.router/external/libs/lib -lcmocka
-Cflags: -I/home/hframe/Desktop/roksit/kube/kube_code/dns.router/external/libs/include
+Libs: -L/work/projects/rebrick.io/external/libs/lib -lcmocka
+Cflags: -I/work/projects/rebrick.io/external/libs/include

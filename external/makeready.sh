@@ -3,8 +3,8 @@
 set -e
 TMPFOLDER=/tmp/uv
 CURRENTFOLDER=$(pwd)
-#rm -rf $TMPFOLDER
-#mkdir -p $TMPFOLDER
+rm -rf $TMPFOLDER
+mkdir -p $TMPFOLDER
 
 ######## install libuv ###############
 cp libuv-v1.27.0.tar.gz $TMPFOLDER
@@ -16,7 +16,7 @@ cd libuv-v1.27.0
 sh autogen.sh
 ./configure --prefix=$DESTFOLDER
 make
-make check
+#make check
 make install
 
 
@@ -26,7 +26,7 @@ cp cmocka-1.1.5.tar.xz $TMPFOLDER
 cd $TMPFOLDER
 tar xvf cmocka-1.1.5.tar.xz
 cd cmocka-1.1.5
-rm CMakeCache.txt
+rm -rf CMakeCache.txt
 mkdir -p build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=$DESTFOLDER -DCMAKE_BUILD_TYPE=Debug ../
@@ -56,7 +56,7 @@ cd $TMPFOLDER
 tar xvf nghttp2-1.39.2.tar.gz
 cd nghttp2-1.39.2
 ./configure --enable-lib-only --prefix=$DESTFOLDER
-makeco
+make 
 make install
 
 

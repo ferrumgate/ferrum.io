@@ -1,4 +1,4 @@
-prefix=/home/hframe/Desktop/roksit/kube/kube_code/dns.router/external/libs
+prefix=/work/projects/rebrick.io/external/libs
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
