@@ -7,12 +7,12 @@ rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
 
 ######## install libuv ###############
-cp libuv-v1.27.0.tar.gz $TMPFOLDER
+cp libuv-1.38.1.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 echo $DESTFOLDER
 cd $TMPFOLDER
-tar zxvf libuv-v1.27.0.tar.gz
-cd libuv-v1.27.0
+tar zxvf libuv-1.38.1.tar.gz
+cd libuv-1.38.1
 sh autogen.sh
 ./configure --prefix=$DESTFOLDER
 make
@@ -35,12 +35,12 @@ make install
 
 ######## install openssl #################
 cd $CURRENTFOLDER
-cp openssl-1.1.1c.tar.gz $TMPFOLDER
+cp openssl-1.1.1g.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
-tar xvf openssl-1.1.1c.tar.gz
-cd openssl-1.1.1c
+tar xvf openssl-1.1.1g.tar.gz
+cd openssl-1.1.1g
 ./config --prefix=$DESTFOLDER shared zlib
 make depend
 make all
@@ -49,12 +49,12 @@ make install_sw
 
 ###### install nghttp2  ################
 cd $CURRENTFOLDER
-cp nghttp2-1.39.2.tar.gz /tmp/uv
+cp nghttp2-1.41.0.tar.gz /tmp/uv
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
-tar xvf nghttp2-1.39.2.tar.gz
-cd nghttp2-1.39.2
+tar xvf nghttp2-1.41.0.tar.gz
+cd nghttp2-1.41.0
 ./configure --enable-lib-only --prefix=$DESTFOLDER
 make 
 make install

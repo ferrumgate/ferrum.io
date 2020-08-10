@@ -79,8 +79,13 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     {
         if (nread <= 0) //error or closed
         {
+            if(nread==UV_EOF)
+            {   
+                if(socket->on_closed)
+                socket->on_closed(cast_to_socket(socket),socket->callback_data);
+            }else
             if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_IO_CLOSED);
+                socket->on_error_occured(cast_to_socket(socket), socket->callback_data,REBRICK_ERR_UV + nread);
         }
         else if (socket->on_data_received)
         {

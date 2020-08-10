@@ -198,7 +198,7 @@ static void test_rebrick_udpsocket_check_memory(void **state)
     int32_t result = rebrick_util_file_read_allbytes("./test/testdata/testpacket1.packet", &testdata, &datalen);
     if (result)
         result = rebrick_util_file_read_allbytes("./testdata/testpacket1.packet", &testdata, &datalen);
-    assert_int_equal(datalen, 48);
+    assert_int_equal(datalen, 37);
 
     const char *dest_ip = "127.0.0.1";
     const char *dest_port = "5555";
@@ -280,7 +280,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
     int32_t result = rebrick_util_file_read_allbytes("./test/testdata/testpacket1.packet", &testdata, &datalen);
     if (result)
         result = rebrick_util_file_read_allbytes("./testdata/testpacket1.packet", &testdata, &datalen);
-    assert_int_equal(datalen, 48);
+    assert_int_equal(datalen, 37);
 
     const char *dest_ip = "127.0.0.1";
     const char *dest_port = "5555";

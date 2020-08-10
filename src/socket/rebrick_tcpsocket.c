@@ -77,8 +77,13 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
 
     if (nread <= 0)
     {
+        if(nread==UV_EOF)
+        {   
+            if(socket->on_closed)
+            socket->on_closed(cast_to_socket(socket),socket->callback_data);
+        }else
         if (socket->on_error_occured)
-            socket->on_error_occured(cast_to_socket(socket), NULL, REBRICK_ERR_IO_CLOSED);
+            socket->on_error_occured(cast_to_socket(socket), socket->callback_data,REBRICK_ERR_UV + nread);
     }
     else if (socket->on_data_received)
     {
@@ -203,6 +208,7 @@ static void on_connection(uv_stream_t *server, int status)
     client->on_data_received = serversocket->on_data_received;
     client->on_data_sended = serversocket->on_data_sended;
     client->callback_data = serversocket->callback_data;
+    client->on_error_occured=serversocket->on_error_occured;
     client->parent_socket = serversocket;
 
     client->loop = serversocket->loop;

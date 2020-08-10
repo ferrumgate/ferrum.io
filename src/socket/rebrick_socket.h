@@ -31,13 +31,13 @@ typedef void (*rebrick_socket_on_data_sended_callback_t)(struct rebrick_socket *
  * @brief after error this function is called
  * @param socket which socket used
  * @param callback_data,  this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
- * @param after_sendata,  this parameters will be sended to this function
- * @param status, result of operation, if status=0 SUCCESS otherwise ERROR
+ * @param error, result of operation, if status=0 SUCCESS otherwise ERROR
  */
+//TODO write documentation
 typedef void (*rebrick_socket_on_error_occured_callback_t)(struct rebrick_socket *socket, void *callback_data,int error);
 
 
-
+typedef void (*rebrick_socket_on_closed_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
 
 
@@ -58,6 +58,7 @@ memcpy(newptr,(x),sizeof(rebrick_clean_func_t));\
     protected_ rebrick_socket_on_data_received_callback_t on_data_received;\
     protected_ rebrick_socket_on_data_sended_callback_t on_data_sended;\
     protected_ rebrick_socket_on_error_occured_callback_t on_error_occured;\
+    protected_ rebrick_socket_on_closed_callback_t on_closed;\
 
 
 typedef struct base_socket_callbacks{
@@ -82,6 +83,7 @@ typedef struct base_socket_callbacks{
     protected_ rebrick_socket_on_data_received_callback_t on_data_received;\
     protected_ rebrick_socket_on_data_sended_callback_t on_data_sended;\
     protected_ rebrick_socket_on_error_occured_callback_t on_error_occured;\
+    protected_ rebrick_socket_on_closed_callback_t on_closed;\
     protected_ void *callback_data;
 
 public_ typedef struct rebrick_socket{

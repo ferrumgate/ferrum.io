@@ -133,10 +133,12 @@ void on_file_write(uv_fs_t *req)
     else if (req->result == 0)
     {
         rebrick_log_info("file close %s \n", req->path);
-        if (file && file->on_error)
+        /* if (file && file->on_error)
         {
             file->on_error(file,file->callback_data,REBRICK_ERR_IO_CLOSED);
-        }
+        } */
+        if(file && file->on_close)
+        file->on_close(file,file->callback_data);
     }
     else if (req->result > 0)
     {
