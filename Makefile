@@ -66,7 +66,7 @@ testrunvalgrind: test
 
 clean:
 	find ./$(SRC) -name "*.o" -type f -delete
-	find ./$(TEST) -name "*.o" -type f -delete
+	find ./$(TEST) -name "*.o" -type f -delete -not -path ./$(TEST)/docker_bind
 	rm -rf $(SRC)/librebrick.a
 	rm -rf $(SRC)/librebrick.so*
 	rm -rf $(TEST)/test

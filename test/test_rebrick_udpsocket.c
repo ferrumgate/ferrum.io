@@ -32,6 +32,11 @@ static int teardown(void **state)
 static int32_t flag = 0;
 static char read_buffer[65536] = {'\0'};
 static const char *testdata = "merhaba";
+static int32_t closed = 0;
+static void on_closed(rebrick_socket_t *socket, void *data)
+{
+    closed = 1;
+}
 
 static void on_error_occured(rebrick_socket_t *socket, void *data, int error)
 {
@@ -112,7 +117,6 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     rebrick_clean_func_t clean = {};
     result = rebrick_udpsocket_send(server, &client, cast(reply, uint8_t *), strlen(reply) + 1, clean);
     assert_int_equal(result, 0);
-    // uv_run(uv_default_loop(),UV_RUN_NOWAIT);
 
     //check for received data
     max_check = 10;
@@ -221,31 +225,19 @@ static void test_rebrick_udpsocket_check_memory(void **state)
         received_count = 0;
         rebrick_clean_func_t clean = {};
         rebrick_udpsocket_send(dnsclient, &destination, cast(testdata, uint8_t *), datalen, clean);
-        int counter = 1000;
-        while (counter-- && !sended_count)
-        {
-            usleep(100);
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        }
+        int counter = 10000;
+        loop(counter, 10000, !sended_count);
+
         assert_int_equal(sended_count, 1);
         //data sended
 
-        counter = 1000;
-        while (counter-- && !received_count)
-        {
+        counter = 10000;
+        loop(counter, 10000, !received_count);
 
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-            usleep(1000);
-        }
         assert_int_equal(received_count, 1);
         rebrick_udpsocket_destroy(dnsclient);
-        counter = 100;
-        while (counter)
-        {
-            usleep(100);
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-            counter--;
-        }
+        counter = 1000;
+        loop(counter, 1000, FALSE);
     }
     free(testdata);
 }
@@ -305,31 +297,18 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
 
         int counter = 10000;
         loop(counter, 10000, !sended_count);
-        /* while (counter-- && !sended_count)
-        {
-            usleep(100);
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        } */
+
         assert_int_equal(sended_count, 1);
         //data sended
 
         counter = 10000;
         loop(counter, 10000, !received_count);
-        /* while (counter-- && !received_count)
-        {
-            usleep(1000);
-            uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        } */
+
         assert_true(received_count > 0);
     }
     rebrick_udpsocket_destroy(dnsclient);
     int32_t counter = 100;
-    while (counter)
-    {
-        usleep(1000);
-        uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        counter--;
-    }
+    loop(counter, 100, FALSE);
     free(testdata);
 }
 

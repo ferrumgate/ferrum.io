@@ -136,10 +136,10 @@ int main()
   if (test_rebrick_timer())
     exit(1);
 
-  /*   if (test_rebrick_udpsocket())
+  if (test_rebrick_udpsocket())
     exit(1);
 
-  if (test_rebrick_tcpsocket())
+  /*if (test_rebrick_tcpsocket())
     exit(1);
 
   if (test_rebrick_tls())

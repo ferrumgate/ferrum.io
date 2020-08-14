@@ -57,7 +57,7 @@ static void resolve_google_com_A(void **start)
     int32_t counter;
     last_error = 0;
     resolved = FALSE;
-    loop(counter, 1000, !resolved);
+    loop(counter, 10000, !resolved);
     assert_int_equal(resolved, TRUE);
     assert_int_equal(last_error, 0);
     assert_int_equal(last_resolved_addr.v4.sin_family, AF_INET);
@@ -71,7 +71,7 @@ static void resolve_google_com_AAAA(void **start)
     int32_t counter;
     last_error = 0;
     resolved = FALSE;
-    loop(counter, 1000, !resolved);
+    loop(counter, 10000, !resolved);
     assert_int_equal(resolved, TRUE);
     assert_int_equal(last_error, 0);
     assert_int_equal(last_resolved_addr.v6.sin6_family, AF_INET6);
@@ -85,7 +85,7 @@ static void resolve_google2_com_failed(void **start)
     int32_t counter;
     last_error = 0;
     resolved = FALSE;
-    loop(counter, 1000, !last_error);
+    loop(counter, 10000, !last_error);
     assert_int_equal(resolved, FALSE);
     assert_true(last_error < 0);
 }
