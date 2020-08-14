@@ -10,7 +10,7 @@ int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len, 
     if (!malloc_size)
         malloc_size = (size_t)1024;
 
-    rebrick_buffer_t *buf_tmp = new (rebrick_buffer_t);
+    rebrick_buffer_t *buf_tmp = create(rebrick_buffer_t);
     constructor(buf_tmp, rebrick_buffer_t);
     buf_tmp->malloc_size = malloc_size;
 
@@ -22,7 +22,7 @@ int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len, 
 
         buf_tmp->buf = realloc(buf_tmp->buf, m_len);
         if_is_null_then_die(buf_tmp->buf, "malloc problem\n");
-        memset(buf_tmp->buf+buf_tmp->len,0,malloc_size);
+        memset(buf_tmp->buf + buf_tmp->len, 0, malloc_size);
     }
     memcpy(buf_tmp->buf + buf_tmp->len, buf, len);
     buf_tmp->len += len;
@@ -71,11 +71,11 @@ int32_t rebrick_buffer_add(rebrick_buffer_t *buffer, uint8_t *buf, size_t len)
 
     if (buffer->malloc_len - buffer->len < len)
     {
-        m_len = ((abs(cast(buffer->malloc_len,int32_t)-cast(buffer->len,int32_t)-cast(len,int32_t)) + malloc_size - 1) / malloc_size) * malloc_size+buffer->malloc_len;
+        m_len = ((abs(cast(buffer->malloc_len, int32_t) - cast(buffer->len, int32_t) - cast(len, int32_t)) + malloc_size - 1) / malloc_size) * malloc_size + buffer->malloc_len;
 
         buffer->buf = realloc(buffer->buf, m_len);
         if_is_null_then_die(buffer->buf, "malloc problem\n");
-        m_len=m_len-buffer->malloc_len;
+        m_len = m_len - buffer->malloc_len;
     }
     memcpy(buffer->buf + buffer->len, buf, len);
     buffer->len += len;
@@ -108,13 +108,13 @@ int32_t rebrick_buffer_remove(rebrick_buffer_t *buffer, size_t start, size_t cou
     if (!count)
         return REBRICK_ERR_BAD_ARGUMENT;
     size_t size = buffer->len - count;
-    if(start+count<buffer->len)
-    memmove(buffer->buf + start, buffer->buf + start + count, size);
+    if (start + count < buffer->len)
+        memmove(buffer->buf + start, buffer->buf + start + count, size);
     buffer->len -= count;
 
     size_t total_len_must_be = ((buffer->len + (buffer->malloc_size - 1)) / buffer->malloc_size) * buffer->malloc_size;
-    if(total_len_must_be==0)
-    total_len_must_be=buffer->malloc_size;
+    if (total_len_must_be == 0)
+        total_len_must_be = buffer->malloc_size;
 
     if (total_len_must_be != buffer->malloc_len)
     {

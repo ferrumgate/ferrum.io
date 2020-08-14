@@ -5,28 +5,24 @@
 #include "rebrick_log.h"
 #include "../lib/utlist.h"
 
-
-
-
-public_ typedef struct rebrick_buffers_page{
+public_ typedef struct rebrick_buffers_page
+{
    base_object();
    public_ readonly_ uint8_t *buf;
    public_ readonly_ size_t len;
    public_ readonly_ struct rebrick_buffers_page *next;
    public_ readonly_ struct rebrick_buffers_page *prev;
-}rebrick_buffers_page_t;
+} rebrick_buffers_page_t;
 
-
-public_ typedef struct rebrick_buffers{
+public_ typedef struct rebrick_buffers
+{
    base_object();
    public_ readonly_ rebrick_buffers_page_t *head_page;
    public_ readonly_ size_t malloc_size;
 
-}rebrick_buffers_t;
+} rebrick_buffers_t;
 
-
-int32_t rebrick_buffers_new(rebrick_buffers_t **buffer,uint8_t *buf,size_t len,size_t mallocsize);
-
+int32_t rebrick_buffers_new(rebrick_buffers_t **buffer, uint8_t *buf, size_t len, size_t mallocsize);
 
 /**
  * @brief destroys a buffer
@@ -44,10 +40,7 @@ int32_t rebrick_buffers_destroy(rebrick_buffers_t *buffer);
  * @param len
  * @return int32_t
  */
-int32_t rebrick_buffers_add(rebrick_buffers_t *buffer,uint8_t *buf,size_t len);
-
-
-
+int32_t rebrick_buffers_add(rebrick_buffers_t *buffer, uint8_t *buf, size_t len);
 
 /**
  * @brief removes a part of buffer
@@ -57,8 +50,7 @@ int32_t rebrick_buffers_add(rebrick_buffers_t *buffer,uint8_t *buf,size_t len);
  * @param count
  * @return int32_t
  */
-int32_t rebrick_buffers_remove(rebrick_buffers_t *buffer,size_t start,size_t count);
-
+int32_t rebrick_buffers_remove(rebrick_buffers_t *buffer, size_t start, size_t count);
 
 /**
  * @brief returns total sizeof buffer
@@ -68,17 +60,6 @@ int32_t rebrick_buffers_remove(rebrick_buffers_t *buffer,size_t start,size_t cou
  */
 int32_t rebrick_buffers_total_len(rebrick_buffers_t *buffer);
 
-
-
-int32_t rebrick_buffers_to_array(const rebrick_buffers_t *buffer,uint8_t **array,size_t *arr_len);
-
-
-
-
-
-
-
-
-
+int32_t rebrick_buffers_to_array(const rebrick_buffers_t *buffer, uint8_t **array, size_t *arr_len);
 
 #endif

@@ -21,26 +21,22 @@ typedef void (*rebrick_tcpsocket_on_connection_accepted_callback_t)(struct rebri
  */
 typedef void (*rebrick_tcpsocket_on_connection_closed_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
-
 /**
  * @brief inheritance yapan sınıflar için kullanılacak child connection create method
  *
  */
-typedef struct rebrick_tcpsocket* (*rebrick_tcpsocket_create_client_t)();
+typedef struct rebrick_tcpsocket *(*rebrick_tcpsocket_create_client_t)();
 
-
-#define base_tcp_socket()  \
-    base_socket();\
-    private_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted;\
-    private_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;\
-    private_ struct rebrick_tcpsocket *clients; \
-    private_ struct rebrick_tcpsocket *prev; \
-    private_ struct rebrick_tcpsocket *next; \
-    public_ readonly_ struct rebrick_tcpsocket *parent_socket;\
-    public_ readonly_ int32_t is_server;\
+#define base_tcp_socket()                                                                \
+    base_socket();                                                                       \
+    private_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
+    private_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;     \
+    private_ struct rebrick_tcpsocket *clients;                                          \
+    private_ struct rebrick_tcpsocket *prev;                                             \
+    private_ struct rebrick_tcpsocket *next;                                             \
+    public_ readonly_ struct rebrick_tcpsocket *parent_socket;                           \
+    public_ readonly_ int32_t is_server;                                                 \
     private_ rebrick_tcpsocket_create_client_t create_client;
-
-
 
 public_ typedef struct rebrick_tcpsocket
 {
@@ -48,22 +44,19 @@ public_ typedef struct rebrick_tcpsocket
 
 } rebrick_tcpsocket_t;
 
-#define cast_to_tcpsocket(x)  cast((x),rebrick_tcpsocket_t*)
+#define cast_to_tcpsocket(x) cast((x), rebrick_tcpsocket_t *)
 
+#define base_tcpsocket_callbacks()                                                         \
+    base_callbacks();                                                                      \
+    protected_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
+    protected_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;
 
-#define base_tcpsocket_callbacks()  \
-        base_callbacks(); \
-        protected_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
-        protected_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;
-
-public_ typedef struct rebrick_tcpsocket_callbacks{
+public_ typedef struct rebrick_tcpsocket_callbacks
+{
     base_tcpsocket_callbacks();
-}rebrick_tcpsocket_callbacks_t;
+} rebrick_tcpsocket_callbacks_t;
 
-#define cast_to_tcpsocket_callbacks(x) cast((x),rebrick_tcpsocket_callbacks_t*)
-
-
-
+#define cast_to_tcpsocket_callbacks(x) cast((x), rebrick_tcpsocket_callbacks_t *)
 
 /**
  * @brief
@@ -76,8 +69,7 @@ public_ typedef struct rebrick_tcpsocket_callbacks{
  * @param on_data_sended
  * @return int32_t
  */
-int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t addr,int32_t backlog_or_isclient,const rebrick_tcpsocket_callbacks_t *callbacks);
-
+int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t addr, int32_t backlog_or_isclient, const rebrick_tcpsocket_callbacks_t *callbacks);
 
 /**
  * @brief
@@ -96,11 +88,11 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t a
  */
 
 int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr,
-                                    int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
-                                    const rebrick_tcpsocket_callbacks_t *callbacks);
-int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket,int enable);
-int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket,int enable,int delay);
-int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket,int enable);
+                               int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
+                               const rebrick_tcpsocket_callbacks_t *callbacks);
+int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable);
+int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int delay);
+int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int enable);
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
 int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);

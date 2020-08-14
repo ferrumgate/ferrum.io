@@ -5,8 +5,6 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-
-
 /**
     * @brief linked list structure and functions
     */
@@ -17,7 +15,8 @@ public_ typedef struct rebrick_linked_item
     public_ readonly_ size_t len;
     public_ readonly_ struct rebrick_linked_item *next;
     public_ readonly_ struct rebrick_linked_item *prev;
-    public_ union {
+    public_ union
+    {
         int val_int;
         short val_short;
         void *val_ext;
@@ -98,8 +97,7 @@ int rebrick_util_rand();
 uint16_t roksit_util_rand16();
 
 //gets current time
-char *rebrick_util_time_r(char * str);
-
+char *rebrick_util_time_r(char *str);
 
 /**
  * @brief converts @see rebrick_sockaddr_t to ip string
@@ -109,7 +107,7 @@ char *rebrick_util_time_r(char * str);
  * @param len
  * @return int32_t
  */
-int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock,char buffer[REBRICK_IP_STR_LEN]);
+int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_IP_STR_LEN]);
 
 /**
  * @brief converts @see rebrick_sockaddr_t to port string
@@ -119,7 +117,7 @@ int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock,char buffe
  * @param len
  * @return int32_t
  */
-int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock,char buffer[REBRICK_PORT_STR_LEN]);
+int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_PORT_STR_LEN]);
 
 /**
  * @brief convert a ip stirng and port to @rebrick_sockaddr_t
@@ -129,14 +127,11 @@ int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock,char buf
  * @param port
  * @return int32_t
  */
-int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip,const char*port);
+int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip, const char *port);
 
 int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock);
 
-
 int32_t rebrick_util_addr_to_rebrick_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock);
-
-
 
 /**
  * @brief convert a ip stirng and port to @rebrick_sockaddr_t
@@ -146,15 +141,14 @@ int32_t rebrick_util_addr_to_rebrick_addr(const struct sockaddr *addr, rebrick_s
  * @param port
  * @return int32_t
  */
-int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sockaddr_t *sock);
-
+int32_t rebrick_util_ip_port_to_addr(const char *ip, const char *port, rebrick_sockaddr_t *sock);
 
 /**
  * @brief compares ips
  *
  * @return 1 for equal otherwise 0
  */
-int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src,const rebrick_sockaddr_t *dst);
+int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src, const rebrick_sockaddr_t *dst);
 
 /**
  * @brief read all bytes from a file
@@ -164,21 +158,14 @@ int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src,const rebrick_sockad
  * @param len allocated size
  * @return int32_t
  */
-int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *len);
+int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t *len);
 
-
-
-#define string_to_lower(x) \
-    char * _fakeptr=x;\
-    while(*_fakeptr){ *_fakeptr=tolower(*_fakeptr);_fakeptr++; }
-
-
-
-
-
-
-
-
-
+#define string_to_lower(x)              \
+    char *_fakeptr = x;                 \
+    while (*_fakeptr)                   \
+    {                                   \
+        *_fakeptr = tolower(*_fakeptr); \
+        _fakeptr++;                     \
+    }
 
 #endif // MACRO

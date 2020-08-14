@@ -57,7 +57,7 @@ static void on_connection_accepted_callback(rebrick_socket_t *socket, void *call
     unused(addr);
     unused(client_handle);
     unused(socket);
-    client=cast_to_httpsocket(client_handle);
+    client = cast_to_httpsocket(client_handle);
 }
 static int32_t is_connection_closed = 0;
 static void on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
@@ -150,7 +150,7 @@ static void http_socket_as_client_create_get(void **start)
     rebrick_httpsocket_t *socket;
     is_connected = FALSE;
 
-    new2(rebrick_httpsocket_callbacks_t, callbacks);
+    create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_connection_accepted = on_connection_accepted_callback;
     callbacks.on_connection_closed = on_connection_closed_callback;
     callbacks.on_data_received = on_data_read_callback;
@@ -233,7 +233,7 @@ static void http_socket_as_client_create_post(void **start)
     rebrick_httpsocket_t *socket;
     is_connected = FALSE;
 
-    new2(rebrick_httpsocket_callbacks_t, callbacks);
+    create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_connection_accepted = on_connection_accepted_callback;
     callbacks.on_connection_closed = on_connection_closed_callback;
     callbacks.on_data_received = on_data_read_callback;
@@ -331,7 +331,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
     rebrick_httpsocket_t *socket;
     is_connected = FALSE;
 
-    new2(rebrick_httpsocket_callbacks_t, callbacks);
+    create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_connection_accepted = on_connection_accepted_callback;
     callbacks.on_connection_closed = on_connection_closed_callback;
     callbacks.on_data_received = on_data_read_callback;
@@ -432,10 +432,10 @@ static void http_socket_as_server_get(void **tls)
 
     rebrick_httpsocket_t *socket;
     is_connected = FALSE;
-    header_received=FALSE;
-    client=NULL;
+    header_received = FALSE;
+    client = NULL;
 
-    new2(rebrick_httpsocket_callbacks_t, callbacks);
+    create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_connection_accepted = on_connection_accepted_callback;
     callbacks.on_connection_closed = on_connection_closed_callback;
     callbacks.on_data_received = on_data_read_callback;
@@ -444,71 +444,69 @@ static void http_socket_as_server_get(void **tls)
     callbacks.on_http_body_received = on_body_read_callback;
     callbacks.on_http_header_received = on_http_header_received;
 
-    if(!*tls)
-    result = rebrick_httpsocket_new(&socket, NULL, NULL, destination,10 , &callbacks);
+    if (!*tls)
+        result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 10, &callbacks);
     else
-    result = rebrick_httpsocket_new(&socket, NULL, context_hamzakilic_com, destination, 10, &callbacks);
+        result = rebrick_httpsocket_new(&socket, NULL, context_hamzakilic_com, destination, 10, &callbacks);
 
-    if(!*tls)
-    printf("for test curl -v http://localhost:9090\n");
+    if (!*tls)
+        printf("for test curl -v http://localhost:9090\n");
     else
-    printf("for test curl -v --insecure https://localhost:9092\n");
+        printf("for test curl -v --insecure https://localhost:9092\n");
 
     assert_int_equal(result, REBRICK_SUCCESS);
 
     loop(counter, 100000, !is_connected);
 
-    loop(counter,1000,!header_received);
-    if(header_received && client){
+    loop(counter, 1000, !header_received);
+    if (header_received && client)
+    {
         printf("header received\n");
 
-    char temp[1024];
-    //body buffer
-    const char *body = "{\"hello\":\"world\"}";
-    rebrick_buffer_t *bodybuffer;
-    result = rebrick_buffer_new(&bodybuffer, cast_to_uint8ptr(body), strlen(body), 64);
-    assert_int_equal(result, REBRICK_SUCCESS);
+        char temp[1024];
+        //body buffer
+        const char *body = "{\"hello\":\"world\"}";
+        rebrick_buffer_t *bodybuffer;
+        result = rebrick_buffer_new(&bodybuffer, cast_to_uint8ptr(body), strlen(body), 64);
+        assert_int_equal(result, REBRICK_SUCCESS);
 
-    rebrick_http_header_t *header;
-    result = rebrick_http_header_new3(&header, 200, 1, 1);
-    assert_int_equal(result, REBRICK_SUCCESS);
-    rebrick_http_header_add_header(header, "content-type", "text/plain");
-    sprintf(temp, "%ld", bodybuffer->len);
-    rebrick_http_header_add_header(header, "content-length", temp);
+        rebrick_http_header_t *header;
+        result = rebrick_http_header_new3(&header, 200, 1, 1);
+        assert_int_equal(result, REBRICK_SUCCESS);
+        rebrick_http_header_add_header(header, "content-type", "text/plain");
+        sprintf(temp, "%ld", bodybuffer->len);
+        rebrick_http_header_add_header(header, "content-length", temp);
 
+        //header buffer
 
-    //header buffer
+        sended = FALSE;
+        header_received = FALSE;
+        is_bodyreaded = FALSE;
 
-    sended = FALSE;
-    header_received = FALSE;
-    is_bodyreaded = FALSE;
+        int32_t stream_id = 0;
+        result = rebrick_httpsocket_send_header(client, &stream_id, 0, header);
+        assert_int_equal(result, REBRICK_SUCCESS);
+        loop(counter, 1000, (!sended));
+        assert_int_equal(sended, TRUE);
 
-    int32_t stream_id = 0;
-    result = rebrick_httpsocket_send_header(client, &stream_id, 0, header);
-    assert_int_equal(result, REBRICK_SUCCESS);
-    loop(counter, 1000, (!sended));
-    assert_int_equal(sended, TRUE);
+        sended = FALSE;
 
-    sended = FALSE;
-
-    result = rebrick_httpsocket_send(client, bodybuffer->buf, bodybuffer->len, (rebrick_clean_func_t){.func=deletesendata,.ptr=bodybuffer});
-    loop(counter, 1000, (!sended));
-    assert_int_equal(sended, TRUE);
-
-
+        result = rebrick_httpsocket_send(client, bodybuffer->buf, bodybuffer->len, (rebrick_clean_func_t){.func = deletesendata, .ptr = bodybuffer});
+        loop(counter, 1000, (!sended));
+        assert_int_equal(sended, TRUE);
     }
 
     rebrick_httpsocket_destroy(socket);
     loop(counter, 100, TRUE);
 }
 
-static void http_socket_as_server_get_tls(void **start){
-     unused(start);
-        int32_t tmp=10;
-        int *val=&tmp;
-        http_socket_as_server_get(cast(&val,void**));
+static void http_socket_as_server_get_tls(void **start)
+{
+    unused(start);
+    int32_t tmp = 10;
+    int *val = &tmp;
+    http_socket_as_server_get(cast(&val, void **));
 }
-
 
 int test_rebrick_httpsocket(void)
 {
@@ -517,9 +515,8 @@ int test_rebrick_httpsocket(void)
         cmocka_unit_test(http_socket_as_client_create_get),
         cmocka_unit_test(http_socket_as_client_create_post),
         cmocka_unit_test(http_socket_as_client_create_with_tls_post),
-       // cmocka_unit_test(http_socket_as_server_get),
+        // cmocka_unit_test(http_socket_as_server_get),
         cmocka_unit_test(http_socket_as_server_get_tls),
-
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

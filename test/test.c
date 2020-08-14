@@ -118,15 +118,14 @@ int main()
   //test_tcpecho_server();
   //test_tcpecho_client();
 
-if (test_rebrick_filestream())
+  if (test_rebrick_filestream())
     exit(1);
 
   if (test_rebrick_util())
     exit(1);
 
-  if(test_rebrick_resolve())
-  exit(1);
-
+  if (test_rebrick_resolve())
+    exit(1);
 
   if (test_rebrick_buffer())
     exit(1);
@@ -134,10 +133,10 @@ if (test_rebrick_filestream())
   if (test_rebrick_buffers())
     exit(1);
 
-  if(test_rebrick_timer())
-  exit(1);
+  if (test_rebrick_timer())
+    exit(1);
 
-   if (test_rebrick_udpsocket())
+  /*   if (test_rebrick_udpsocket())
     exit(1);
 
   if (test_rebrick_tcpsocket())
@@ -157,12 +156,11 @@ if (test_rebrick_filestream())
    exit(1);
 
  if (test_rebrick_http2socket())
-    exit(1);
- /* extern void http2_socket_as_serverserver_create_get_server_push_streams(void **start);
+    exit(1); */
+  /* extern void http2_socket_as_serverserver_create_get_server_push_streams(void **start);
   http2_socket_as_serverserver_create_get_server_push_streams(NULL);
     kill(getpid(), SIGSEGV);
   getchar(); */
-
 
   return 0;
 }

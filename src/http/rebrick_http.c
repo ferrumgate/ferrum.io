@@ -1,13 +1,11 @@
 #include "rebrick_http.h"
 
-uint8_t REBRICK_HTTP2_ALPN_PROTO[4]={2,'h','2',0};
-uint8_t REBRICK_HTTP_ALPN_PROTO[]={8,'h','t','t','p','/','1','.','1',0};
-uint8_t REBRICK_HTTP_HTTP2_ALPN_PROTO[13]={2,'h','2',8,'h','t','t','p','/','1','.','1',0};
-
+uint8_t REBRICK_HTTP2_ALPN_PROTO[4] = {2, 'h', '2', 0};
+uint8_t REBRICK_HTTP_ALPN_PROTO[] = {8, 'h', 't', 't', 'p', '/', '1', '.', '1', 0};
+uint8_t REBRICK_HTTP_HTTP2_ALPN_PROTO[13] = {2, 'h', '2', 8, 'h', 't', 't', 'p', '/', '1', '.', '1', 0};
 
 int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue, const char *key, const char *value)
 {
-
 
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -114,7 +112,7 @@ int32_t rebrick_http_header_new(rebrick_http_header_t **header, const char *sche
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_header_t *tmp = new (rebrick_http_header_t);
+    rebrick_http_header_t *tmp = create(rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
     if (scheme)
     {
@@ -157,7 +155,7 @@ int32_t rebrick_http_header_new2(rebrick_http_header_t **header, const char *sch
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_header_t *tmp = new (rebrick_http_header_t);
+    rebrick_http_header_t *tmp = create(rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
     if (scheme)
     {
@@ -197,9 +195,9 @@ int32_t rebrick_http_header_new3(rebrick_http_header_t **header, int32_t status,
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_header_t *tmp = new (rebrick_http_header_t);
+    rebrick_http_header_t *tmp = create(rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
-    const char *status_code=rebrick_httpstatus_reasonphrase(status);
+    const char *status_code = rebrick_httpstatus_reasonphrase(status);
     if (status_code)
     {
         size_t len = strlen(status_code);
@@ -220,9 +218,9 @@ int32_t rebrick_http_header_new4(rebrick_http_header_t **header, int32_t status,
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_header_t *tmp = new (rebrick_http_header_t);
+    rebrick_http_header_t *tmp = create(rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
-    const char *status_code=rebrick_httpstatus_reasonphrase(status);
+    const char *status_code = rebrick_httpstatus_reasonphrase(status);
     if (status_code)
     {
         size_t len = strlen(status_code);
@@ -244,9 +242,9 @@ int32_t rebrick_http_header_new5(rebrick_http_header_t **header, int32_t is_requ
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_header_t *tmp = new (rebrick_http_header_t);
+    rebrick_http_header_t *tmp = create(rebrick_http_header_t);
     constructor(tmp, rebrick_http_header_t);
-    tmp->is_request = is_request?TRUE:FALSE;
+    tmp->is_request = is_request ? TRUE : FALSE;
     tmp->major_version = major;
     tmp->minor_version = minor;
 
@@ -444,13 +442,13 @@ static nghttp2_nv convert_to_http2_header(const char *name, size_t namelen, cons
     nv.flags = NGHTTP2_NV_FLAG_NONE;
 
     nv.name = malloc(namelen + 1);
-    if_is_null_then_die(nv.name,"name value failed\n");
+    if_is_null_then_die(nv.name, "name value failed\n");
     nv.namelen = namelen;
     memcpy(nv.name, name, namelen);
     nv.name[namelen] = '\0';
 
     nv.value = malloc(valuelen + 1);
-    if_is_null_then_die(nv.value,"name value failed\n");
+    if_is_null_then_die(nv.value, "name value failed\n");
     nv.valuelen = valuelen;
     memcpy(nv.value, value, valuelen);
     nv.value[valuelen] = '\0';
@@ -470,7 +468,7 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
     *hdrs_len = 0;
     size_t index = 0;
     nghttp2_nv *hdrs = malloc(sizeof(nghttp2_nv) * REBRICK_HTTP_MAX_HEADERS);
-    if_is_null_then_die(hdrs,"name value array failed\n");
+    if_is_null_then_die(hdrs, "name value array failed\n");
     size_t bytes_count = 0, bytes_count_tmp;
     if (header->scheme && header->scheme[0])
     {
@@ -488,7 +486,7 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
         bytes_count += bytes_count_tmp;
     }
 
-    if  (header->method && header->method[0] )
+    if (header->method && header->method[0])
     {
         const char *path = header->method[0] ? header->method : "GET";
         size_t pathlen = strlen(path);
@@ -502,9 +500,10 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
         hdrs[index++] = convert_to_http2_header(":path", 5, path, pathlen, &bytes_count_tmp);
         bytes_count += bytes_count_tmp;
     }
-    if(header->status_code){
-        char status_tmp[16]={0};
-        sprintf(status_tmp,"%d",header->status_code);
+    if (header->status_code)
+    {
+        char status_tmp[16] = {0};
+        sprintf(status_tmp, "%d", header->status_code);
         hdrs[index++] = convert_to_http2_header(":status", 7, status_tmp, strlen(status_tmp), &bytes_count_tmp);
         bytes_count += bytes_count_tmp;
     }

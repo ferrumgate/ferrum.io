@@ -27,19 +27,20 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     unused(result);
 
     rebrick_httpsocket_t *httpsocket = cast_to_httpsocket(ssocket);
-    if(!httpsocket){
+    if (!httpsocket)
+    {
         rebrick_log_fatal("socket casting to httpsocket is null\n");
         return;
     }
 
-    rebrick_httpsocket_t *socket=NULL;
-    if(httpsocket->is_server)
-        socket=cast_to_httpsocket(client_handle);
+    rebrick_httpsocket_t *socket = NULL;
+    if (httpsocket->is_server)
+        socket = cast_to_httpsocket(client_handle);
     else
-        socket=httpsocket;
+        socket = httpsocket;
 
-
-    if(httpsocket->is_server){
+    if (httpsocket->is_server)
+    {
         socket->override_override_callback_data = httpsocket->override_override_callback_data;
         socket->override_override_on_connection_accepted = httpsocket->override_override_on_connection_accepted;
         socket->override_override_on_connection_closed = httpsocket->override_override_on_connection_closed;
@@ -50,10 +51,8 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
         socket->on_http_header_received = httpsocket->on_http_header_received;
     }
 
-        if (httpsocket->override_override_on_connection_accepted)
-            httpsocket->override_override_on_connection_accepted(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, socket);
-
-
+    if (httpsocket->override_override_on_connection_accepted)
+        httpsocket->override_override_on_connection_accepted(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, socket);
 }
 
 static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void *callback_data)
@@ -75,10 +74,8 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
         if (httpsocket->received_header)
             rebrick_http_header_destroy(httpsocket->received_header);
 
-
         if (httpsocket->send_header)
             rebrick_http_header_destroy(httpsocket->send_header);
-
 
         if (httpsocket->override_override_on_connection_closed)
             httpsocket->override_override_on_connection_closed(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
@@ -106,9 +103,9 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     }
 }
 
-#define call_on_error(httpsocket, error)                                                                                                     \
-    if (httpsocket->override_override_on_error_occured)                                                                                      \
-    {                                                                                                                                        \
+#define call_on_error(httpsocket, error)                                                                                                \
+    if (httpsocket->override_override_on_error_occured)                                                                                 \
+    {                                                                                                                                   \
         httpsocket->override_override_on_error_occured(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, error); \
     }
 
@@ -244,7 +241,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
             for (size_t i = 0; i < httpsocket->parsing_params.num_headers; ++i)
             {
                 struct phr_header *header = httpsocket->parsing_params.headers + i;
-                result = rebrick_http_header_add_header2(httpsocket->received_header, cast(header->name,uint8_t*), header->name_len,cast(header->value,uint8_t*), header->value_len);
+                result = rebrick_http_header_add_header2(httpsocket->received_header, cast(header->name, uint8_t *), header->name_len, cast(header->value, uint8_t *), header->value_len);
                 if (result < 0)
                 {
                     rebrick_log_error("adding header to headers error\n");
@@ -316,7 +313,7 @@ static struct rebrick_tcpsocket *local_create_client()
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
-    rebrick_httpsocket_t *client = new (rebrick_httpsocket_t);
+    rebrick_httpsocket_t *client = create(rebrick_httpsocket_t);
     constructor(client, rebrick_httpsocket_t);
     return cast_to_tcpsocket(client);
 }
@@ -334,22 +331,23 @@ static struct rebrick_tcpsocket *local_create_client()
   return -1;
 }*/
 
-static int rebrick_tls_alpn_select_callback(unsigned char **out,unsigned char *outlen,const unsigned char *in,unsigned int inlen){
+static int rebrick_tls_alpn_select_callback(unsigned char **out, unsigned char *outlen, const unsigned char *in, unsigned int inlen)
+{
     unused(out);
     unused(outlen);
     unused(in);
     unused(inlen);
 
     int rv;
-    rv=SSL_select_next_proto(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const unsigned char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
-     //rv = copied_from_nghttp2_select_next_protocol(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
+    rv = SSL_select_next_proto(cast(out, unsigned char **), outlen, in, inlen, cast(REBRICK_HTTP_ALPN_PROTO, const unsigned char *), REBRIKC_HTTP_ALPN_PROTO_LEN);
+    //rv = copied_from_nghttp2_select_next_protocol(cast(out,unsigned char**), outlen, in, inlen,cast(REBRICK_HTTP_ALPN_PROTO,const char*),REBRIKC_HTTP_ALPN_PROTO_LEN);
 
-    if (rv == -1) {
+    if (rv == -1)
+    {
         return SSL_TLSEXT_ERR_NOACK;
     }
 
     return SSL_TLSEXT_ERR_OK;
-
 }
 
 int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
@@ -363,57 +361,58 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     unused(result);
     httpsocket->override_override_tls_context = tls_context;
 
-    new2(rebrick_tlssocket_callbacks_t,local_callbacks);
-    local_callbacks.on_connection_accepted=local_on_connection_accepted_callback;
-    local_callbacks.on_connection_closed=local_on_connection_closed_callback;
-    local_callbacks.on_data_received=local_after_data_received_callback;
-    local_callbacks.on_data_sended=local_on_data_sended_callback;
-    local_callbacks.on_error_occured=local_on_error_occured_callback;
+    create2(rebrick_tlssocket_callbacks_t, local_callbacks);
+    local_callbacks.on_connection_accepted = local_on_connection_accepted_callback;
+    local_callbacks.on_connection_closed = local_on_connection_closed_callback;
+    local_callbacks.on_data_received = local_after_data_received_callback;
+    local_callbacks.on_data_sended = local_on_data_sended_callback;
+    local_callbacks.on_error_occured = local_on_error_occured_callback;
 
     if (tls_context || (sni_pattern_or_name && strlen(sni_pattern_or_name)))
     {
-        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls_context, addr, backlog_or_isclient, create_client,&local_callbacks);
-         if(!result && tls_context && !tls_context->alpn_select_callback){
-        result=rebrick_tls_context_set_alpn_protos(tls_context,REBRICK_HTTP_ALPN_PROTO,REBRIKC_HTTP_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
-        result|=rebrick_tls_context_set_npn_protos(tls_context,REBRICK_HTTP_ALPN_PROTO,REBRIKC_HTTP_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
+        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls_context, addr, backlog_or_isclient, create_client, &local_callbacks);
+        if (!result && tls_context && !tls_context->alpn_select_callback)
+        {
+            result = rebrick_tls_context_set_alpn_protos(tls_context, REBRICK_HTTP_ALPN_PROTO, REBRIKC_HTTP_ALPN_PROTO_LEN, rebrick_tls_alpn_select_callback);
+            result |= rebrick_tls_context_set_npn_protos(tls_context, REBRICK_HTTP_ALPN_PROTO, REBRIKC_HTTP_ALPN_PROTO_LEN, rebrick_tls_alpn_select_callback);
         }
     }
     else
     {
 
-        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), addr, backlog_or_isclient, create_client,cast_to_tcpsocket_callbacks(&local_callbacks));
+        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
     }
     if (result < 0)
     {
         rebrick_log_error("http socket creation failed with eror:%d\n", result);
         return result;
     }
-    httpsocket->override_override_on_connection_accepted =callbacks?callbacks->on_connection_accepted:NULL;
-    httpsocket->override_override_on_connection_closed =callbacks?callbacks->on_connection_closed:NULL;
-    httpsocket->override_override_on_data_received = callbacks?callbacks->on_data_received:NULL;
-    httpsocket->override_override_on_data_sended = callbacks?callbacks->on_data_sended:NULL;
-    httpsocket->override_override_on_error_occured = callbacks?callbacks->on_error_occured:NULL;
-    httpsocket->override_override_callback_data = callbacks?callbacks->callback_data:NULL;
-    httpsocket->on_http_header_received = callbacks?callbacks->on_http_header_received:NULL;
-    httpsocket->on_http_body_received = callbacks?callbacks->on_http_body_received:NULL;
-    httpsocket->on_socket_needs_upgrade = callbacks?callbacks->on_socket_needs_upgrade:NULL;
+    httpsocket->override_override_on_connection_accepted = callbacks ? callbacks->on_connection_accepted : NULL;
+    httpsocket->override_override_on_connection_closed = callbacks ? callbacks->on_connection_closed : NULL;
+    httpsocket->override_override_on_data_received = callbacks ? callbacks->on_data_received : NULL;
+    httpsocket->override_override_on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
+    httpsocket->override_override_on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
+    httpsocket->override_override_callback_data = callbacks ? callbacks->callback_data : NULL;
+    httpsocket->on_http_header_received = callbacks ? callbacks->on_http_header_received : NULL;
+    httpsocket->on_http_body_received = callbacks ? callbacks->on_http_body_received : NULL;
+    httpsocket->on_socket_needs_upgrade = callbacks ? callbacks->on_socket_needs_upgrade : NULL;
 
     return REBRICK_SUCCESS;
 }
 
 int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
-                               int32_t backlog_or_isclient,const rebrick_httpsocket_callbacks_t *callbacks)
+                               int32_t backlog_or_isclient, const rebrick_httpsocket_callbacks_t *callbacks)
 {
 
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
     unused(result);
-    rebrick_httpsocket_t *httpsocket = new (rebrick_httpsocket_t);
+    rebrick_httpsocket_t *httpsocket = create(rebrick_httpsocket_t);
     constructor(httpsocket, rebrick_httpsocket_t);
 
     result = rebrick_httpsocket_init(httpsocket, sni_pattern_or_name, tls_context, addr,
-                                     backlog_or_isclient,local_create_client,callbacks);
+                                     backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {
         rebrick_log_error("http socket init failed with error:%d\n", result);
@@ -487,7 +486,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags,rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
@@ -526,7 +525,6 @@ int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t strea
     unused(current_time_str);
     if (!socket || !buffer)
         return REBRICK_ERR_BAD_ARGUMENT;
-
 
     return rebrick_httpsocket_send(socket, buffer, len, cleanfunc);
 }

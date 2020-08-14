@@ -5,7 +5,7 @@
 int udp_echo_start(int port);
 int udp_echo_recv(char buf[ECHO_BUF_SIZE]);
 int udp_echo_send(const char *msg);
-int udp_echo_send2(const char *msg,const struct sockaddr_in *client);
+int udp_echo_send2(const char *msg, const struct sockaddr_in *client);
 void udp_echo_close();
 
 #endif

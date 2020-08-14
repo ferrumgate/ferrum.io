@@ -404,8 +404,6 @@ static void buffer_check_memory(void **start)
         assert_int_equal(result, 0);
         rebrick_buffers_destroy(tmp);
     }
-
-
 }
 
 static void buffer_check_memory2(void **start)
@@ -417,7 +415,7 @@ static void buffer_check_memory2(void **start)
 #define LIST_SIZE 100
 
     //big string full page
-    uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE+32];
+    uint8_t part1[REBRICK_BUFFER_DEFAULT_MALLOC_SIZE + 32];
     memset(part1, 0, sizeof(part1));
     for (int i = 0; i < ssizeof(part1); ++i)
         part1[i] = (i % 28) + 97;
@@ -434,10 +432,7 @@ static void buffer_check_memory2(void **start)
             assert_int_equal(result, 0);
         }
         rebrick_buffers_destroy(tmp);
-
     }
-
-
 }
 
 int test_rebrick_buffers(void)
@@ -454,7 +449,7 @@ int test_rebrick_buffers(void)
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success3),
         cmocka_unit_test(buffer_init_add_remove_fromcenter_success4),
         cmocka_unit_test(buffer_total_len),
-         cmocka_unit_test(buffer_check_memory),
+        cmocka_unit_test(buffer_check_memory),
         cmocka_unit_test(buffer_check_memory2),
 
     };

@@ -46,7 +46,7 @@ int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *
     char dst_port[REBRICK_PORT_STR_LEN];
     int32_t result;
 
-    uv_udp_send_t *request = new (uv_udp_send_t);
+    uv_udp_send_t *request = create(uv_udp_send_t);
     fill_zero(request, sizeof(uv_udp_send_t));
     uv_buf_t buf = uv_buf_init(cast(buffer, char *), len);
 
@@ -79,13 +79,13 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     {
         if (nread <= 0) //error or closed
         {
-            if(nread==UV_EOF)
-            {   
-                if(socket->on_closed)
-                socket->on_closed(cast_to_socket(socket),socket->callback_data);
-            }else
-            if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_socket(socket), socket->callback_data,REBRICK_ERR_UV + nread);
+            if (nread == UV_EOF)
+            {
+                if (socket->on_closed)
+                    socket->on_closed(cast_to_socket(socket), socket->callback_data);
+            }
+            else if (socket->on_error_occured)
+                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
         }
         else if (socket->on_data_received)
         {
@@ -156,7 +156,7 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
-    rebrick_udpsocket_t *tmp = new (rebrick_udpsocket_t);
+    rebrick_udpsocket_t *tmp = create(rebrick_udpsocket_t);
     constructor(tmp, rebrick_udpsocket_t);
 
     //burası önemli,callback data
@@ -166,7 +166,7 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
     rebrick_util_addr_to_ip_string(&tmp->bind_addr, tmp->bind_ip);
     rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port),
 
-    tmp->on_data_received = callbacks ? callbacks->on_data_received : NULL;
+        tmp->on_data_received = callbacks ? callbacks->on_data_received : NULL;
     tmp->on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
     tmp->on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
 
@@ -213,32 +213,35 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-
-int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket,int32_t *value){
-  char current_time_str[32] = {0};
-    unused(current_time_str);
-    int32_t result;
-    if (socket){
-        result=uv_send_buffer_size(cast(&socket->handle.udp,uv_handle_t*),value);
-        if(result<0){
-            rebrick_log_error("send buffer size failed with error:%d %s\n",result,uv_strerror(result));
-            return REBRICK_ERR_UV+result;
-        }
-
-    }
-    return REBRICK_SUCCESS;
-}
-int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket,int32_t *value){
+int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
+{
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
-    if (socket){
-        result=uv_recv_buffer_size(cast(&socket->handle.udp,uv_handle_t*),value);
-        if(result<0){
-            rebrick_log_error("recv buffer size failed with error:%d %s\n",result,uv_strerror(result));
-            return REBRICK_ERR_UV+result;
+    if (socket)
+    {
+        result = uv_send_buffer_size(cast(&socket->handle.udp, uv_handle_t *), value);
+        if (result < 0)
+        {
+            rebrick_log_error("send buffer size failed with error:%d %s\n", result, uv_strerror(result));
+            return REBRICK_ERR_UV + result;
         }
-
+    }
+    return REBRICK_SUCCESS;
+}
+int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
+{
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    int32_t result;
+    if (socket)
+    {
+        result = uv_recv_buffer_size(cast(&socket->handle.udp, uv_handle_t *), value);
+        if (result < 0)
+        {
+            rebrick_log_error("recv buffer size failed with error:%d %s\n", result, uv_strerror(result));
+            return REBRICK_ERR_UV + result;
+        }
     }
     return REBRICK_SUCCESS;
 }

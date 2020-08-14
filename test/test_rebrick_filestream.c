@@ -59,7 +59,7 @@ static void filestream_sync_read(void **start)
     //start reading from 6 offset
     memset(buffer, 0, sizeof(buffer));
     result = rebrick_filestream_read(file, cast(buffer, uint8_t *), 1024, 6);
-    assert_true(result ==5);
+    assert_true(result == 5);
     assert_string_equal(buffer, "world");
     rebrick_filestream_destroy(file);
     loop(counter, 1000, TRUE);
@@ -160,7 +160,7 @@ static void filestream_async_read(void **start)
     int32_t counter = 0;
 
     //burada path değişiyor o yüzden hangisi diye bulmak lazım
-    new2(rebrick_filestream_callbacks_t, callbacks);
+    create2(rebrick_filestream_callbacks_t, callbacks);
     callbacks.callback_data = NULL;
     callbacks.on_close = on_file_close;
     callbacks.on_error = on_file_error;
@@ -174,7 +174,7 @@ static void filestream_async_read(void **start)
     file_written = FALSE;
     file_closed = FALSE;
     //try to find file
-    result = rebrick_filestream_new(&file, "./test/testdata/filestream_test.txt", O_RDWR,0 , &callbacks);
+    result = rebrick_filestream_new(&file, "./test/testdata/filestream_test.txt", O_RDWR, 0, &callbacks);
     assert_true(result == 0);
     loop(counter, 100, TRUE);
     if (file_error)
@@ -186,7 +186,7 @@ static void filestream_async_read(void **start)
         file_readed = FALSE;
         file_written = FALSE;
         file_closed = FALSE;
-        result = rebrick_filestream_new(&file, "./testdata/filestream_test.txt", O_RDWR ,0, &callbacks);
+        result = rebrick_filestream_new(&file, "./testdata/filestream_test.txt", O_RDWR, 0, &callbacks);
         assert_true(result == 0);
         loop(counter, 100, TRUE);
     }
@@ -223,7 +223,7 @@ static void filestream_async_write(void **start)
     int32_t counter = 0;
 
     //burada path değişiyor o yüzden hangisi diye bulmak lazım
-    new2(rebrick_filestream_callbacks_t, callbacks);
+    create2(rebrick_filestream_callbacks_t, callbacks);
     callbacks.callback_data = NULL;
     callbacks.on_close = on_file_close;
     callbacks.on_error = on_file_error;
@@ -241,9 +241,8 @@ static void filestream_async_write(void **start)
     assert_true(result == 0);
     loop(counter, 100, TRUE);
 
-
     assert_true(result == 0);
-    assert_true(file_opened==TRUE);
+    assert_true(file_opened == TRUE);
     //check loop
 
     loop(counter, 1000, TRUE);

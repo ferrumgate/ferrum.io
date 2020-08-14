@@ -19,7 +19,7 @@ int rebrick_util_str_endswith(const char *domainname, const char *search)
 
 rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linked_item_t *previous)
 {
-    rebrick_linked_item_t *item = new(rebrick_linked_item_t);
+    rebrick_linked_item_t *item = create(rebrick_linked_item_t);
     if (item == NULL)
         return NULL;
     fill_zero(item, sizeof(rebrick_linked_item_t));
@@ -140,7 +140,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
         return NULL;
 
     strcpy(data, str);
-    split = strtok_r(data, splitter,&saveptr);
+    split = strtok_r(data, splitter, &saveptr);
     while (split)
     {
         len = strlen(split) + 1;
@@ -161,7 +161,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
             start = temp;
         }
         current = temp;
-        split = strtok_r(NULL, splitter,&saveptr);
+        split = strtok_r(NULL, splitter, &saveptr);
     }
     free(data);
     return start;
@@ -205,8 +205,6 @@ void rebrick_util_str_tolower(char *str)
         *p = tolower(*p);
 }
 
-
-
 int64_t rebrick_util_micro_time()
 {
     struct timeval currentTime;
@@ -224,7 +222,6 @@ int rebrick_util_rand()
     }
     return rand();
 }
-
 
 //////////region//////rand16//////////start/////////////
 
@@ -259,8 +256,14 @@ static void surf(void)
             MUSH(1, 7)
             MUSH(2, 9)
             MUSH(3, 13)
-                MUSH(4, 5) MUSH(5, 7) MUSH(6, 9) MUSH(7, 13)
-                    MUSH(8, 5) MUSH(9, 7) MUSH(10, 9) MUSH(11, 13)
+            MUSH(4, 5)
+            MUSH(5, 7)
+            MUSH(6, 9)
+            MUSH(7, 13)
+            MUSH(8, 5)
+            MUSH(9, 7)
+            MUSH(10, 9)
+            MUSH(11, 13)
         }
         for (i = 0; i < 8; ++i)
             out[i] ^= t[i + 4];
@@ -310,63 +313,62 @@ uint16_t rebrick_util_rand16()
 
 //////////region////////rand16////////stop///////////////
 
-
-char *rebrick_util_time_r(char * str){
-    time_t current_time=time(NULL);
-    ctime_r(&current_time,str);
+char *rebrick_util_time_r(char *str)
+{
+    time_t current_time = time(NULL);
+    ctime_r(&current_time, str);
     //remove \n
-    str[strlen(str)-1]=0;
+    str[strlen(str) - 1] = 0;
     return str;
-
 }
 
+int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock)
+{
 
-int32_t rebrick_util_addr_to_roksit_addr(const struct sockaddr *addr, rebrick_sockaddr_t *sock){
-
-    if(addr->sa_family==AF_INET){
-        memcpy(&sock->v4,addr,sizeof(struct sockaddr_in));
+    if (addr->sa_family == AF_INET)
+    {
+        memcpy(&sock->v4, addr, sizeof(struct sockaddr_in));
     }
-     if(addr->sa_family==AF_INET6){
-        memcpy(&sock->v6,addr,sizeof(struct sockaddr_in6));
+    if (addr->sa_family == AF_INET6)
+    {
+        memcpy(&sock->v6, addr, sizeof(struct sockaddr_in6));
     }
     return REBRICK_SUCCESS;
-
 }
 
+int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_IP_STR_LEN])
+{
+    if (sock->base.sa_family == AF_INET)
+    {
 
-int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock,char buffer[REBRICK_IP_STR_LEN]){
-     if(sock->base.sa_family==AF_INET){
-
-        uv_ip4_name(&sock->v4,buffer,16);
-
+        uv_ip4_name(&sock->v4, buffer, 16);
     }
-    if(sock->base.sa_family==AF_INET6){
+    if (sock->base.sa_family == AF_INET6)
+    {
 
-        uv_ip6_name(&sock->v6,buffer,45);
-
+        uv_ip6_name(&sock->v6, buffer, 45);
     }
     return REBRICK_SUCCESS;
-
 }
 
-int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock,char buffer[REBRICK_PORT_STR_LEN]){
+int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_PORT_STR_LEN])
+{
 
-     if(sock->base.sa_family==AF_INET){
+    if (sock->base.sa_family == AF_INET)
+    {
 
-       sprintf(buffer,"%d",ntohs(sock->v4.sin_port));
-
+        sprintf(buffer, "%d", ntohs(sock->v4.sin_port));
     }
-    if(sock->base.sa_family==AF_INET6){
+    if (sock->base.sa_family == AF_INET6)
+    {
 
-        sprintf(buffer,"%d",ntohs(sock->v6.sin6_port));
-
+        sprintf(buffer, "%d", ntohs(sock->v6.sin6_port));
     }
     return REBRICK_SUCCESS;
-
 }
 
-
-int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip,const char*port){
+int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip, const char *port)
+{
 
     if (uv_ip6_addr(ip, atoi(port), cast(&sock->v6, struct sockaddr_in6 *)) < 0)
     {
@@ -378,11 +380,11 @@ int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *i
         }
     }
     return REBRICK_SUCCESS;
-
 }
 
-int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sockaddr_t *sock){
-    fill_zero(sock,sizeof(rebrick_sockaddr_t));
+int32_t rebrick_util_ip_port_to_addr(const char *ip, const char *port, rebrick_sockaddr_t *sock)
+{
+    fill_zero(sock, sizeof(rebrick_sockaddr_t));
     if (uv_ip6_addr(ip, atoi(port), cast(&sock->v6, struct sockaddr_in6 *)) < 0)
     {
 
@@ -393,43 +395,37 @@ int32_t rebrick_util_ip_port_to_addr(const char *ip,const char*port,rebrick_sock
         }
     }
     return REBRICK_SUCCESS;
-
 }
 
+int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t *len)
+{
 
-
-int32_t rebrick_util_file_read_allbytes(const char *file,char **buffer,size_t *len){
-
-     char current_time_str[32] = {0};
+    char current_time_str[32] = {0};
     unused(current_time_str);
     FILE *fileptr;
     int64_t filelen;
-    fileptr=fopen(file,"rb");
-    if(!fileptr)
-    return REBRICK_ERR_BAD_ARGUMENT;
-    fseek(fileptr,0,SEEK_END);
-    filelen=ftell(fileptr);
+    fileptr = fopen(file, "rb");
+    if (!fileptr)
+        return REBRICK_ERR_BAD_ARGUMENT;
+    fseek(fileptr, 0, SEEK_END);
+    filelen = ftell(fileptr);
     rewind(fileptr);
-    char *temp=malloc(filelen+1);
-    if_is_null_then_die(temp,"malloc problem\n");
+    char *temp = malloc(filelen + 1);
+    if_is_null_then_die(temp, "malloc problem\n");
 
-    fill_zero(temp,filelen+1);
-    fread(temp,filelen,1,fileptr);
+    fill_zero(temp, filelen + 1);
+    fread(temp, filelen, 1, fileptr);
     fclose(fileptr);
-    *buffer=temp;
-    *len=filelen;
+    *buffer = temp;
+    *len = filelen;
     return REBRICK_SUCCESS;
-
 }
 
-
-int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src,const rebrick_sockaddr_t *dst){
-    if(!src || !dst)
-    return 0;
-    if(src->base.sa_family==AF_INET)
-    return memcmp(&src->v4.sin_addr,&dst->v4.sin_addr,sizeof(struct in_addr))==0?1:0;
-    return memcmp(&src->v6.sin6_addr,&dst->v6.sin6_addr,sizeof(struct in6_addr))==0?1:0;
-
+int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src, const rebrick_sockaddr_t *dst)
+{
+    if (!src || !dst)
+        return 0;
+    if (src->base.sa_family == AF_INET)
+        return memcmp(&src->v4.sin_addr, &dst->v4.sin_addr, sizeof(struct in_addr)) == 0 ? 1 : 0;
+    return memcmp(&src->v6.sin6_addr, &dst->v6.sin6_addr, sizeof(struct in6_addr)) == 0 ? 1 : 0;
 }
-
-

@@ -47,7 +47,7 @@ int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, siz
         return REBRICK_ERR_IO_CLOSED;
     }
 
-    uv_write_t *request = new (uv_write_t);
+    uv_write_t *request = create(uv_write_t);
     if_is_null_then_die(request, "malloc problem\n");
     fill_zero(request, sizeof(uv_write_t));
     uv_buf_t buf = uv_buf_init(cast(buffer, char *), len);
@@ -77,13 +77,13 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
 
     if (nread <= 0)
     {
-        if(nread==UV_EOF)
-        {   
-            if(socket->on_closed)
-            socket->on_closed(cast_to_socket(socket),socket->callback_data);
-        }else
-        if (socket->on_error_occured)
-            socket->on_error_occured(cast_to_socket(socket), socket->callback_data,REBRICK_ERR_UV + nread);
+        if (nread == UV_EOF)
+        {
+            if (socket->on_closed)
+                socket->on_closed(cast_to_socket(socket), socket->callback_data);
+        }
+        else if (socket->on_error_occured)
+            socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
     }
     else if (socket->on_data_received)
     {
@@ -144,7 +144,7 @@ static void on_connect(uv_connect_t *connection, int status)
 static rebrick_tcpsocket_t *create_client()
 {
     char current_time_str[32] = {0};
-    rebrick_tcpsocket_t *client = new (rebrick_tcpsocket_t);
+    rebrick_tcpsocket_t *client = create(rebrick_tcpsocket_t);
     constructor(client, rebrick_tcpsocket_t);
     return client;
 }
@@ -208,7 +208,7 @@ static void on_connection(uv_stream_t *server, int status)
     client->on_data_received = serversocket->on_data_received;
     client->on_data_sended = serversocket->on_data_sended;
     client->callback_data = serversocket->callback_data;
-    client->on_error_occured=serversocket->on_error_occured;
+    client->on_error_occured = serversocket->on_error_occured;
     client->parent_socket = serversocket;
 
     client->loop = serversocket->loop;
@@ -239,7 +239,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket)
         return REBRICK_ERR_UV + result;
     }
     uv_tcp_keepalive(&socket->handle.tcp, 1, 60);
-    uv_connect_t *connect = new (uv_connect_t);
+    uv_connect_t *connect = create(uv_connect_t);
     if_is_null_then_die(connect, "malloc problem\n");
     connect->data = socket;
     result = uv_tcp_connect(connect, &socket->handle.tcp, &socket->bind_addr.base, on_connect);
@@ -296,19 +296,19 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
     char current_time_str[32] = {0};
     int32_t result;
     //burası önemli,callback data
-    socket->callback_data =callbacks?callbacks->callback_data:NULL;
+    socket->callback_data = callbacks ? callbacks->callback_data : NULL;
 
     socket->bind_addr = addr;
     rebrick_util_addr_to_ip_string(&socket->bind_addr, socket->bind_ip);
     rebrick_util_addr_to_port_string(&socket->bind_addr, socket->bind_port),
 
-    socket->on_data_received = callbacks?callbacks->on_data_received:NULL;
-    socket->on_data_sended = callbacks?callbacks->on_data_sended:NULL;
-    socket->on_connection_accepted = callbacks?callbacks->on_connection_accepted:NULL;
-    socket->on_connection_closed = callbacks?callbacks->on_connection_closed:NULL;
-    socket->on_error_occured = callbacks?callbacks->on_error_occured:NULL;
+        socket->on_data_received = callbacks ? callbacks->on_data_received : NULL;
+    socket->on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
+    socket->on_connection_accepted = callbacks ? callbacks->on_connection_accepted : NULL;
+    socket->on_connection_closed = callbacks ? callbacks->on_connection_closed : NULL;
+    socket->on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
     socket->create_client = createclient;
-    socket->is_server=backlog_or_isclient;
+    socket->is_server = backlog_or_isclient;
     if (backlog_or_isclient)
     {
         result = create_server_socket(socket, backlog_or_isclient);
@@ -325,15 +325,15 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
 }
 
 int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
-                              rebrick_sockaddr_t bind_addr,int32_t backlog_or_isclient,
+                              rebrick_sockaddr_t bind_addr, int32_t backlog_or_isclient,
                               const rebrick_tcpsocket_callbacks_t *callbacks)
 {
     char current_time_str[32] = {0};
     int32_t result;
-    rebrick_tcpsocket_t *data = new (rebrick_tcpsocket_t);
+    rebrick_tcpsocket_t *data = create(rebrick_tcpsocket_t);
     constructor(data, rebrick_tcpsocket_t);
 
-    result = rebrick_tcpsocket_init(data, bind_addr,backlog_or_isclient, create_client,callbacks);
+    result = rebrick_tcpsocket_init(data, bind_addr, backlog_or_isclient, create_client, callbacks);
     if (result < 0)
     {
         rebrick_log_fatal("create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);
@@ -418,7 +418,6 @@ int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable)
             rebrick_log_fatal("socket nodelay failed:%s\n", uv_strerror(result));
             return REBRICK_ERR_UV + result;
         }
-
     }
     return REBRICK_SUCCESS;
 }
@@ -430,14 +429,13 @@ int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int
         char current_time_str[32] = {0};
         unused(current_time_str);
         int32_t result;
-        result = uv_tcp_keepalive(&socket->handle.tcp, enable,delay);
+        result = uv_tcp_keepalive(&socket->handle.tcp, enable, delay);
         if (result < 0)
         {
 
             rebrick_log_fatal("socket keepalive failed:%s\n", uv_strerror(result));
             return REBRICK_ERR_UV + result;
         }
-
     }
     return REBRICK_SUCCESS;
 }
@@ -455,7 +453,6 @@ int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int 
             rebrick_log_fatal("socket simultaneous accepts failed:%s\n", uv_strerror(result));
             return REBRICK_ERR_UV + result;
         }
-
     }
     return REBRICK_SUCCESS;
 }

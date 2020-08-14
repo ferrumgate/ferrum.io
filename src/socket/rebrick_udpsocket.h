@@ -7,16 +7,16 @@ public_ typedef struct rebrick_udpsocket
 {
     base_socket();
 
-
 } rebrick_udpsocket_t;
 
-#define cast_to_udpsocket(x)  cast((x),rebrick_udpsocket_t*)
+#define cast_to_udpsocket(x) cast((x), rebrick_udpsocket_t *)
 
-public_ typedef struct rebrick_udpsocket_callbacks{
+public_ typedef struct rebrick_udpsocket_callbacks
+{
     base_callbacks();
-}rebrick_udpsocket_callbacks_t;
+} rebrick_udpsocket_callbacks_t;
 
-#define cast_to_udpsocket_callbacks(x) cast(x,rebrick_udpsocket_callback_t*)
+#define cast_to_udpsocket_callbacks(x) cast(x, rebrick_udpsocket_callback_t *)
 
 /**
  * @brief
@@ -30,11 +30,11 @@ public_ typedef struct rebrick_udpsocket_callbacks{
  * @return int32_t
  */
 int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
-                                    rebrick_sockaddr_t bind_addr,
-                                    const rebrick_udpsocket_callbacks_t *callbacks);
+                              rebrick_sockaddr_t bind_addr,
+                              const rebrick_udpsocket_callbacks_t *callbacks);
 int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket);
 int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dst_addr, uint8_t *buffer, size_t len, rebrick_clean_func_t clean_func);
-int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket,int32_t *value);
-int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket,int32_t *value);
+int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket, int32_t *value);
+int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket, int32_t *value);
 
 #endif

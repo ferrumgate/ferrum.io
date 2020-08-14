@@ -18,7 +18,6 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
-
 #define TRUE 1
 #define FALSE 0
 /**
@@ -41,12 +40,6 @@
 #define REBRICK_ERR_IO_END -12
 #define REBRICK_ERR_IO_ERR -19
 
-
-
-
-
-
-
 #define REBRICK_ERR_TLS_INIT -20
 #define REBRICK_ERR_TLS_NEW -21
 #define REBRICK_ERR_TLS_ERR -22
@@ -58,8 +51,6 @@
 #define REBRICK_ERR_LEN_NOT_ENOUGH -30
 #define REBRICK_ERR_UNSUPPORT_IPFAMILY -31
 
-
-
 #define REBRICK_ERR_NOT_FOUND -50
 
 #define REBRICK_ERR_HTTP_HEADER_PARSE -100
@@ -68,9 +59,8 @@
 #define REBRICK_ERR_HTTP2_GOAWAY -501
 #define REBRICK_ERR_HTTP2_PUSH_NOTSUPPORT -502
 
-
-#define HAS_UV_ERR(result)  ((result)<REBRICK_ERR_UV)
-#define UV_ERR(result)  (result)-(REBRICK_ERR_UV)
+#define HAS_UV_ERR(result) ((result) < REBRICK_ERR_UV)
+#define UV_ERR(result) (result) - (REBRICK_ERR_UV)
 
 /*
 * @brief every struct has a type name, sometimes we are using for detect memory leak
@@ -88,55 +78,52 @@
 
 #define REBRICK_TLS_KEY_LEN 128
 #define REBRICK_CA_VERIFY_PATH_MAX_LEN 1024
-#define REBRICK_TLS_ALPN_MAX_LEN  128
-
+#define REBRICK_TLS_ALPN_MAX_LEN 128
 
 /* @brief allocation methods */
-#define rmalloc(x)  malloc(x)
-#define rfree(x)  free(x)
-#define new(x) malloc(sizeof(x))
-#define constructor(x,y) \
-                            if(!x) { \
-                          rebrick_log_fatal("malloc problem\n");\
-                          exit(1);\
-                         } \
-                         fill_zero(x,sizeof(y));\
-                         strcpy(x->type_name,#y);
+#define rmalloc(x) malloc(x)
+#define rfree(x) free(x)
+#define create(x) malloc(sizeof(x))
+#define constructor(x, y)                      \
+    if (!x)                                    \
+    {                                          \
+        rebrick_log_fatal("malloc problem\n"); \
+        exit(1);                               \
+    }                                          \
+    fill_zero(x, sizeof(y));                   \
+    strcpy(x->type_name, #y);
 
-#define new2(y,x) \
-          y x; \
-          fill_zero(&x,sizeof(y));\
-          strcpy(x.type_name,#y)
+#define create2(y, x)         \
+    y x;                      \
+    fill_zero(&x, sizeof(y)); \
+    strcpy(x.type_name, #y)
 
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
 #define cast(x, y) ((y)(x))
 
 #define unused(x) (void)(x)
-#define if_is_null_then_die(x,y) if(!x){ \
-                              rebrick_log_fatal(y);\
-                              exit(1);\
-                              }
-
+#define if_is_null_then_die(x, y) \
+    if (!x)                       \
+    {                             \
+        rebrick_log_fatal(y);     \
+        exit(1);                  \
+    }
 
 /**
  * @brief base class for every structs
  *
  */
-#define base_object(x)  public_ readonly_ char type_name[REBRICK_STRUCT_NAME_LEN]
+#define base_object(x) public_ readonly_ char type_name[REBRICK_STRUCT_NAME_LEN]
 
-#define typeof(x,y) !strcmp((x)->type_name,#y)
+#define typeof(x, y) !strcmp((x)->type_name, #y)
 
-#define ssizeof(x) cast(sizeof(x),int32_t)
+#define ssizeof(x) cast(sizeof(x), int32_t)
 
-#define cast_to_uint8ptr(x) cast(x,uint8_t*)
-#define cast_to_const_uint8ptr(x) cast(x, const uint8_t*)
-#define cast_to_charptr(x) cast(x,char *)
-#define cast_to_const_charptr(x) cast(x,cont char*)
-
-
-
-
+#define cast_to_uint8ptr(x) cast(x, uint8_t *)
+#define cast_to_const_uint8ptr(x) cast(x, const uint8_t *)
+#define cast_to_charptr(x) cast(x, char *)
+#define cast_to_const_charptr(x) cast(x, cont char *)
 
 #define public_
 #define private_
@@ -144,35 +131,35 @@
 #define protected_
 #define internal_
 
-
 /**
  * @brief socket address union
  *
  */
-typedef union rebrick_sockaddr {
+typedef union rebrick_sockaddr
+{
     struct sockaddr base;
     struct sockaddr_in v4;
     struct sockaddr_in6 v6;
-}rebrick_sockaddr_t;
-
+} rebrick_sockaddr_t;
 
 //////////////// rebrick clean func //////////////////////
 
 typedef void (*rebrick_clean_func_ptr_t)(void *ptr);
 
-typedef struct rebrick_clean_func{
+typedef struct rebrick_clean_func
+{
     base_object();
     //free function
     public_ rebrick_clean_func_ptr_t func;
     //ptr for free
     public_ void *ptr;
     //any data for you
-    union{
+    union
+    {
         int32_t source;
         void *ptr;
-    }anydata;
+    } anydata;
 
-
-}rebrick_clean_func_t;
+} rebrick_clean_func_t;
 
 #endif

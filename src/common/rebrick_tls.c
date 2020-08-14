@@ -41,7 +41,7 @@ int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func, struct rebric
     }
     if (!founded)
     {
-        rebrick_tls_checkitem_t *item = new (rebrick_tls_checkitem_t);
+        rebrick_tls_checkitem_t *item = create(rebrick_tls_checkitem_t);
         constructor(item, rebrick_tls_checkitem_t);
         item->socket = socket;
         item->func = func;
@@ -88,7 +88,7 @@ int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func, struct rebri
     }
     if (!founded)
     {
-        rebrick_tls_checkitem_t *item = new (rebrick_tls_checkitem_t);
+        rebrick_tls_checkitem_t *item = create(rebrick_tls_checkitem_t);
         constructor(item, rebrick_tls_checkitem_t);
         item->socket = socket;
         item->func = func;
@@ -121,7 +121,6 @@ static uv_check_t check;
 
 extern int32_t rebrick_tlssocket_change_context(struct rebrick_tlssocket *socket, const char *servername);
 
-
 static int tls_servername_cb(SSL *s, int *ad, void *arg)
 {
     unused(s);
@@ -153,10 +152,7 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg)
                 result = rebrick_tlssocket_change_context(tlssocket, servername);
                 if (result < 0)
                     return SSL_TLSEXT_ERR_ALERT_FATAL;
-
-
             }
-
 
             break;
         }
@@ -164,8 +160,6 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg)
 
     return SSL_TLSEXT_ERR_OK;
 }
-
-
 
 int32_t rebrick_tls_init()
 {
@@ -191,10 +185,10 @@ int32_t rebrick_tls_init()
         SSL_CTX_set_tlsext_servername_arg(context_sni->tls_ctx, context_sni);
 
         //after io part
-        tls_after_io_checklist = new (rebrick_tls_checkitem_list_t);
+        tls_after_io_checklist = create(rebrick_tls_checkitem_list_t);
         constructor(tls_after_io_checklist, rebrick_tls_checkitem_list_t);
 
-        tls_before_io_checklist = new (rebrick_tls_checkitem_list_t);
+        tls_before_io_checklist = create(rebrick_tls_checkitem_list_t);
         constructor(tls_before_io_checklist, rebrick_tls_checkitem_list_t);
 
         uv_check_init(uv_default_loop(), &check);
@@ -262,8 +256,9 @@ static void write_keylog(const SSL *ssl, const char *line)
         return;
 
     logfile = fopen(filename, "a");
-    if (!logfile){
-        rebrick_log_error("tls key log file open error %s:%s\n",filename, strerror(errno));
+    if (!logfile)
+    {
+        rebrick_log_error("tls key log file open error %s:%s\n", filename, strerror(errno));
         return;
     }
 
@@ -288,7 +283,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         return REBRICK_SUCCESS;
     }
 
-    rebrick_tls_context_t *ctx = new (rebrick_tls_context_t);
+    rebrick_tls_context_t *ctx = create(rebrick_tls_context_t);
     constructor(ctx, rebrick_tls_context_t);
 
     ctx->tls_ctx = SSL_CTX_new(TLS_method());
@@ -345,7 +340,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         SSL_CTX_clear_options(ctx->tls_ctx, clearoptions);
 
     struct rebrick_tls_context_hashitem *hash;
-    hash = new (struct rebrick_tls_context_hashitem);
+    hash = create(struct rebrick_tls_context_hashitem);
     constructor(hash, struct rebrick_tls_context_hashitem);
     hash->ctx = ctx;
     strncpy(hash->key, ctx->key, REBRICK_TLS_KEY_LEN - 1);
@@ -461,7 +456,6 @@ int32_t rebrick_tls_context_set_npn_protos(rebrick_tls_context_t *context, const
     SSL_CTX_set_next_protos_advertised_cb(context->tls_ctx, tls_alpn_server_advertise_callback, context);
     SSL_CTX_set_next_proto_select_cb(context->tls_ctx, tls_npn_select_callback, context);
 
-
     return REBRICK_SUCCESS;
 }
 
@@ -516,7 +510,6 @@ int32_t rebrick_tls_context_get(const char *key, rebrick_tls_context_t **context
     }
     return REBRICK_SUCCESS;
 }
-
 
 int32_t rebrick_tls_context_search(const char *servername, rebrick_tls_context_t **context)
 {
@@ -588,7 +581,7 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
     BIO_set_nbio(read, 1);
     BIO_set_nbio(write, 1);
 
-    rebrick_tls_ssl_t *state = new (rebrick_tls_ssl_t);
+    rebrick_tls_ssl_t *state = create(rebrick_tls_ssl_t);
     constructor(state, rebrick_tls_ssl_t);
     state->ssl = tmp;
     state->read = read;
@@ -630,7 +623,8 @@ int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl, const char *server_indicat
         rebrick_log_fatal("sni context not found\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }
-    if(!context){
+    if (!context)
+    {
         rebrick_log_fatal("sni context not found\n");
         return REBRICK_ERR_BAD_ARGUMENT;
     }

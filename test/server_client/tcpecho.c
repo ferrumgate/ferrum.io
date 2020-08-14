@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-static int server_fd, client_fd=-1;
+static int server_fd, client_fd = -1;
 int err;
 static struct sockaddr_in server, client;
 static int is_server = 0;
@@ -64,21 +64,21 @@ int tcp_echo_start(int port, int isserver)
     return 0;
 }
 static pthread_t thread;
-static int work=1;
+static int work = 1;
 static void *threaded_listen(void *data)
 {
     (void)data;
-    client_fd=-1;
+    client_fd = -1;
     socklen_t client_len = sizeof(client);
     int clientfd_tmp;
-    while (client_fd==-1 && work)
+    while (client_fd == -1 && work)
     {
         clientfd_tmp = accept(server_fd, (struct sockaddr *)&client, &client_len);
 
         if (clientfd_tmp > 0)
         {
             fcntl(clientfd_tmp, F_SETFL, O_NONBLOCK);
-            client_fd=clientfd_tmp;
+            client_fd = clientfd_tmp;
         }
         usleep(10000);
     }
@@ -86,21 +86,21 @@ static void *threaded_listen(void *data)
 }
 int tcp_echo_listen()
 {
-    work=1;
+    work = 1;
     pthread_create(&thread, NULL, threaded_listen, NULL);
     return 0;
 }
-int tcp_echo_stop(){
-    work=0;
+int tcp_echo_stop()
+{
+    work = 0;
     void *ret;
-    pthread_join(thread,&ret);
+    pthread_join(thread, &ret);
     return 0;
-
 }
 int tcp_echo_recv(char buf[ECHO_BUF_SIZE])
 {
     int read;
-    memset(buf,0,ECHO_BUF_SIZE);
+    memset(buf, 0, ECHO_BUF_SIZE);
     read = recv(client_fd, buf, ECHO_BUF_SIZE, 0);
 
     return read;
