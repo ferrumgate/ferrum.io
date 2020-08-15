@@ -21,6 +21,7 @@ char *
 b64_encode(const unsigned char *src, size_t len)
 {
 	char current_time_str[32] = {0};
+	unused(current_time_str);
 	unsigned char *out, *pos;
 	const unsigned char *end, *in;
 	size_t olen;
@@ -33,7 +34,7 @@ b64_encode(const unsigned char *src, size_t len)
 	out = malloc(olen);
 	if (out == NULL)
 	{
-		rebrick_log_fatal("malloc problem\n");
+		rebrick_log_fatal(__FILE__, __LINE__, "malloc problem\n");
 		exit(1);
 	}
 

@@ -84,13 +84,13 @@
 #define rmalloc(x) malloc(x)
 #define rfree(x) free(x)
 #define create(x) malloc(sizeof(x))
-#define constructor(x, y)                      \
-    if (!x)                                    \
-    {                                          \
-        rebrick_log_fatal("malloc problem\n"); \
-        exit(1);                               \
-    }                                          \
-    fill_zero(x, sizeof(y));                   \
+#define constructor(x, y)                                          \
+    if (!x)                                                        \
+    {                                                              \
+        rebrick_log_fatal(__FILE__, __LINE__, "malloc problem\n"); \
+        exit(1);                                                   \
+    }                                                              \
+    fill_zero(x, sizeof(y));                                       \
     strcpy(x->type_name, #y);
 
 #define create2(y, x)         \
@@ -103,11 +103,11 @@
 #define cast(x, y) ((y)(x))
 
 #define unused(x) (void)(x)
-#define if_is_null_then_die(x, y) \
-    if (!x)                       \
-    {                             \
-        rebrick_log_fatal(y);     \
-        exit(1);                  \
+#define if_is_null_then_die(x, y)                 \
+    if (!x)                                       \
+    {                                             \
+        rebrick_log_fatal(__FILE__, __LINE__, y); \
+        exit(1);                                  \
     }
 
 /**

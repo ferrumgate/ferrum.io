@@ -6,6 +6,7 @@ static void on_file_open(uv_fs_t *req)
     // function was passed.
     //assert(req == &open_req);
     char current_time_str[32] = {0};
+    unused(current_time_str);
     rebrick_filestream_t *file = cast_to_filestream(req->data);
     uv_fs_req_cleanup(req);
 
@@ -19,7 +20,7 @@ static void on_file_open(uv_fs_t *req)
     }
     else
     {
-        rebrick_log_error("error opening file: %s with error:%s\n", req->path, uv_strerror((int)req->result));
+        rebrick_log_error(__FILE__, __LINE__, "error opening file: %s with error:%s\n", req->path, uv_strerror((int)req->result));
         if (file && file->on_error)
         {
             file->on_error(file, file->callback_data, req->result + REBRICK_ERR_UV);
@@ -30,6 +31,7 @@ static void on_file_open(uv_fs_t *req)
 int32_t rebrick_filestream_new(rebrick_filestream_t **stream, const char *path, int32_t flags, int32_t mode, const rebrick_filestream_callbacks_t *callbacks)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     int32_t result;
 
     rebrick_filestream_t *file = create(rebrick_filestream_t);
@@ -53,7 +55,7 @@ int32_t rebrick_filestream_new(rebrick_filestream_t **stream, const char *path, 
     {
         uv_fs_req_cleanup(&file->open_request);
         free(file);
-        rebrick_log_error("file %s could not open:%s\n", path, uv_strerror(result));
+        rebrick_log_error(__FILE__, __LINE__, "file %s could not open:%s\n", path, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
     if (!callbacks || !callbacks->on_open) //syncroinzed
@@ -66,19 +68,20 @@ int32_t rebrick_filestream_new(rebrick_filestream_t **stream, const char *path, 
 void on_file_read(uv_fs_t *req)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     rebrick_filestream_t *file = cast_to_filestream(req->data);
 
     uv_fs_req_cleanup(req);
 
     if (req->result < 0)
     {
-        rebrick_log_error("file read error %s with error %s\n", req->path, uv_strerror(req->result));
+        rebrick_log_error(__FILE__, __LINE__, "file read error %s with error %s\n", req->path, uv_strerror(req->result));
         if (file && file->on_error)
             file->on_error(file, file->callback_data, REBRICK_ERR_UV + req->result);
     }
     else if (req->result == 0)
     {
-        rebrick_log_info("file close %s \n", req->path);
+        rebrick_log_info(__FILE__, __LINE__, "file close %s \n", req->path);
         if (file && file->on_error)
         {
             file->on_error(file, file->callback_data, REBRICK_ERR_IO_END);
@@ -94,6 +97,7 @@ void on_file_read(uv_fs_t *req)
 int32_t rebrick_filestream_read(rebrick_filestream_t *stream, uint8_t *buffer, size_t len, int64_t offset)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     int32_t result;
     if (!stream || !buffer || !len)
         return REBRICK_ERR_BAD_ARGUMENT;
@@ -102,7 +106,7 @@ int32_t rebrick_filestream_read(rebrick_filestream_t *stream, uint8_t *buffer, s
     if (result < 0)
     {
 
-        rebrick_log_error("file read failed %s with error %s\n", stream->path, uv_strerror(result));
+        rebrick_log_error(__FILE__, __LINE__, "file read failed %s with error %s\n", stream->path, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
     if (!stream->on_read)
@@ -117,23 +121,20 @@ int32_t rebrick_filestream_read(rebrick_filestream_t *stream, uint8_t *buffer, s
 void on_file_write(uv_fs_t *req)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     rebrick_filestream_t *file = cast_to_filestream(req->data);
 
     uv_fs_req_cleanup(req);
 
     if (req->result < 0)
     {
-        rebrick_log_error("file write error %s with error %s\n", req->path, uv_strerror(req->result));
+        rebrick_log_error(__FILE__, __LINE__, "file write error %s with error %s\n", req->path, uv_strerror(req->result));
         if (file && file->on_error)
             file->on_error(file, file->callback_data, REBRICK_ERR_UV + req->result);
     }
     else if (req->result == 0)
     {
-        rebrick_log_info("file close %s \n", req->path);
-        /* if (file && file->on_error)
-        {
-            file->on_error(file,file->callback_data,REBRICK_ERR_IO_CLOSED);
-        } */
+        rebrick_log_info(__FILE__, __LINE__, "file close %s \n", req->path);
         if (file && file->on_close)
             file->on_close(file, file->callback_data);
     }
@@ -147,6 +148,7 @@ void on_file_write(uv_fs_t *req)
 int32_t rebrick_filestream_write(rebrick_filestream_t *stream, uint8_t *buffer, size_t len, int64_t offset)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     int32_t result;
     if (!stream || !buffer || !len)
         return REBRICK_ERR_BAD_ARGUMENT;
@@ -155,7 +157,7 @@ int32_t rebrick_filestream_write(rebrick_filestream_t *stream, uint8_t *buffer, 
     if (result < 0)
     {
 
-        rebrick_log_error("file read failed %s with error %s\n", stream->path, uv_strerror(result));
+        rebrick_log_error(__FILE__, __LINE__, "file read failed %s with error %s\n", stream->path, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
 
@@ -184,6 +186,7 @@ static void on_file_close(uv_fs_t *req)
 int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream)
 {
     char current_time_str[32] = {0};
+    unused(current_time_str);
     int32_t result;
     if (stream)
     {
@@ -193,7 +196,7 @@ int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream)
             result = uv_fs_close(uv_default_loop(), &stream->close_request, stream->open_request.result, on_file_close);
             if (result < 0)
             {
-                rebrick_log_error("file destroy failed %s with error %s\n", stream->path, uv_strerror(result));
+                rebrick_log_error(__FILE__, __LINE__, "file destroy failed %s with error %s\n", stream->path, uv_strerror(result));
                 return REBRICK_ERR_UV + result;
             }
         }
@@ -203,7 +206,7 @@ int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream)
             result = uv_fs_close(uv_default_loop(), &stream->close_request, stream->open_request.result, NULL);
             if (result < 0)
             {
-                rebrick_log_error("file destroy failed %s with error %s\n", stream->path, uv_strerror(result));
+                rebrick_log_error(__FILE__, __LINE__, "file destroy failed %s with error %s\n", stream->path, uv_strerror(result));
                 return REBRICK_ERR_UV + result;
             }
 

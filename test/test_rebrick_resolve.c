@@ -35,7 +35,7 @@ static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr
     unused(current_time_str);
     char ip[REBRICK_IP_STR_LEN];
     rebrick_util_addr_to_ip_string(&addr, ip);
-    rebrick_log_info("resolve %s type:%d to %s\n", domain, type, ip),
+    rebrick_log_info(__FILE__, __LINE__, "resolve %s type:%d to %s\n", domain, type, ip),
         last_resolved_addr = addr;
     resolved = TRUE;
 }
@@ -44,8 +44,8 @@ int32_t last_error;
 static void on_error(const char *domain, int32_t type, int32_t error)
 {
     char current_time_str[32] = {0};
-
-    rebrick_log_error("resolve domain %s with type %d failed with error %d \n", domain, type, error);
+    unused(current_time_str);
+    rebrick_log_error(__FILE__, __LINE__, "resolve domain %s with type %d failed with error %d \n", domain, type, error);
     last_error = error;
 }
 

@@ -392,7 +392,7 @@ int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, 
         written_chars_count = snprintf(buffer, REBRICK_HTTP_MAX_HEADER_LEN, "HTTP/%d.%d %d %s\r\n", header->major_version, header->minor_version, header->status_code, header->status_code_str);
     if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1)
     {
-        rebrick_log_error("max http header len\n");
+        rebrick_log_error(__FILE__, __LINE__, "max http header len\n");
         return REBRICK_ERR_LEN_NOT_ENOUGH;
     }
     if (header->host)
@@ -400,7 +400,7 @@ int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, 
         written_chars_count += snprintf(buffer + written_chars_count, REBRICK_HTTP_MAX_HEADER_LEN - written_chars_count, "%s:%s\r\n", "host", header->host);
         if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1)
         {
-            rebrick_log_error("max http header len\n");
+            rebrick_log_error(__FILE__, __LINE__, "max http header len\n");
             return REBRICK_ERR_LEN_NOT_ENOUGH;
         }
     }
@@ -412,7 +412,7 @@ int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, 
         written_chars_count += snprintf(buffer + written_chars_count, REBRICK_HTTP_MAX_HEADER_LEN - written_chars_count, "%s:%s\r\n", s->key, s->value);
         if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1)
         {
-            rebrick_log_error("max http header len\n");
+            rebrick_log_error(__FILE__, __LINE__, "max http header len\n");
             return REBRICK_ERR_LEN_NOT_ENOUGH;
         }
     }
@@ -420,7 +420,7 @@ int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, 
     written_chars_count += snprintf(buffer + written_chars_count, REBRICK_HTTP_MAX_HEADER_LEN - written_chars_count, "\r\n");
     if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1)
     {
-        rebrick_log_error("max http header len\n");
+        rebrick_log_error(__FILE__, __LINE__, "max http header len\n");
         return REBRICK_ERR_LEN_NOT_ENOUGH;
     }
 

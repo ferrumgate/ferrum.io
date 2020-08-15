@@ -29,7 +29,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     rebrick_httpsocket_t *httpsocket = cast_to_httpsocket(ssocket);
     if (!httpsocket)
     {
-        rebrick_log_fatal("socket casting to httpsocket is null\n");
+        rebrick_log_fatal(__FILE__, __LINE__, "socket casting to httpsocket is null\n");
         return;
     }
 
@@ -123,7 +123,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
     if (!socket)
     {
-        rebrick_log_fatal("socket argument is null\n");
+        rebrick_log_fatal(__FILE__, __LINE__, "socket argument is null\n");
         return;
     }
 
@@ -167,7 +167,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
         //check request or response
         if (httpsocket->tmp_buffer->len < 5)
         {
-            rebrick_log_fatal("httpsocket tmp buffer len is<5\n");
+            rebrick_log_fatal(__FILE__, __LINE__, "httpsocket tmp buffer len is<5\n");
             return;
         }
         //small lower buffer of started data
@@ -197,14 +197,14 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
         if (pret == -1)
         {
-            rebrick_log_error("header parse error\n");
+            rebrick_log_error(__FILE__, __LINE__, "header parse error\n");
             call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
             return;
         }
 
         if (httpsocket->tmp_buffer->len >= REBRICK_HTTP_MAX_HEADER_LEN)
         {
-            rebrick_log_error("http max header len exceed\n");
+            rebrick_log_error(__FILE__, __LINE__, "http max header len exceed\n");
             call_on_error(httpsocket, REBRICK_HTTP_MAX_HEADER_LEN);
             return;
         }
@@ -233,7 +233,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                 }
                 if (result < 0)
                 {
-                    rebrick_log_error("new header create error\n");
+                    rebrick_log_error(__FILE__, __LINE__, "new header create error\n");
                     call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
                 }
             }
@@ -244,7 +244,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                 result = rebrick_http_header_add_header2(httpsocket->received_header, cast(header->name, uint8_t *), header->name_len, cast(header->value, uint8_t *), header->value_len);
                 if (result < 0)
                 {
-                    rebrick_log_error("adding header to headers error\n");
+                    rebrick_log_error(__FILE__, __LINE__, "adding header to headers error\n");
                     call_on_error(httpsocket, REBRICK_ERR_HTTP_HEADER_PARSE);
                 }
             }
@@ -384,7 +384,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     }
     if (result < 0)
     {
-        rebrick_log_error("http socket creation failed with eror:%d\n", result);
+        rebrick_log_error(__FILE__, __LINE__, "http socket creation failed with eror:%d\n", result);
         return result;
     }
     httpsocket->override_override_on_connection_accepted = callbacks ? callbacks->on_connection_accepted : NULL;
@@ -415,7 +415,7 @@ int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pa
                                      backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {
-        rebrick_log_error("http socket init failed with error:%d\n", result);
+        rebrick_log_error(__FILE__, __LINE__, "http socket init failed with error:%d\n", result);
         free(httpsocket);
         return result;
     }
@@ -502,7 +502,7 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
     result = rebrick_http_header_to_http_buffer(header, &buffer);
     if (result < 0)
     {
-        rebrick_log_error("http sending header failed with error:%d\n", result);
+        rebrick_log_error(__FILE__, __LINE__, "http sending header failed with error:%d\n", result);
         return result;
     }
     ///save current sended header

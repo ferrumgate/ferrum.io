@@ -3,20 +3,21 @@
 #include "rebrick_common.h"
 #include "rebrick_util.h"
 
-#define rebrick_log_info(fmt, ...)                                                                      \
-    fprintf(stderr, "[%s] [INFO] %s:%d - ", rebrick_util_time_r(current_time_str), __FILE__, __LINE__); \
-    fprintf(stderr, fmt, ##__VA_ARGS__)
+typedef enum
+{
+    REBRICK_LOG_OFF = 0,
+    REBRICK_LOG_FATAL = 1,
+    REBRICK_LOG_ERROR = 2,
+    REBRICK_LOG_WARN = 3,
+    REBRICK_LOG_INFO = 4,
+    REBRICK_LOG_DEBUG = 5,
+    REBRICK_LOG_ALL = 6
+} log_level_t;
 
-#define rebrick_log_debug(fmt, ...)                                                                      \
-    fprintf(stderr, "[%s] [DEBUG] %s:%d - ", rebrick_util_time_r(current_time_str), __FILE__, __LINE__); \
-    fprintf(stderr, fmt, ##__VA_ARGS__)
-
-#define rebrick_log_fatal(fmt, ...)                                                                      \
-    fprintf(stderr, "[%s] [FATAL] %s:%d - ", rebrick_util_time_r(current_time_str), __FILE__, __LINE__); \
-    fprintf(stderr, fmt, ##__VA_ARGS__)
-
-#define rebrick_log_error(fmt, ...)                                                                      \
-    fprintf(stderr, "[%s] [ERROR] %s:%d - ", rebrick_util_time_r(current_time_str), __FILE__, __LINE__); \
-    fprintf(stderr, fmt, ##__VA_ARGS__)
+void rebrick_log_level(log_level_t level);
+void rebrick_log_info(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_debug(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_fatal(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_error(const char *file, int32_t line, const char *fmt, ...);
 
 #endif

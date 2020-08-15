@@ -382,7 +382,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
 
     loop(counter, 1000, !header_received);
     assert_int_equal(header_received, TRUE);
-    loop(counter, 100, !is_bodyreaded);
+    loop(counter, 1000, !is_bodyreaded);
     assert_int_equal(is_bodyreaded, TRUE);
     assert_non_null(socket->received_header);
     assert_int_equal(socket->received_header->major_version, 1);

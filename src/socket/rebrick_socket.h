@@ -13,12 +13,12 @@ struct rebrick_socket;
  * @param callback_data , this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
  * @param addr from which addr
  * @param buffer data
- * @param len buffer lenght
+ * @param len buffer length
  */
 typedef void (*rebrick_socket_on_read_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
 /**
- * @brief after data sended this function is called
+ * @brief after data written this function is called
  * @param socket which socket used
  * @param callback_data,  this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
  * @param source,  this parameters used for source detection
@@ -29,9 +29,8 @@ typedef void (*rebrick_socket_on_write_callback_t)(struct rebrick_socket *socket
  * @brief after error this function is called
  * @param socket which socket used
  * @param callback_data,  this parameter is setted when called rebrick_xxxsocket_new(......,callback_data,.......)
- * @param error, result of operation, if status=0 SUCCESS otherwise ERROR
+ * @param error, error code 
  */
-//TODO write documentation
 typedef void (*rebrick_socket_on_error_callback_t)(struct rebrick_socket *socket, void *callback_data, int error);
 
 typedef void (*rebrick_socket_on_close_callback_t)(struct rebrick_socket *socket, void *callback_data);

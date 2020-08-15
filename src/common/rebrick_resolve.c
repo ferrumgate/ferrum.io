@@ -24,7 +24,7 @@ static void getaddrinfo_cb(uv_getaddrinfo_t *handle, int status, struct addrinfo
         {
             if (resolver->on_error)
                 resolver->on_error(resolver->domain, resolver->type, REBRICK_ERR_UV + status);
-            rebrick_log_error("resolve failed for %s %s \n", resolver->domain, uv_strerror(status));
+            rebrick_log_error(__FILE__, __LINE__, "resolve failed for %s %s \n", resolver->domain, uv_strerror(status));
             rfree(resolver);
         }
         free(handle);
@@ -70,7 +70,7 @@ int32_t rebrick_resolve(const char *domain, rebrick_resolve_type_t type, on_reso
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_log_info("resolving %s with type:%d\n", domain, type);
+    rebrick_log_info(__FILE__, __LINE__, "resolving %s with type:%d\n", domain, type);
     uv_getaddrinfo_t *handle = create(uv_getaddrinfo_t);
     fill_zero(handle, sizeof(uv_getaddrinfo_t));
 

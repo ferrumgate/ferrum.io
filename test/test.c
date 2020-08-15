@@ -114,9 +114,6 @@ static void test_tcpecho_client(){
 int main()
 {
   fprintf(stdout, "starting test\n");
-  // test_udpecho_server();
-  //test_tcpecho_server();
-  //test_tcpecho_client();
 
   if (test_rebrick_filestream())
     exit(1);
