@@ -35,6 +35,8 @@ static const char *testdata = "merhaba";
 static int32_t closed = 0;
 static void on_closed(rebrick_socket_t *socket, void *data)
 {
+    unused(socket);
+    unused(data);
     closed = 1;
 }
 

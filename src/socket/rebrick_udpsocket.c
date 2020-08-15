@@ -73,22 +73,25 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
     unused(flags);
     const rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
 
-    rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-
     if (socket)
     {
         if (nread <= 0) //error or closed
         {
             if (nread == UV_EOF)
             {
+                rebrick_log_debug("socket closed\n");
                 if (socket->on_closed)
                     socket->on_closed(cast_to_socket(socket), socket->callback_data);
             }
             else if (socket->on_error_occured)
+            {
+                rebrick_log_debug("socket error occured %zd\n", nread);
                 socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
+            }
         }
         else if (socket->on_data_received)
         {
+            rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
             socket->on_data_received(cast_to_socket(socket), socket->callback_data, addr, cast(rcvbuf->base, uint8_t *), nread);
         }
     }
