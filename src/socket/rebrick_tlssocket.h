@@ -33,9 +33,9 @@ typedef void (*rebrick_tlssocket_on_sni_received_callback_t)(struct rebrick_sock
     private_ rebrick_tls_ssl_t *tls;                                                              \
     private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_on_connection_accepted; \
     private_ rebrick_tcpsocket_on_connection_closed_callback_t override_on_connection_closed;     \
-    private_ rebrick_socket_on_data_received_callback_t override_on_data_received;                \
-    private_ rebrick_socket_on_data_sended_callback_t override_on_data_sended;                    \
-    private_ rebrick_socket_on_error_occured_callback_t override_on_error_occured;                \
+    private_ rebrick_socket_on_read_callback_t override_on_data_received;                         \
+    private_ rebrick_socket_on_write_callback_t override_on_data_sended;                          \
+    private_ rebrick_socket_on_error_callback_t override_on_error_occured;                        \
     private_ rebrick_tlssocket_on_sni_received_callback_t override_on_sni_received;               \
     private_ void *override_callback_data;                                                        \
     private_ pending_data_t *pending_write_list;                                                  \

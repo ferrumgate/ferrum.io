@@ -10,11 +10,6 @@
 #define REBRICK_HTTP_FLAGS_EOF 0x1
 #define REBRICK_HTTP_FLAGS_ENDSTREAM 0x2
 
-
-
-
-
-
 typedef nghttp2_settings_entry rebrick_http2_settings_entry;
 
 public_ typedef struct rebrick_http2_socket_settings
@@ -22,8 +17,6 @@ public_ typedef struct rebrick_http2_socket_settings
     rebrick_http2_settings_entry entries[64];
     size_t settings_count;
 } rebrick_http2_socket_settings_t;
-
-
 
 public_ typedef struct rebrick_http2_stream
 {
@@ -39,13 +32,12 @@ public_ typedef struct rebrick_http2_stream
     private_ UT_hash_handle hh;
 } rebrick_http2_stream_t;
 
-
-typedef void (*rebrick_http2socket_on_stream_closed_callback_t)(struct rebrick_socket *socket,int32_t stream_id, void *callback_data);
-typedef void (*rebrick_http2socket_on_settings_received_callback_t)(struct rebrick_socket *socket,void *callback_data,rebrick_http2_socket_settings_t *settings);
-typedef void (*rebrick_http2socket_on_ping_received_callback_t)(struct rebrick_socket *socket,void *callback_data,const uint8_t opaqua_data[8]);
-typedef void (*rebrick_http2socket_on_push_received_callback_t)(struct rebrick_socket *socket,void *callback_data,int32_t stream_id,int32_t push_stream_id,rebrick_http_header_t *header);
-typedef void (*rebrick_http2socket_on_goaway_received_callback_t)(struct rebrick_socket *socket,void *callback_data,int32_t errorcode,int32_t laststream_id,uint8_t *opaque_data,size_t opaque_data_len);
-typedef void (*rebrick_http2socket_on_window_update_callback_t)(struct rebrick_socket *socket,void *callback_data,int32_t stream, int32_t increment);
+typedef void (*rebrick_http2socket_on_stream_closed_callback_t)(struct rebrick_socket *socket, int32_t stream_id, void *callback_data);
+typedef void (*rebrick_http2socket_on_settings_received_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http2_socket_settings_t *settings);
+typedef void (*rebrick_http2socket_on_ping_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const uint8_t opaqua_data[8]);
+typedef void (*rebrick_http2socket_on_push_received_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream_id, int32_t push_stream_id, rebrick_http_header_t *header);
+typedef void (*rebrick_http2socket_on_goaway_received_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t errorcode, int32_t laststream_id, uint8_t *opaque_data, size_t opaque_data_len);
+typedef void (*rebrick_http2socket_on_window_update_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream, int32_t increment);
 
 public_ typedef struct rebrick_http2socket
 {
@@ -54,9 +46,9 @@ public_ typedef struct rebrick_http2socket
 
     private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_override_on_connection_accepted;
     private_ rebrick_tcpsocket_on_connection_closed_callback_t override_override_on_connection_closed;
-    private_ rebrick_socket_on_data_received_callback_t override_override_on_data_received;
-    private_ rebrick_socket_on_data_sended_callback_t override_override_on_data_sended;
-    private_ rebrick_socket_on_error_occured_callback_t override_override_on_error_occured;
+    private_ rebrick_socket_on_read_callback_t override_override_on_data_received;
+    private_ rebrick_socket_on_write_callback_t override_override_on_data_sended;
+    private_ rebrick_socket_on_error_callback_t override_override_on_error_occured;
     private_ rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;
     private_ rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;
     private_ rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
@@ -71,7 +63,6 @@ public_ typedef struct rebrick_http2socket
     protected_ int32_t is_goaway_received;
     protected_ int32_t last_received_stream_id;
 
-
     private_ struct
     {
         nghttp2_session *session;
@@ -81,40 +72,38 @@ public_ typedef struct rebrick_http2socket
     private_ rebrick_http2_socket_settings_t settings;
     private_ rebrick_http2_socket_settings_t received_settings;
 
-
-
     private_ rebrick_http2_stream_t *streams;
 
 } rebrick_http2socket_t;
 
-
 #define cast_to_http2socket(s) cast(s, rebrick_http2socket_t *)
 
-#define base_http2socket_callbacks() \
-        base_tlssocket_callbacks();\
-        rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;\
-        rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;\
-        rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;\
-        rebrick_http2socket_on_stream_closed_callback_t on_stream_closed;\
-        rebrick_http2socket_on_settings_received_callback_t on_settings_received;\
-        rebrick_http2socket_on_ping_received_callback_t on_ping_received;\
-        rebrick_http2socket_on_push_received_callback_t on_push_received;\
-        rebrick_http2socket_on_goaway_received_callback_t on_goaway_received;\
-        rebrick_http2socket_on_window_update_callback_t on_window_update_received;\
+#define base_http2socket_callbacks()                                               \
+    base_tlssocket_callbacks();                                                    \
+    rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received; \
+    rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;     \
+    rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade; \
+    rebrick_http2socket_on_stream_closed_callback_t on_stream_closed;              \
+    rebrick_http2socket_on_settings_received_callback_t on_settings_received;      \
+    rebrick_http2socket_on_ping_received_callback_t on_ping_received;              \
+    rebrick_http2socket_on_push_received_callback_t on_push_received;              \
+    rebrick_http2socket_on_goaway_received_callback_t on_goaway_received;          \
+    rebrick_http2socket_on_window_update_callback_t on_window_update_received;
 
-typedef struct rebrick_http2socket_callbacks{
+typedef struct rebrick_http2socket_callbacks
+{
     base_http2socket_callbacks();
-}rebrick_http2socket_callbacks_t;
+} rebrick_http2socket_callbacks_t;
 
-#define cast_to_http2socket_callbacks(x) cast(x,rebrick_http2socket_callbacks_t*)
+#define cast_to_http2socket_callbacks(x) cast(x, rebrick_http2socket_callbacks_t *)
 
 int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
                                 int32_t backlog_or_isclient,
-                                const rebrick_http2_socket_settings_t *settings,const rebrick_http2socket_callbacks_t *callbacks);
+                                const rebrick_http2_socket_settings_t *settings, const rebrick_http2socket_callbacks_t *callbacks);
 
 int32_t rebrick_http2socket_init(rebrick_http2socket_t *socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
-                                 int32_t backlog_or_isclient,rebrick_tcpsocket_create_client_t create_client,
-                                 const rebrick_http2_socket_settings_t *settings,const rebrick_http2socket_callbacks_t *callbacks);
+                                 int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
+                                 const rebrick_http2_socket_settings_t *settings, const rebrick_http2socket_callbacks_t *callbacks);
 
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket);
 protected_ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
@@ -127,7 +116,7 @@ protected_ int32_t rebrick_http2socket_send(rebrick_http2socket_t *socket, uint8
  * @param header
  * @return int32_t
  */
-int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags,rebrick_http_header_t *header);
+int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header);
 
 /**
  * @brief send body data after header
@@ -142,15 +131,14 @@ int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *
  */
 int32_t rebrick_http2socket_send_body(rebrick_http2socket_t *socket, int32_t stream_id, int64_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
-int32_t rebrick_http2socket_get_stream(rebrick_http2socket_t *socket,int32_t stream_id,rebrick_http2_stream_t **stream);
+int32_t rebrick_http2socket_get_stream(rebrick_http2socket_t *socket, int32_t stream_id, rebrick_http2_stream_t **stream);
 
-int32_t rebrick_http2socket_send_goaway(rebrick_http2socket_t *socket,uint8_t *opaque_data,size_t opaque_data_len);
+int32_t rebrick_http2socket_send_goaway(rebrick_http2socket_t *socket, uint8_t *opaque_data, size_t opaque_data_len);
 
-int32_t rebrick_http2socket_send_ping(rebrick_http2socket_t *socket,int64_t flags, uint8_t opaque_data[8]);
+int32_t rebrick_http2socket_send_ping(rebrick_http2socket_t *socket, int64_t flags, uint8_t opaque_data[8]);
 
-int32_t rebrick_http2socket_send_window_update(rebrick_http2socket_t *socket,int32_t stream_id,int32_t increment);
-int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket,int32_t *pushstream_id,int32_t stream_id,rebrick_http_header_t *header);
-int32_t rebrick_http2socket_send_rststream(rebrick_http2socket_t *socket,int32_t stream_id,uint32_t errorcode);
-
+int32_t rebrick_http2socket_send_window_update(rebrick_http2socket_t *socket, int32_t stream_id, int32_t increment);
+int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket, int32_t *pushstream_id, int32_t stream_id, rebrick_http_header_t *header);
+int32_t rebrick_http2socket_send_rststream(rebrick_http2socket_t *socket, int32_t stream_id, uint32_t errorcode);
 
 #endif

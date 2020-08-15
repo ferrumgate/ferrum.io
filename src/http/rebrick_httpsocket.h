@@ -23,7 +23,7 @@ typedef void (*rebrick_httpsocket_on_http_header_received_callback_t)(struct reb
 /**
  * @brief after header parsed finished, when body data starts to come,
  * this callback trigger,this is a synonym
- * @see rebrick_socket_on_data_received_callback_t
+ * @see rebrick_socket_on_read_callback_t
  */
 typedef void (*rebrick_httpsocket_on_http_body_received_callback_t)(struct rebrick_socket *socket, int32_t stream_id, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len);
 
@@ -40,9 +40,9 @@ public_ typedef struct rebrick_httpsocket
 
     private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_override_on_connection_accepted;
     private_ rebrick_tcpsocket_on_connection_closed_callback_t override_override_on_connection_closed;
-    private_ rebrick_socket_on_data_received_callback_t override_override_on_data_received;
-    private_ rebrick_socket_on_data_sended_callback_t override_override_on_data_sended;
-    private_ rebrick_socket_on_error_occured_callback_t override_override_on_error_occured;
+    private_ rebrick_socket_on_read_callback_t override_override_on_data_received;
+    private_ rebrick_socket_on_write_callback_t override_override_on_data_sended;
+    private_ rebrick_socket_on_error_callback_t override_override_on_error_occured;
     private_ rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;
     private_ rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;
     private_ rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
