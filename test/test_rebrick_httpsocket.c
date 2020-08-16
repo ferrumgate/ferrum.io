@@ -152,7 +152,7 @@ static void http_socket_as_client_create_get(void **start)
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -235,7 +235,7 @@ static void http_socket_as_client_create_post(void **start)
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -333,7 +333,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -437,7 +437,7 @@ static void http_socket_as_server_get(void **tls)
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;

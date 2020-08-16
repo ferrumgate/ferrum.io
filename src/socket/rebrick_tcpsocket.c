@@ -205,7 +205,7 @@ static void on_connection(uv_stream_t *server, int status)
     rebrick_log_debug(__FILE__, __LINE__, "connected client from %s:%s\n", client->bind_ip, client->bind_port);
 
     client->handle.tcp.data = client;
-    client->on_connection_close = serversocket->on_connection_close;
+    client->on_client_close = serversocket->on_client_close;
     client->on_read = serversocket->on_read;
     client->on_write = serversocket->on_write;
     client->callback_data = serversocket->callback_data;
@@ -309,7 +309,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
     socket->on_read = callbacks ? callbacks->on_read : NULL;
     socket->on_write = callbacks ? callbacks->on_write : NULL;
     socket->on_accept = callbacks ? callbacks->on_accept : NULL;
-    socket->on_connection_close = callbacks ? callbacks->on_connection_close : NULL;
+    socket->on_client_close = callbacks ? callbacks->on_client_close : NULL;
     socket->on_error = callbacks ? callbacks->on_error : NULL;
     socket->create_client = createclient;
     socket->is_server = backlog_or_isclient;
@@ -362,10 +362,10 @@ static void on_close(uv_handle_t *handle)
             rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
             handle->data = NULL;
 
-            if (socket->on_connection_close)
+            if (socket->on_client_close)
             {
                 rebrick_log_debug(__FILE__, __LINE__, "handle closed\n");
-                socket->on_connection_close(cast_to_socket(socket), socket->callback_data);
+                socket->on_client_close(cast_to_socket(socket), socket->callback_data);
             }
             //server is closing
             if (!socket->parent_socket)

@@ -206,7 +206,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
     callbacks.on_accept = on_connection_accepted;
-    callbacks.on_connection_close = on_connection_closed;
+    callbacks.on_client_close = on_connection_closed;
     callbacks.on_read = on_datarecevied;
     callbacks.on_write = on_datasend;
     callbacks.on_error = on_error_occured;
@@ -354,7 +354,7 @@ Accept: text/html\r\n\
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
     callbacks.on_accept = on_connection_accepted_memorytest;
-    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_client_close = on_connection_closed_memorytest;
     callbacks.on_read = on_datarecevied_memorytest;
     callbacks.on_write = on_datasend_memorytest;
     callbacks.on_error = on_error_occured_memorytest;
@@ -428,7 +428,7 @@ Accept: text/html\r\n\
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
     callbacks.on_accept = on_connection_accepted_memorytest;
-    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_client_close = on_connection_closed_memorytest;
     callbacks.on_read = on_datarecevied_memorytest;
     callbacks.on_write = on_datasend_memorytest;
     callbacks.on_error = on_error_occured_memorytest;
@@ -522,7 +522,7 @@ Accept-Ranges: bytes\r\n\
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
     callbacks.on_accept = on_connection_accepted_memorytest;
-    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_client_close = on_connection_closed_memorytest;
     callbacks.on_read = on_datarecevied_memorytest;
     callbacks.on_write = on_datasend_memorytest;
     callbacks.on_error = on_error_occured_memorytest;

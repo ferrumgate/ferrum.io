@@ -658,7 +658,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
     create2(rebrick_tcpsocket_callbacks_t, local_callbacks);
     local_callbacks.callback_data = tlssocket;
     local_callbacks.on_accept = local_on_connection_accept_callback;
-    local_callbacks.on_connection_close = local_on_connection_close_callback;
+    local_callbacks.on_client_close = local_on_connection_close_callback;
     local_callbacks.on_read = local_after_data_received_callback;
     local_callbacks.on_write = local_on_data_sended_callback;
     local_callbacks.on_error = local_on_error_occured_callback;

@@ -174,7 +174,7 @@ static void http2_socket_as_client_create_get(void **tls)
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -263,7 +263,7 @@ static void http2_socket_as_client_create_post(void **tls)
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -409,7 +409,7 @@ static void http2_socket_as_client_create_get_server_push_streams(void **tls)
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -518,7 +518,7 @@ static void http2_socket_as_serverserver_get(void **tls)
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;
@@ -606,7 +606,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_write = on_data_send;
     callbacks.on_error = on_error_occured_callback;

@@ -740,7 +740,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
 
     create2(rebrick_tlssocket_callbacks_t, local_callbacks);
     local_callbacks.on_accept = local_on_connection_accepted_callback;
-    local_callbacks.on_connection_close = local_on_connection_closed_callback;
+    local_callbacks.on_client_close = local_on_connection_closed_callback;
     local_callbacks.on_read = local_after_data_received_callback;
     local_callbacks.on_write = local_on_data_sended_callback;
     local_callbacks.on_error = local_on_error_occured_callback;
@@ -770,7 +770,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     rebrick_tcpsocket_nodelay(cast_to_tcpsocket(httpsocket), 1);
     memcpy(&httpsocket->settings, settings, sizeof(rebrick_http2_socket_settings_t));
     httpsocket->override_override_on_accept = callbacks ? callbacks->on_accept : NULL;
-    httpsocket->override_override_on_connection_closed = callbacks ? callbacks->on_connection_close : NULL;
+    httpsocket->override_override_on_connection_closed = callbacks ? callbacks->on_client_close : NULL;
     httpsocket->override_override_on_read = callbacks ? callbacks->on_read : NULL;
     httpsocket->override_override_on_write = callbacks ? callbacks->on_write : NULL;
     httpsocket->override_override_on_error = callbacks ? callbacks->on_error : NULL;

@@ -39,7 +39,7 @@ public_ typedef struct rebrick_httpsocket
     base_ssl_socket();
 
     private_ rebrick_tcpsocket_on_accept_callback_t override_override_on_accept;
-    private_ rebrick_tcpsocket_on_close_callback_t override_override_on_close;
+    private_ rebrick_tcpsocket_on_close_callback_t override_override_on_client_close;
     private_ rebrick_socket_on_read_callback_t override_override_on_read;
     private_ rebrick_socket_on_write_callback_t override_override_on_write;
     private_ rebrick_socket_on_error_callback_t override_override_on_error;

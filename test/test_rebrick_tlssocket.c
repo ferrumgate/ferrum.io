@@ -115,7 +115,7 @@ static void ssl_client(void **start)
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_error_occured_callback;
 
@@ -270,7 +270,7 @@ static void ssl_server(void **start)
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
     callbacks.on_accept = on_serverconnection_accepted_callback;
-    callbacks.on_connection_close = on_serverconnection_closed_callback;
+    callbacks.on_client_close = on_serverconnection_closed_callback;
     callbacks.on_read = on_serverdata_read_callback;
     callbacks.on_error = on_serverconnection_error_occured_callback;
 
@@ -306,7 +306,7 @@ static void ssl_client_verify(void **start)
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_serverconnection_error_occured_callback;
 
@@ -355,7 +355,7 @@ static void ssl_client_download_data(void **start)
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
     callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_client_close = on_connection_closed_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_error_occured_callback;
 

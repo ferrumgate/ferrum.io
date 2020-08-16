@@ -43,7 +43,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     {
         socket->override_override_callback_data = httpsocket->override_override_callback_data;
         socket->override_override_on_accept = httpsocket->override_override_on_accept;
-        socket->override_override_on_close = httpsocket->override_override_on_close;
+        socket->override_override_on_client_close = httpsocket->override_override_on_client_close;
         socket->override_override_on_read = httpsocket->override_override_on_read;
         socket->override_override_on_write = httpsocket->override_override_on_write;
         socket->override_override_on_error = httpsocket->override_override_on_error;
@@ -77,8 +77,8 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
         if (httpsocket->send_header)
             rebrick_http_header_destroy(httpsocket->send_header);
 
-        if (httpsocket->override_override_on_close)
-            httpsocket->override_override_on_close(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
+        if (httpsocket->override_override_on_client_close)
+            httpsocket->override_override_on_client_close(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
     }
 }
 
@@ -363,7 +363,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
 
     create2(rebrick_tlssocket_callbacks_t, local_callbacks);
     local_callbacks.on_accept = local_on_connection_accepted_callback;
-    local_callbacks.on_connection_close = local_on_connection_closed_callback;
+    local_callbacks.on_client_close = local_on_connection_closed_callback;
     local_callbacks.on_read = local_after_data_received_callback;
     local_callbacks.on_write = local_on_data_sended_callback;
     local_callbacks.on_error = local_on_error_occured_callback;
@@ -388,7 +388,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
         return result;
     }
     httpsocket->override_override_on_accept = callbacks ? callbacks->on_accept : NULL;
-    httpsocket->override_override_on_close = callbacks ? callbacks->on_connection_close : NULL;
+    httpsocket->override_override_on_client_close = callbacks ? callbacks->on_client_close : NULL;
     httpsocket->override_override_on_read = callbacks ? callbacks->on_read : NULL;
     httpsocket->override_override_on_write = callbacks ? callbacks->on_write : NULL;
     httpsocket->override_override_on_error = callbacks ? callbacks->on_error : NULL;
