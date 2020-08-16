@@ -29,10 +29,10 @@ static void on_send(uv_write_t *req, int status)
         {
             clean_func->func(clean_func->ptr);
         }
-        free(clean_func);
+        rebrick_free(clean_func);
     }
 
-    free(req);
+    rebrick_free(req);
 }
 
 int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
@@ -91,7 +91,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf)
         socket->on_data_received(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
     }
 
-    free(rcvbuf->base);
+    rebrick_free(rcvbuf->base);
 }
 
 static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
@@ -105,7 +105,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
         return;
     }
 
-    buf->base = malloc(suggested_size);
+    buf->base = rebrick_malloc(suggested_size);
     buf->len = suggested_size;
     fill_zero(buf->base, buf->len);
     rebrick_log_debug(__FILE__, __LINE__, "malloc socket:%lu %p\n", buf->len, buf->base);
@@ -138,7 +138,7 @@ static void on_connect(uv_connect_t *connection, int status)
         }
     }
 
-    free(connection);
+    rebrick_free(connection);
 }
 
 static rebrick_tcpsocket_t *create_client()
@@ -193,7 +193,7 @@ static void on_connection(uv_stream_t *server, int status)
         //burada client direk free edilebilmeli
         //başka bir şey olmadan
         //@see rebrick_tcpsocket.h
-        free(client);
+        rebrick_free(client);
 
         return;
     }
@@ -342,7 +342,7 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
     if (result < 0)
     {
         rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);
-        free(data);
+        rebrick_free(data);
 
         return result;
     }
@@ -386,7 +386,7 @@ static void on_close(uv_handle_t *handle)
                     DL_DELETE(socket->parent_socket->clients, socket);
             }
 
-            free(socket);
+            rebrick_free(socket);
         }
 }
 

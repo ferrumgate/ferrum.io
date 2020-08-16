@@ -15,16 +15,16 @@ int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue, const ch
     size_t valuelen = 0;
     if (value)
         valuelen = strlen(value);
-    rebrick_http_key_value_t *tmp = malloc(sizeof(rebrick_http_key_value_t));
+    rebrick_http_key_value_t *tmp = rebrick_malloc(sizeof(rebrick_http_key_value_t));
     if_is_null_then_die(tmp, "malloc problem\n");
     memset(tmp, 0, sizeof(rebrick_http_key_value_t));
-    tmp->key = malloc(keylen + 1);
+    tmp->key = rebrick_malloc(keylen + 1);
     if_is_null_then_die(tmp->key, "malloc problem\n");
     memset(tmp->key, 0, keylen + 1);
     if (key)
         memcpy(tmp->key, key, keylen);
 
-    tmp->key_lower = malloc(keylen + 1);
+    tmp->key_lower = rebrick_malloc(keylen + 1);
     if_is_null_then_die(tmp->key_lower, "malloc problem\n");
     memset(tmp->key_lower, 0, keylen + 1);
 
@@ -38,7 +38,7 @@ int32_t rebrick_http_key_value_new(rebrick_http_key_value_t **keyvalue, const ch
         }
     }
 
-    tmp->value = malloc(valuelen + 1);
+    tmp->value = rebrick_malloc(valuelen + 1);
     if_is_null_then_die(tmp->value, "malloc problem\n");
     memset(tmp->value, 0, valuelen + 1);
     if (value)
@@ -55,16 +55,16 @@ int32_t rebrick_http_key_value_new2(rebrick_http_key_value_t **keyvalue, const v
     char current_time_str[32] = {0};
     unused(current_time_str);
 
-    rebrick_http_key_value_t *tmp = malloc(sizeof(rebrick_http_key_value_t));
+    rebrick_http_key_value_t *tmp = rebrick_malloc(sizeof(rebrick_http_key_value_t));
     if_is_null_then_die(tmp, "malloc problem\n");
     memset(tmp, 0, sizeof(rebrick_http_key_value_t));
-    tmp->key = malloc(keylen + 1);
+    tmp->key = rebrick_malloc(keylen + 1);
     if_is_null_then_die(tmp->key, "malloc problem\n");
     memset(tmp->key, 0, keylen + 1);
     if (key)
         memcpy(tmp->key, key, keylen);
 
-    tmp->key_lower = malloc(keylen + 1);
+    tmp->key_lower = rebrick_malloc(keylen + 1);
     if_is_null_then_die(tmp->key_lower, "malloc problem\n");
     memset(tmp->key_lower, 0, keylen + 1);
 
@@ -78,7 +78,7 @@ int32_t rebrick_http_key_value_new2(rebrick_http_key_value_t **keyvalue, const v
         }
     }
 
-    tmp->value = malloc(valuelen + 1);
+    tmp->value = rebrick_malloc(valuelen + 1);
     if_is_null_then_die(tmp->value, "malloc problem\n");
     memset(tmp->value, 0, valuelen + 1);
     if (value)
@@ -95,14 +95,14 @@ int32_t rebrick_http_key_value_destroy(rebrick_http_key_value_t *keyvalue)
     if (keyvalue)
     {
         if (keyvalue->key)
-            free(keyvalue->key);
+            rebrick_free(keyvalue->key);
 
         if (keyvalue->key_lower)
-            free(keyvalue->key_lower);
+            rebrick_free(keyvalue->key_lower);
 
         if (keyvalue->value)
-            free(keyvalue->value);
-        free(keyvalue);
+            rebrick_free(keyvalue->value);
+        rebrick_free(keyvalue);
     }
     return REBRICK_SUCCESS;
 }
@@ -345,7 +345,7 @@ int32_t rebrick_http_header_destroy(rebrick_http_header_t *header)
             HASH_DEL(header->headers, s);
             rebrick_http_key_value_destroy(s);
         }
-        free(header);
+        rebrick_free(header);
     }
     return REBRICK_SUCCESS;
 }
@@ -441,13 +441,13 @@ static nghttp2_nv convert_to_http2_header(const char *name, size_t namelen, cons
     nghttp2_nv nv;
     nv.flags = NGHTTP2_NV_FLAG_NONE;
 
-    nv.name = malloc(namelen + 1);
+    nv.name = rebrick_malloc(namelen + 1);
     if_is_null_then_die(nv.name, "name value failed\n");
     nv.namelen = namelen;
     memcpy(nv.name, name, namelen);
     nv.name[namelen] = '\0';
 
-    nv.value = malloc(valuelen + 1);
+    nv.value = rebrick_malloc(valuelen + 1);
     if_is_null_then_die(nv.value, "name value failed\n");
     nv.valuelen = valuelen;
     memcpy(nv.value, value, valuelen);
@@ -467,7 +467,7 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
     *hdrss = NULL;
     *hdrs_len = 0;
     size_t index = 0;
-    nghttp2_nv *hdrs = malloc(sizeof(nghttp2_nv) * REBRICK_HTTP_MAX_HEADERS);
+    nghttp2_nv *hdrs = rebrick_malloc(sizeof(nghttp2_nv) * REBRICK_HTTP_MAX_HEADERS);
     if_is_null_then_die(hdrs, "name value array failed\n");
     size_t bytes_count = 0, bytes_count_tmp;
     if (header->scheme && header->scheme[0])
@@ -511,8 +511,8 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
 #define free_all()                     \
     for (size_t t = 0; t < index; ++t) \
     {                                  \
-        free(hdrs[t].name);            \
-        free(hdrs[t].value);           \
+        rebrick_free(hdrs[t].name);    \
+        rebrick_free(hdrs[t].value);   \
     }
 
     rebrick_http_key_value_t *s, *tmp;

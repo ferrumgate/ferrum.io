@@ -66,16 +66,16 @@ static void clean_send_data_holder(void *ptr)
 {
     send_data_holder_t *senddata = cast(ptr, send_data_holder_t *);
     if (senddata && senddata->internal_data)
-        free(senddata->internal_data);
+        rebrick_free(senddata->internal_data);
     if (senddata && senddata->client_data)
     {
 
         if (senddata->client_data->func)
             senddata->client_data->func(senddata->client_data->ptr);
-        free(senddata->client_data);
+        rebrick_free(senddata->client_data);
     }
     if (senddata)
-        free(senddata);
+        rebrick_free(senddata);
 }
 
 static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
@@ -98,7 +98,7 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
         if (n > 0)
         {
 
-            char *xbuf = malloc(n);
+            char *xbuf = rebrick_malloc(n);
             memcpy(xbuf, buftemp, n);
             send_data_holder_t *holder = create(send_data_holder_t);
             constructor(holder, send_data_holder_t);
@@ -111,8 +111,8 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
 
             if (result < 0)
             {
-                free(xbuf);
-                free(holder);
+                rebrick_free(xbuf);
+                rebrick_free(holder);
                 return result;
             }
         }
@@ -205,7 +205,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
                     rebrick_log_error(__FILE__, __LINE__, "tls failed with %d\n", result);
 
                     error_occured = 1;
-                    free(tmpbuffer);
+                    rebrick_free(tmpbuffer);
                     if (tlssocket->on_error_occured)
                         tlssocket->on_error_occured(cast_to_socket(tlssocket), tlssocket->override_callback_data, result);
 
@@ -215,7 +215,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
                 {
 
                     error_occured = 1;
-                    free(tmpbuffer);
+                    rebrick_free(tmpbuffer);
                     break;
                 }
 
@@ -241,8 +241,8 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
                             result = rebrick_tcpsocket_send(cast_to_tcpsocket(tlssocket), buftemp, n, cleanfunc);
                             if (result < 0)
                             {
-                                free(holder);
-                                free(tmpbuffer);
+                                rebrick_free(holder);
+                                rebrick_free(tmpbuffer);
                             }
                             rebrick_buffers_destroy(el->data);
 
@@ -261,7 +261,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
             if (!error_occured)
             {
                 DL_DELETE(tlssocket->pending_write_list, el);
-                free(el);
+                rebrick_free(el);
             }
             else
             {
@@ -459,7 +459,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *
         rebrick_buffers_destroy(el->data);
         DL_DELETE(tlssocket->pending_write_list, el);
         rebrick_clean_func_t *deletedata = el->clean_func;
-        free(el);
+        rebrick_free(el);
         if (deletedata)
         {
             if (deletedata->func)
@@ -467,7 +467,7 @@ static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *
 
                 deletedata->func(deletedata->ptr);
             }
-            free(deletedata);
+            rebrick_free(deletedata);
         }
     }
 
@@ -554,7 +554,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
         if (array_len)
         {
             tlssocket->override_on_data_received(cast_to_socket(tlssocket), tlssocket->override_callback_data, addr, array, array_len);
-            free(array);
+            rebrick_free(array);
         }
     }
 
@@ -692,7 +692,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
     result = rebrick_tlssocket_init(tlssocket, sni_pattern_or_name, tlscontext, addr, backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {
-        free(tlssocket);
+        rebrick_free(tlssocket);
         rebrick_log_error(__FILE__, __LINE__, "tls socket init failed with:%d\n", result);
         return result;
     }
@@ -726,7 +726,7 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket)
         }
         rebrick_tcpsocket_destroy(cast_to_tcpsocket(socket));
 
-        //free(socket) yapmakmak lazım, zaten tcpsocket yapıyor
+        //rebrick_free(socket) yapmakmak lazım, zaten tcpsocket yapıyor
     }
     return REBRICK_SUCCESS;
 }
@@ -813,8 +813,8 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, siz
             result = rebrick_tcpsocket_send(cast_to_tcpsocket(socket), tmpbuffer, tmplen, cleanfunc);
             if (result < 0)
             {
-                free(holder);
-                free(tmpbuffer);
+                rebrick_free(holder);
+                rebrick_free(tmpbuffer);
             }
         }
         rebrick_buffers_destroy(buffertmp);

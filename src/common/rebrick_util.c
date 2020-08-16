@@ -24,10 +24,10 @@ rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linke
         return NULL;
     fill_zero(item, sizeof(rebrick_linked_item_t));
     strcpy(item->type_name, "rebrick_linked_item_t");
-    item->data = malloc(len);
+    item->data = rebrick_malloc(len);
     if (item->data == NULL)
     {
-        free(item);
+        rebrick_free(item);
         return NULL;
     }
     item->len = len;
@@ -56,12 +56,12 @@ rebrick_linked_item_t *rebrick_util_linked_item_destroy(rebrick_linked_item_t *i
     }
     if (item->data)
     {
-        free(item->data);
+        rebrick_free(item->data);
         item->data = NULL;
     }
     if (item->prev)
         item->prev->next = NULL;
-    free(item);
+    rebrick_free(item);
     return previous;
 }
 
@@ -135,7 +135,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
     if (len == 1)
         return NULL;
 
-    data = malloc(len);
+    data = rebrick_malloc(len);
     if (data == NULL)
         return NULL;
 
@@ -150,7 +150,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
             if (start != NULL)
                 rebrick_util_linked_item_destroy(start);
 
-            free(data);
+            rebrick_free(data);
             return NULL;
         }
 
@@ -163,7 +163,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
         current = temp;
         split = strtok_r(NULL, splitter, &saveptr);
     }
-    free(data);
+    rebrick_free(data);
     return start;
 }
 
@@ -410,7 +410,7 @@ int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t 
     fseek(fileptr, 0, SEEK_END);
     filelen = ftell(fileptr);
     rewind(fileptr);
-    char *temp = malloc(filelen + 1);
+    char *temp = rebrick_malloc(filelen + 1);
     if_is_null_then_die(temp, "malloc problem\n");
 
     fill_zero(temp, filelen + 1);

@@ -416,7 +416,7 @@ int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pa
     if (result < 0)
     {
         rebrick_log_error(__FILE__, __LINE__, "http socket init failed with error:%d\n", result);
-        free(httpsocket);
+        rebrick_free(httpsocket);
         return result;
     }
     *socket = httpsocket;

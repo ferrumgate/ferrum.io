@@ -35,7 +35,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
     {
 
         rebrick_log_fatal(__FILE__, __LINE__, "init timer failed:%s\n", uv_strerror(result));
-        free(tmp);
+        rebrick_free(tmp);
 
         return REBRICK_ERR_UV + result;
     }
@@ -53,7 +53,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
         {
 
             rebrick_log_fatal(__FILE__, __LINE__, "start timer failed:%s\n", uv_strerror(result));
-            free(tmp);
+            rebrick_free(tmp);
 
             return REBRICK_ERR_UV + result;
         }
@@ -117,7 +117,7 @@ static void on_timer_close(uv_handle_t *handle)
 {
     uv_timer_t *timer = cast(handle, uv_timer_t *);
     if (timer->data)
-        free(timer->data);
+        rebrick_free(timer->data);
 }
 int32_t rebrick_timer_destroy(rebrick_timer_t *timer)
 {

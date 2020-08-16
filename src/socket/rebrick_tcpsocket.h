@@ -83,7 +83,7 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t a
  * @param on_data_sended
  * @param on_error_occured
  * @param backlog_or_isclient
- * @param create_client, createa a client instance that must be easily destory with free(ptr), no other function like destory(ptr)
+ * @param create_client, createa a client instance that must be easily destory with rebrick_free(ptr), no other function like destory(ptr)
  * @return int32_t
  */
 

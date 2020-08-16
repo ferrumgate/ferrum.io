@@ -45,8 +45,8 @@ int32_t rebrick_buffer_destroy(rebrick_buffer_t *buffer)
     if (buffer)
     {
         if (buffer->buf)
-            free(buffer->buf);
-        free(buffer);
+            rebrick_free(buffer->buf);
+        rebrick_free(buffer);
     }
     return REBRICK_SUCCESS;
 }

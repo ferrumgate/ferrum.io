@@ -111,7 +111,7 @@ static void rebrick_udpsocket_asserver_communication(void **start)
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
         max_check--;
     }
-    //free(buffer);
+    //rebrick_free(buffer);
     assert_int_not_equal(max_check, 0);
     assert_string_equal(msg, read_buffer);
     flag = 0;
@@ -241,7 +241,7 @@ static void test_rebrick_udpsocket_check_memory(void **state)
         counter = 1000;
         loop(counter, 1000, FALSE);
     }
-    free(testdata);
+    rebrick_free(testdata);
 }
 
 /**
@@ -311,7 +311,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
     rebrick_udpsocket_destroy(dnsclient);
     int32_t counter = 100;
     loop(counter, 100, FALSE);
-    free(testdata);
+    rebrick_free(testdata);
 }
 
 /**

@@ -33,9 +33,9 @@ static void on_send(uv_udp_send_t *req, int status)
         {
             clean_func->func(clean_func->ptr);
         }
-        free(clean_func);
+        rebrick_free(clean_func);
     }
-    free(req);
+    rebrick_free(req);
 }
 int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func)
 {
@@ -96,7 +96,7 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
         }
     }
 
-    free(rcvbuf->base);
+    rebrick_free(rcvbuf->base);
 }
 
 static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
@@ -110,7 +110,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf)
         return;
     }
 
-    buf->base = malloc(suggested_size);
+    buf->base = rebrick_malloc(suggested_size);
     if_is_null_then_die(buf->base, "malloc problem\n");
 
     buf->len = suggested_size;
@@ -179,7 +179,7 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
     {
         rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", tmp->bind_ip, tmp->bind_port);
 
-        free(tmp);
+        rebrick_free(tmp);
         return result;
     }
 
@@ -194,7 +194,7 @@ static void on_close(uv_handle_t *handle)
         {
             rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
             if (socket)
-                free(socket);
+                rebrick_free(socket);
         }
 }
 

@@ -62,7 +62,7 @@ static int32_t rebrick_http2_stream_destroy(rebrick_http2_stream_t *stream)
         if (stream->send_header)
             rebrick_http_header_destroy(stream->send_header);
 
-        free(stream);
+        rebrick_free(stream);
     }
     return REBRICK_SUCCESS;
 }
@@ -805,7 +805,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
     if (result < 0)
     {
         rebrick_log_error(__FILE__, __LINE__, "http2 socket init failed with error:%d\n", result);
-        free(httpsocket);
+        rebrick_free(httpsocket);
         return result;
     }
     *socket = httpsocket;
@@ -892,10 +892,10 @@ int32_t rebrick_http2socket_send_header(rebrick_http2socket_t *socket, int32_t *
 #define destory_nv()                      \
     for (size_t tt = 0; tt < nvlen; ++tt) \
     {                                     \
-        free(nv[tt].name);                \
-        free(nv[tt].value);               \
+        rebrick_free(nv[tt].name);        \
+        rebrick_free(nv[tt].value);       \
     }                                     \
-    free(nv);
+    rebrick_free(nv);
 
     result = rebrick_http_header_to_http2_buffer(header, &nv, &nvlen);
     if (result < 0)
@@ -1163,10 +1163,10 @@ int32_t rebrick_http2socket_send_push(rebrick_http2socket_t *socket, int32_t *pu
 #define destory_nv()                      \
     for (size_t tt = 0; tt < nvlen; ++tt) \
     {                                     \
-        free(nv[tt].name);                \
-        free(nv[tt].value);               \
+        rebrick_free(nv[tt].name);        \
+        rebrick_free(nv[tt].value);       \
     }                                     \
-    free(nv);
+    rebrick_free(nv);
 
     result = rebrick_http_header_to_http2_buffer(header, &nv, &nvlen);
     if (result < 0)

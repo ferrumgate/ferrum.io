@@ -63,7 +63,7 @@ int32_t rebrick_after_io_list_remove(struct rebrick_tlssocket *socket)
             if (el->socket == socket)
             {
                 DL_DELETE(tls_after_io_checklist->head, el);
-                free(el);
+                rebrick_free(el);
             }
         }
 
@@ -110,7 +110,7 @@ int32_t rebrick_before_io_list_remove(struct rebrick_tlssocket *socket)
             if (el->socket == socket)
             {
                 DL_DELETE(tls_before_io_checklist->head, el);
-                free(el);
+                rebrick_free(el);
             }
         }
 
@@ -221,9 +221,9 @@ int32_t rebrick_tls_cleanup()
         ERR_free_strings();
 
         if (tls_after_io_checklist)
-            free(tls_after_io_checklist);
+            rebrick_free(tls_after_io_checklist);
         if (tls_before_io_checklist)
-            free(tls_before_io_checklist);
+            rebrick_free(tls_before_io_checklist);
 
         tls_after_io_checklist = NULL;
         tls_before_io_checklist = NULL;
@@ -293,7 +293,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     {
 
         rebrick_log_fatal(__FILE__, __LINE__, "ssl init failed\n");
-        free(ctx);
+        rebrick_free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
 
@@ -306,7 +306,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         rebrick_log_fatal(__FILE__, __LINE__, "ssl cerfiticate file %s loading failed\n", certificate_file);
         ERR_print_errors_fp(stderr);
         SSL_CTX_free(ctx->tls_ctx);
-        free(ctx);
+        rebrick_free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
     if (certificate_file)
@@ -317,7 +317,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         rebrick_log_fatal(__FILE__, __LINE__, "ssl private file %s loading failed\n", private_file);
         ERR_print_errors_fp(stderr);
         SSL_CTX_free(ctx->tls_ctx);
-        free(ctx);
+        rebrick_free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
 
@@ -326,7 +326,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
         rebrick_log_fatal(__FILE__, __LINE__, "ssl private file %s loading failed\n", private_file);
         ERR_print_errors_fp(stderr);
         SSL_CTX_free(ctx->tls_ctx);
-        free(ctx);
+        rebrick_free(ctx);
         return REBRICK_ERR_TLS_INIT;
     }
     if (private_file)
@@ -479,12 +479,12 @@ int32_t rebrick_tls_context_destroy(rebrick_tls_context_t *context)
             if (out)
             {
                 HASH_DEL(ctx_map, out);
-                free(out);
+                rebrick_free(out);
             }
             //then dispose ctx
             SSL_CTX_free(context->tls_ctx);
         }
-        free(context);
+        rebrick_free(context);
     }
     return REBRICK_SUCCESS;
 }
@@ -653,7 +653,7 @@ int32_t rebrick_tls_ssl_destroy(rebrick_tls_ssl_t *tls)
             SSL_clear(tls->ssl);
             SSL_free(tls->ssl);
         }
-        free(tls);
+        rebrick_free(tls);
     }
     return REBRICK_SUCCESS;
 }

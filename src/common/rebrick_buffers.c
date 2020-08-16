@@ -23,7 +23,7 @@ int32_t rebrick_buffers_new(rebrick_buffers_t **buffer, uint8_t *buf, size_t len
     {
         rebrick_buffers_page_t *tmp = create(rebrick_buffers_page_t);
         constructor(tmp, rebrick_buffers_page_t);
-        tmp->buf = malloc(default_malloc_size);
+        tmp->buf = rebrick_malloc(default_malloc_size);
         if_is_null_then_die(tmp->buf, "malloc problem\n");
         memset(tmp->buf, 0, default_malloc_size);
 
@@ -53,11 +53,11 @@ int32_t rebrick_buffers_destroy(rebrick_buffers_t *buffer)
             {
                 DL_DELETE(buffer->head_page, elt);
                 if (elt->buf)
-                    free(elt->buf);
-                free(elt);
+                    rebrick_free(elt->buf);
+                rebrick_free(elt);
             }
         }
-        free(buffer);
+        rebrick_free(buffer);
     }
     return REBRICK_SUCCESS;
 }
@@ -88,7 +88,7 @@ int32_t rebrick_buffers_add(rebrick_buffers_t *buffer, uint8_t *buf, size_t len)
         {
             rebrick_buffers_page_t *tmp = create(rebrick_buffers_page_t);
             constructor(tmp, rebrick_buffers_page_t);
-            tmp->buf = malloc(default_malloc_size);
+            tmp->buf = rebrick_malloc(default_malloc_size);
             if_is_null_then_die(tmp->buf, "malloc problem\n");
             memset(tmp->buf, 0, default_malloc_size);
             last_elm = tmp;
@@ -137,8 +137,8 @@ int32_t rebrick_buffers_remove(rebrick_buffers_t *buffer, size_t start, size_t c
             start_page = start_page->next;
             DL_DELETE(head, del_point);
             if (del_point->buf)
-                free(del_point->buf);
-            free(del_point);
+                rebrick_free(del_point->buf);
+            rebrick_free(del_point);
             buffer->head_page = head;
         }
         else
@@ -196,7 +196,7 @@ int32_t rebrick_buffers_to_array(const rebrick_buffers_t *buffer, uint8_t **arra
         {
             sum += tmp->len;
         }
-        temp = malloc(sum);
+        temp = rebrick_malloc(sum);
         if_is_null_then_die(temp, "malloc problem\n");
 
         int32_t index = 0;

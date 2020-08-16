@@ -223,10 +223,10 @@ static void rebrick_http_header_to_http2_buffer_test(void **state)
 
     for (size_t i = 0; i < nvlen; ++i)
     {
-        free(nv[i].name);
-        free(nv[i].value);
+        rebrick_free(nv[i].name);
+        rebrick_free(nv[i].value);
     }
-    free(nv);
+    rebrick_free(nv);
     rebrick_http_header_destroy(header);
 }
 

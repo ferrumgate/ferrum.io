@@ -54,7 +54,7 @@ int32_t rebrick_filestream_new(rebrick_filestream_t **stream, const char *path, 
     if (result < 0)
     {
         uv_fs_req_cleanup(&file->open_request);
-        free(file);
+        rebrick_free(file);
         rebrick_log_error(__FILE__, __LINE__, "file %s could not open:%s\n", path, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
@@ -179,7 +179,7 @@ static void on_file_close(uv_fs_t *req)
             stream->on_close(stream, stream->callback_data);
 
         uv_fs_req_cleanup(req);
-        free(stream);
+        rebrick_free(stream);
     }
 }
 
@@ -211,7 +211,7 @@ int32_t rebrick_filestream_destroy(rebrick_filestream_t *stream)
             }
 
             uv_fs_req_cleanup(&stream->close_request);
-            free(stream);
+            rebrick_free(stream);
         }
     }
     return REBRICK_SUCCESS;

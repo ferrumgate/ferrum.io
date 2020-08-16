@@ -81,8 +81,8 @@
 #define REBRICK_TLS_ALPN_MAX_LEN 128
 
 /* @brief allocation methods */
-#define rmalloc(x) malloc(x)
-#define rfree(x) free(x)
+#define rebrick_malloc(x) malloc(x)
+#define rebrick_free(x) free(x)
 #define create(x) malloc(sizeof(x))
 #define constructor(x, y)                                          \
     if (!x)                                                        \

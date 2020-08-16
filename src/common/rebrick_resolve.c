@@ -25,9 +25,9 @@ static void getaddrinfo_cb(uv_getaddrinfo_t *handle, int status, struct addrinfo
             if (resolver->on_error)
                 resolver->on_error(resolver->domain, resolver->type, REBRICK_ERR_UV + status);
             rebrick_log_error(__FILE__, __LINE__, "resolve failed for %s %s \n", resolver->domain, uv_strerror(status));
-            rfree(resolver);
+            rebrick_free(resolver);
         }
-        free(handle);
+        rebrick_free(handle);
         return;
     }
 
@@ -58,10 +58,10 @@ static void getaddrinfo_cb(uv_getaddrinfo_t *handle, int status, struct addrinfo
                     resolver->on_error(resolver->domain, resolver->type, REBRICK_ERR_UNSUPPORT_IPFAMILY);
             }
         }
-        free(resolver);
+        rebrick_free(resolver);
     }
 
-    free(handle);
+    rebrick_free(handle);
     uv_freeaddrinfo(response);
 }
 
