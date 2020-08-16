@@ -157,7 +157,7 @@ static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n)
     }
     if (status == SSLSTATUS_CLOSED)
     {
-        rebrick_log_error(__FILE__, __LINE__, "ssl closed\n");
+        rebrick_log_info(__FILE__, __LINE__, "ssl closed\n");
         return REBRICK_ERR_TLS_CLOSED;
     }
     if (status == SSLSTATUS_FAIL)
@@ -384,7 +384,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
     if (tlsclient != tlsserver)
         strncpy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
     tlsclient->override_on_accept = tlsserver->override_on_accept;
-    tlsclient->override_on_close = tlsserver->override_on_close;
+    tlsclient->override_on_client_close = tlsserver->override_on_client_close;
     tlsclient->override_on_read = tlsserver->override_on_read;
     tlsclient->override_on_write = tlsserver->override_on_write;
     tlsclient->override_on_error = tlsserver->override_on_error;
@@ -471,8 +471,8 @@ static void local_on_connection_close_callback(rebrick_socket_t *socket, void *c
         }
     }
 
-    if (tlssocket->override_on_close)
-        tlssocket->override_on_close(cast_to_socket(tlssocket), tlssocket->override_callback_data);
+    if (tlssocket->override_on_client_close)
+        tlssocket->override_on_client_close(cast_to_socket(tlssocket), tlssocket->override_callback_data);
 }
 
 static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
@@ -535,8 +535,8 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
         if (status == REBRICK_ERR_TLS_ERR || status == REBRICK_ERR_TLS_CLOSED)
         {
-
-            rebrick_log_error(__FILE__, __LINE__, "ssl status failed %d:%d\n", n, status);
+            if (status != REBRICK_ERR_TLS_CLOSED)
+                rebrick_log_error(__FILE__, __LINE__, "ssl status failed %d:%d\n", n, status);
             rebrick_buffers_destroy(readedbuffer);
             if (tlssocket->override_on_error)
                 tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, status);
@@ -647,7 +647,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
     tlssocket->is_server = backlog_or_isclient;
 
     tlssocket->override_on_accept = callbacks ? callbacks->on_accept : NULL;
-    tlssocket->override_on_close = callbacks ? callbacks->on_close : NULL;
+    tlssocket->override_on_client_close = callbacks ? callbacks->on_client_close : NULL;
     tlssocket->override_on_read = callbacks ? callbacks->on_read : NULL;
     tlssocket->override_on_write = callbacks ? callbacks->on_write : NULL;
     tlssocket->override_callback_data = callbacks ? callbacks->callback_data : NULL;

@@ -68,7 +68,7 @@ static void on_error_occured_callback(rebrick_socket_t *socket, void *callback, 
 
 static int32_t is_connected = 1;
 
-static void on_connection_accepted_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle)
+static void on_accept_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
     is_connected = 0;
     unused(callback_data);
@@ -77,7 +77,7 @@ static void on_connection_accepted_callback(rebrick_socket_t *socket, void *call
     unused(socket);
 }
 static int32_t is_connection_closed = 0;
-static void on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
+static void on_client_close_callback(rebrick_socket_t *socket, void *callback_data)
 {
     unused(callback_data);
     unused(socket);
@@ -114,8 +114,8 @@ static void ssl_client(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_client_close = on_connection_closed_callback;
+    callbacks.on_accept = on_accept_callback;
+    callbacks.on_client_close = on_client_close_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_error_occured_callback;
 
@@ -284,7 +284,6 @@ static void ssl_server(void **start)
     counter = 10;
     while (client_count)
     {
-        printf("%d\n", client_count);
         loop(counter, 1, TRUE);
     }
 
@@ -305,8 +304,8 @@ static void ssl_client_verify(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_client_close = on_connection_closed_callback;
+    callbacks.on_accept = on_accept_callback;
+    callbacks.on_client_close = on_client_close_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_serverconnection_error_occured_callback;
 
@@ -354,8 +353,8 @@ static void ssl_client_download_data(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_accept = on_connection_accepted_callback;
-    callbacks.on_client_close = on_connection_closed_callback;
+    callbacks.on_accept = on_accept_callback;
+    callbacks.on_client_close = on_client_close_callback;
     callbacks.on_read = on_data_read_callback;
     callbacks.on_error = on_error_occured_callback;
 
@@ -451,7 +450,6 @@ static void ssl_server_for_manual(void **start)
     counter = 1000;
     while (1)
     {
-        //printf("%d\n", client_count);
         loop(counter, 1, TRUE);
     }
 
@@ -486,7 +484,6 @@ static void ssl_server_for_manual_sni(void **start)
     int32_t tmp = 100;
     while (counter--)
     {
-        //printf("%d\n", client_count);
         loop(tmp, 1, TRUE);
     }
 
