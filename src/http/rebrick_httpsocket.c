@@ -8,8 +8,8 @@ static void local_on_error_occured_callback(rebrick_socket_t *ssocket, void *cal
     rebrick_httpsocket_t *httpsocket = cast_to_httpsocket(ssocket);
     if (httpsocket)
     {
-        if (httpsocket->override_override_on_error_occured)
-            httpsocket->override_override_on_error_occured(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, error);
+        if (httpsocket->override_override_on_error)
+            httpsocket->override_override_on_error(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, error);
     }
 }
 
@@ -42,17 +42,17 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
     if (httpsocket->is_server)
     {
         socket->override_override_callback_data = httpsocket->override_override_callback_data;
-        socket->override_override_on_connection_accepted = httpsocket->override_override_on_connection_accepted;
-        socket->override_override_on_connection_closed = httpsocket->override_override_on_connection_closed;
-        socket->override_override_on_data_received = httpsocket->override_override_on_data_received;
-        socket->override_override_on_data_sended = httpsocket->override_override_on_data_sended;
-        socket->override_override_on_error_occured = httpsocket->override_override_on_error_occured;
-        socket->on_http_body_received = httpsocket->on_http_body_received;
-        socket->on_http_header_received = httpsocket->on_http_header_received;
+        socket->override_override_on_accept = httpsocket->override_override_on_accept;
+        socket->override_override_on_close = httpsocket->override_override_on_close;
+        socket->override_override_on_read = httpsocket->override_override_on_read;
+        socket->override_override_on_write = httpsocket->override_override_on_write;
+        socket->override_override_on_error = httpsocket->override_override_on_error;
+        socket->on_http_body_read = httpsocket->on_http_body_read;
+        socket->on_http_header_read = httpsocket->on_http_header_read;
     }
 
-    if (httpsocket->override_override_on_connection_accepted)
-        httpsocket->override_override_on_connection_accepted(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, socket);
+    if (httpsocket->override_override_on_accept)
+        httpsocket->override_override_on_accept(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, socket);
 }
 
 static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void *callback_data)
@@ -77,8 +77,8 @@ static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void 
         if (httpsocket->send_header)
             rebrick_http_header_destroy(httpsocket->send_header);
 
-        if (httpsocket->override_override_on_connection_closed)
-            httpsocket->override_override_on_connection_closed(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
+        if (httpsocket->override_override_on_close)
+            httpsocket->override_override_on_close(cast_to_socket(httpsocket), httpsocket->override_override_callback_data);
     }
 }
 
@@ -98,15 +98,15 @@ static void local_on_data_sended_callback(rebrick_socket_t *ssocket, void *callb
     if (httpsocket)
     {
 
-        if (httpsocket->override_override_on_data_sended)
-            httpsocket->override_override_on_data_sended(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, source);
+        if (httpsocket->override_override_on_write)
+            httpsocket->override_override_on_write(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, source);
     }
 }
 
-#define call_on_error(httpsocket, error)                                                                                                \
-    if (httpsocket->override_override_on_error_occured)                                                                                 \
-    {                                                                                                                                   \
-        httpsocket->override_override_on_error_occured(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, error); \
+#define call_on_error(httpsocket, error)                                                                                        \
+    if (httpsocket->override_override_on_error)                                                                                 \
+    {                                                                                                                           \
+        httpsocket->override_override_on_error(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, error); \
     }
 
 static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
@@ -129,16 +129,16 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
     rebrick_httpsocket_t *httpsocket = cast_to_httpsocket(socket);
 
-    if (httpsocket->override_override_on_data_received)
-        httpsocket->override_override_on_data_received(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, buffer, len);
+    if (httpsocket->override_override_on_read)
+        httpsocket->override_override_on_read(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, addr, buffer, len);
 
     if (httpsocket->is_header_parsed)
     {
-        if (httpsocket->on_http_body_received)
+        if (httpsocket->on_http_body_read)
         {
             httpsocket->content_received_length += len;
-            httpsocket->on_http_body_received(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, addr,
-                                              buffer, len);
+            httpsocket->on_http_body_read(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, addr,
+                                          buffer, len);
         }
     }
     else
@@ -253,11 +253,11 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
             httpsocket->header_len = pret;
 
             //http header finished
-            if (httpsocket->on_http_header_received)
-                httpsocket->on_http_header_received(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, httpsocket->received_header);
+            if (httpsocket->on_http_header_read)
+                httpsocket->on_http_header_read(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, httpsocket->received_header);
 
             //http upgrade protocol check
-            if (httpsocket->is_server && httpsocket->on_socket_needs_upgrade)
+            if (httpsocket->is_server && httpsocket->on_socket_upgrade_read)
             {
                 const char *connection_value = NULL;
                 result = rebrick_http_header_get_header(httpsocket->received_header, "connection", &connection_value);
@@ -276,7 +276,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                             result = rebrick_http_header_get_header(httpsocket->received_header, "HTTP2-Settings", &extra_value);
                             if (!result && extra_value)
                             {
-                                httpsocket->on_socket_needs_upgrade(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
+                                httpsocket->on_socket_upgrade_read(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
                             }
                         }
 
@@ -286,7 +286,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
                             upgrade_type = websocket;
                             if (!result)
                             {
-                                httpsocket->on_socket_needs_upgrade(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
+                                httpsocket->on_socket_upgrade_read(cast_to_socket(httpsocket), httpsocket->override_override_callback_data, upgrade_type, httpsocket->received_header);
                             }
                         }
                     }
@@ -296,13 +296,13 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
             //call on_http_body
             if (cast(httpsocket->tmp_buffer->len, ssize_t) > pret)
             {
-                if (httpsocket->on_http_body_received)
+                if (httpsocket->on_http_body_read)
                 {
                     size_t length_remain = httpsocket->tmp_buffer->len - pret;
                     size_t offset = httpsocket->tmp_buffer->len - length_remain;
                     httpsocket->content_received_length += length_remain;
-                    httpsocket->on_http_body_received(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, addr,
-                                                      httpsocket->tmp_buffer->buf + offset, length_remain);
+                    httpsocket->on_http_body_read(cast_to_socket(httpsocket), 0, httpsocket->override_override_callback_data, addr,
+                                                  httpsocket->tmp_buffer->buf + offset, length_remain);
                 }
             }
         }
@@ -362,11 +362,11 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     httpsocket->override_override_tls_context = tls_context;
 
     create2(rebrick_tlssocket_callbacks_t, local_callbacks);
-    local_callbacks.on_connection_accepted = local_on_connection_accepted_callback;
-    local_callbacks.on_connection_closed = local_on_connection_closed_callback;
-    local_callbacks.on_data_received = local_after_data_received_callback;
-    local_callbacks.on_data_sended = local_on_data_sended_callback;
-    local_callbacks.on_error_occured = local_on_error_occured_callback;
+    local_callbacks.on_accept = local_on_connection_accepted_callback;
+    local_callbacks.on_connection_close = local_on_connection_closed_callback;
+    local_callbacks.on_read = local_after_data_received_callback;
+    local_callbacks.on_write = local_on_data_sended_callback;
+    local_callbacks.on_error = local_on_error_occured_callback;
 
     if (tls_context || (sni_pattern_or_name && strlen(sni_pattern_or_name)))
     {
@@ -387,15 +387,15 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
         rebrick_log_error(__FILE__, __LINE__, "http socket creation failed with eror:%d\n", result);
         return result;
     }
-    httpsocket->override_override_on_connection_accepted = callbacks ? callbacks->on_connection_accepted : NULL;
-    httpsocket->override_override_on_connection_closed = callbacks ? callbacks->on_connection_closed : NULL;
-    httpsocket->override_override_on_data_received = callbacks ? callbacks->on_data_received : NULL;
-    httpsocket->override_override_on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
-    httpsocket->override_override_on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
+    httpsocket->override_override_on_accept = callbacks ? callbacks->on_accept : NULL;
+    httpsocket->override_override_on_close = callbacks ? callbacks->on_connection_close : NULL;
+    httpsocket->override_override_on_read = callbacks ? callbacks->on_read : NULL;
+    httpsocket->override_override_on_write = callbacks ? callbacks->on_write : NULL;
+    httpsocket->override_override_on_error = callbacks ? callbacks->on_error : NULL;
     httpsocket->override_override_callback_data = callbacks ? callbacks->callback_data : NULL;
-    httpsocket->on_http_header_received = callbacks ? callbacks->on_http_header_received : NULL;
-    httpsocket->on_http_body_received = callbacks ? callbacks->on_http_body_received : NULL;
-    httpsocket->on_socket_needs_upgrade = callbacks ? callbacks->on_socket_needs_upgrade : NULL;
+    httpsocket->on_http_header_read = callbacks ? callbacks->on_http_header_read : NULL;
+    httpsocket->on_http_body_read = callbacks ? callbacks->on_http_body_read : NULL;
+    httpsocket->on_socket_upgrade_read = callbacks ? callbacks->on_socket_upgrade_read : NULL;
 
     return REBRICK_SUCCESS;
 }
@@ -462,7 +462,7 @@ int32_t rebrick_httpsocket_reset(rebrick_httpsocket_t *socket)
 
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_write(rebrick_httpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     unused(buffer);
@@ -473,8 +473,8 @@ int32_t rebrick_httpsocket_send(rebrick_httpsocket_t *socket, uint8_t *buffer, s
         return REBRICK_ERR_BAD_ARGUMENT;
 
     if (socket->tls)
-        return rebrick_tlssocket_send(cast_to_tlssocket(socket), buffer, len, cleanfunc);
-    return rebrick_tcpsocket_send(cast_to_tcpsocket(socket), buffer, len, cleanfunc);
+        return rebrick_tlssocket_write(cast_to_tlssocket(socket), buffer, len, cleanfunc);
+    return rebrick_tcpsocket_write(cast_to_tcpsocket(socket), buffer, len, cleanfunc);
 }
 
 static void clean_buffer(void *buffer)
@@ -486,7 +486,7 @@ static void clean_buffer(void *buffer)
     }
 }
 
-int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
+int32_t rebrick_httpsocket_write_header(rebrick_httpsocket_t *socket, int32_t *stream_id, int64_t flags, rebrick_http_header_t *header)
 {
     unused(socket);
     int32_t result;
@@ -510,9 +510,9 @@ int32_t rebrick_httpsocket_send_header(rebrick_httpsocket_t *socket, int32_t *st
         rebrick_http_header_destroy(socket->send_header);
     socket->send_header = header;
     rebrick_clean_func_t cleanfunc = {.func = clean_buffer, .ptr = buffer};
-    return rebrick_httpsocket_send(socket, buffer->buf, buffer->len, cleanfunc);
+    return rebrick_httpsocket_write(socket, buffer->buf, buffer->len, cleanfunc);
 }
-int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t stream_id, int64_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
+int32_t rebrick_httpsocket_write_body(rebrick_httpsocket_t *socket, int32_t stream_id, int64_t flags, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc)
 {
     unused(socket);
     int32_t result;
@@ -526,5 +526,5 @@ int32_t rebrick_httpsocket_send_body(rebrick_httpsocket_t *socket, int32_t strea
     if (!socket || !buffer)
         return REBRICK_ERR_BAD_ARGUMENT;
 
-    return rebrick_httpsocket_send(socket, buffer, len, cleanfunc);
+    return rebrick_httpsocket_write(socket, buffer, len, cleanfunc);
 }

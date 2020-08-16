@@ -151,13 +151,13 @@ static void http_socket_as_client_create_get(void **start)
     is_connected = FALSE;
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_body_received = on_body_read_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_body_read = on_body_read_callback;
+    callbacks.on_http_header_read = on_http_header_received;
 
     result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 0, &callbacks);
     assert_int_equal(result, 0);
@@ -175,7 +175,7 @@ static void http_socket_as_client_create_get(void **start)
 
     //send data
     int stream_id = 0;
-    result = rebrick_httpsocket_send_header(socket, &stream_id, 0, header);
+    result = rebrick_httpsocket_write_header(socket, &stream_id, 0, header);
     assert_int_equal(result, REBRICK_SUCCESS);
     loop(counter, 1000, (!sended));
     assert_int_equal(sended, TRUE);
@@ -234,13 +234,13 @@ static void http_socket_as_client_create_post(void **start)
     is_connected = FALSE;
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_body_received = on_body_read_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_body_read = on_body_read_callback;
+    callbacks.on_http_header_read = on_http_header_received;
 
     result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 0, &callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
@@ -268,7 +268,7 @@ static void http_socket_as_client_create_post(void **start)
     is_bodyreaded = FALSE;
 
     int32_t stream_id = 0;
-    result = rebrick_httpsocket_send_header(socket, &stream_id, 0, header);
+    result = rebrick_httpsocket_write_header(socket, &stream_id, 0, header);
     assert_int_equal(result, REBRICK_SUCCESS);
     loop(counter, 1000, (!sended));
     assert_int_equal(sended, TRUE);
@@ -277,7 +277,7 @@ static void http_socket_as_client_create_post(void **start)
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func = deletesendata;
     cleanfunc2.ptr = bodybuffer;
-    result = rebrick_httpsocket_send(socket, bodybuffer->buf, bodybuffer->len, cleanfunc2);
+    result = rebrick_httpsocket_write(socket, bodybuffer->buf, bodybuffer->len, cleanfunc2);
     loop(counter, 1000, (!sended));
     assert_int_equal(sended, TRUE);
 
@@ -332,13 +332,13 @@ static void http_socket_as_client_create_with_tls_post(void **start)
     is_connected = FALSE;
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_body_received = on_body_read_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_body_read = on_body_read_callback;
+    callbacks.on_http_header_read = on_http_header_received;
 
     result = rebrick_httpsocket_new(&socket, NULL, context_verify_none, destination, 0, &callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
@@ -366,7 +366,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
 
     int32_t stream_id = 0;
 
-    result = rebrick_httpsocket_send_header(socket, &stream_id, 0, header);
+    result = rebrick_httpsocket_write_header(socket, &stream_id, 0, header);
     assert_int_equal(result, REBRICK_SUCCESS);
     loop(counter, 10000, (!sended));
     assert_int_equal(sended, TRUE);
@@ -375,7 +375,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
     rebrick_clean_func_t cleanfunc2;
     cleanfunc2.func = deletesendata;
     cleanfunc2.ptr = bodybuffer;
-    result = rebrick_httpsocket_send_body(socket, 0, 0, bodybuffer->buf, bodybuffer->len, cleanfunc2);
+    result = rebrick_httpsocket_write_body(socket, 0, 0, bodybuffer->buf, bodybuffer->len, cleanfunc2);
     assert_int_equal(result, REBRICK_SUCCESS);
     loop(counter, 1000, (!sended));
     assert_int_equal(sended, TRUE);
@@ -436,13 +436,13 @@ static void http_socket_as_server_get(void **tls)
     client = NULL;
 
     create2(rebrick_httpsocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_body_received = on_body_read_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_body_read = on_body_read_callback;
+    callbacks.on_http_header_read = on_http_header_received;
 
     if (!*tls)
         result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 10, &callbacks);
@@ -484,14 +484,14 @@ static void http_socket_as_server_get(void **tls)
         is_bodyreaded = FALSE;
 
         int32_t stream_id = 0;
-        result = rebrick_httpsocket_send_header(client, &stream_id, 0, header);
+        result = rebrick_httpsocket_write_header(client, &stream_id, 0, header);
         assert_int_equal(result, REBRICK_SUCCESS);
         loop(counter, 1000, (!sended));
         assert_int_equal(sended, TRUE);
 
         sended = FALSE;
 
-        result = rebrick_httpsocket_send(client, bodybuffer->buf, bodybuffer->len, (rebrick_clean_func_t){.func = deletesendata, .ptr = bodybuffer});
+        result = rebrick_httpsocket_write(client, bodybuffer->buf, bodybuffer->len, (rebrick_clean_func_t){.func = deletesendata, .ptr = bodybuffer});
         loop(counter, 1000, (!sended));
         assert_int_equal(sended, TRUE);
     }

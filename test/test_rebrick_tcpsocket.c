@@ -69,9 +69,9 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
     assert_int_equal(result, 0);
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
-    callbacks.on_connection_accepted = on_newclient_connection;
-    callbacks.on_data_received = on_read;
-    callbacks.on_error_occured = on_error_occured;
+    callbacks.on_accept = on_newclient_connection;
+    callbacks.on_read = on_read;
+    callbacks.on_error = on_error_occured;
 
     result = rebrick_tcpsocket_new(&server, addr, 10, &callbacks);
     assert_int_equal(result, 0);
@@ -107,7 +107,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
 
     char *world = "world";
     rebrick_clean_func_t clean = {};
-    result = rebrick_tcpsocket_send(data.client, cast(world, uint8_t *), strlen(world), clean);
+    result = rebrick_tcpsocket_write(data.client, cast(world, uint8_t *), strlen(world), clean);
     assert_int_equal(result, 0);
 
     //check loop
@@ -205,11 +205,11 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
-    callbacks.on_connection_accepted = on_connection_accepted;
-    callbacks.on_connection_closed = on_connection_closed;
-    callbacks.on_data_received = on_datarecevied;
-    callbacks.on_data_sended = on_datasend;
-    callbacks.on_error_occured = on_error_occured;
+    callbacks.on_accept = on_connection_accepted;
+    callbacks.on_connection_close = on_connection_closed;
+    callbacks.on_read = on_datarecevied;
+    callbacks.on_write = on_datasend;
+    callbacks.on_error = on_error_occured;
 
     result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
 
@@ -247,7 +247,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 
     assert_string_equal(data.buffer, "deneme");
     rebrick_clean_func_t cleanfunc = {};
-    rebrick_tcpsocket_send(client, cast("valla", uint8_t *), 6, cleanfunc);
+    rebrick_tcpsocket_write(client, cast("valla", uint8_t *), 6, cleanfunc);
 
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     usleep(100);
@@ -353,11 +353,11 @@ Accept: text/html\r\n\
 
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
-    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
-    callbacks.on_connection_closed = on_connection_closed_memorytest;
-    callbacks.on_data_received = on_datarecevied_memorytest;
-    callbacks.on_data_sended = on_datasend_memorytest;
-    callbacks.on_error_occured = on_error_occured_memorytest;
+    callbacks.on_accept = on_connection_accepted_memorytest;
+    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_read = on_datarecevied_memorytest;
+    callbacks.on_write = on_datasend_memorytest;
+    callbacks.on_error = on_error_occured_memorytest;
 
     for (int i = 0; i < COUNTER; ++i)
     {
@@ -377,7 +377,7 @@ Accept: text/html\r\n\
         datareceived_ok_memorytest = 0;
         connection_closed_memorytest = 0;
         rebrick_clean_func_t cleanfunc = {};
-        result = rebrick_tcpsocket_send(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_write(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         while (--counter && !datasended_memorytest)
@@ -427,11 +427,11 @@ Accept: text/html\r\n\
 
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
-    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
-    callbacks.on_connection_closed = on_connection_closed_memorytest;
-    callbacks.on_data_received = on_datarecevied_memorytest;
-    callbacks.on_data_sended = on_datasend_memorytest;
-    callbacks.on_error_occured = on_error_occured_memorytest;
+    callbacks.on_accept = on_connection_accepted_memorytest;
+    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_read = on_datarecevied_memorytest;
+    callbacks.on_write = on_datasend_memorytest;
+    callbacks.on_error = on_error_occured_memorytest;
 
     for (int i = 0; i < COUNTER; ++i)
     {
@@ -451,7 +451,7 @@ Accept: text/html\r\n\
         datasended_memorytest = 0;
         datareceived_ok_memorytest = 0;
         rebrick_clean_func_t cleanfunc = {};
-        result = rebrick_tcpsocket_send(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
+        result = rebrick_tcpsocket_write(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
 
         counter = 1000;
         datareceived_ok_total_memorytest = 1;
@@ -521,11 +521,11 @@ Accept-Ranges: bytes\r\n\
 
     create2(rebrick_tcpsocket_callbacks_t, callbacks);
     callbacks.callback_data = &data;
-    callbacks.on_connection_accepted = on_connection_accepted_memorytest;
-    callbacks.on_connection_closed = on_connection_closed_memorytest;
-    callbacks.on_data_received = on_datarecevied_memorytest;
-    callbacks.on_data_sended = on_datasend_memorytest;
-    callbacks.on_error_occured = on_error_occured_memorytest;
+    callbacks.on_accept = on_connection_accepted_memorytest;
+    callbacks.on_connection_close = on_connection_closed_memorytest;
+    callbacks.on_read = on_datarecevied_memorytest;
+    callbacks.on_write = on_datasend_memorytest;
+    callbacks.on_error = on_error_occured_memorytest;
     rebrick_tcpsocket_t *server;
 
     for (int i = 0; i < COUNTER; ++i)
@@ -559,7 +559,7 @@ Accept-Ranges: bytes\r\n\
         rebrick_clean_func_t cleanfunc = {};
         //assert_true(datareceived_ok_memorytest > 0);
         if (connected_client)
-            result = rebrick_tcpsocket_send(connected_client, cast(html, uint8_t *), strlen(html) + 1, cleanfunc);
+            result = rebrick_tcpsocket_write(connected_client, cast(html, uint8_t *), strlen(html) + 1, cleanfunc);
 
         counter = 100;
         while (--counter && !datasended_memorytest)

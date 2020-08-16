@@ -54,7 +54,7 @@
    fun:uv__writev
    fun:uv__write
    fun:uv_write2
-   fun:rebrick_tcpsocket_send
+   fun:rebrick_tcpsocket_write
    fun:flush_buffers
    fun:local_on_connection_accepted_callback
    fun:on_connect
@@ -73,7 +73,7 @@
    fun:uv__writev
    fun:uv__write
    fun:uv_write2
-   fun:rebrick_tcpsocket_send
+   fun:rebrick_tcpsocket_write
    fun:flush_ssl_buffers
    fun:check_ssl_status
    fun:local_on_connection_accepted_callback
@@ -93,7 +93,7 @@
    fun:uv__writev
    fun:uv__write
    fun:uv_write2
-   fun:rebrick_tcpsocket_send
+   fun:rebrick_tcpsocket_write
    fun:flush_ssl_buffers
    fun:check_ssl_status
    fun:flush_buffers

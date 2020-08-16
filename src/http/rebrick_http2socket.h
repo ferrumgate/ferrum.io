@@ -32,32 +32,32 @@ public_ typedef struct rebrick_http2_stream
     private_ UT_hash_handle hh;
 } rebrick_http2_stream_t;
 
-typedef void (*rebrick_http2socket_on_stream_closed_callback_t)(struct rebrick_socket *socket, int32_t stream_id, void *callback_data);
-typedef void (*rebrick_http2socket_on_settings_received_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http2_socket_settings_t *settings);
-typedef void (*rebrick_http2socket_on_ping_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const uint8_t opaqua_data[8]);
-typedef void (*rebrick_http2socket_on_push_received_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream_id, int32_t push_stream_id, rebrick_http_header_t *header);
-typedef void (*rebrick_http2socket_on_goaway_received_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t errorcode, int32_t laststream_id, uint8_t *opaque_data, size_t opaque_data_len);
-typedef void (*rebrick_http2socket_on_window_update_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream, int32_t increment);
+typedef void (*rebrick_http2socket_on_stream_close_callback_t)(struct rebrick_socket *socket, int32_t stream_id, void *callback_data);
+typedef void (*rebrick_http2socket_on_settings_read_callback_t)(struct rebrick_socket *socket, void *callback_data, rebrick_http2_socket_settings_t *settings);
+typedef void (*rebrick_http2socket_on_ping_read_callback_t)(struct rebrick_socket *socket, void *callback_data, const uint8_t opaqua_data[8]);
+typedef void (*rebrick_http2socket_on_push_read_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream_id, int32_t push_stream_id, rebrick_http_header_t *header);
+typedef void (*rebrick_http2socket_on_goaway_read_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t errorcode, int32_t laststream_id, uint8_t *opaque_data, size_t opaque_data_len);
+typedef void (*rebrick_http2socket_on_window_update_read_callback_t)(struct rebrick_socket *socket, void *callback_data, int32_t stream, int32_t increment);
 
 public_ typedef struct rebrick_http2socket
 {
 
     base_ssl_socket();
 
-    private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_override_on_connection_accepted;
-    private_ rebrick_tcpsocket_on_connection_closed_callback_t override_override_on_connection_closed;
-    private_ rebrick_socket_on_read_callback_t override_override_on_data_received;
-    private_ rebrick_socket_on_write_callback_t override_override_on_data_sended;
-    private_ rebrick_socket_on_error_callback_t override_override_on_error_occured;
-    private_ rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received;
-    private_ rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;
-    private_ rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade;
-    private_ rebrick_http2socket_on_stream_closed_callback_t on_stream_closed;
-    private_ rebrick_http2socket_on_settings_received_callback_t on_settings_received;
-    private_ rebrick_http2socket_on_ping_received_callback_t on_ping_received;
-    private_ rebrick_http2socket_on_push_received_callback_t on_push_received;
-    private_ rebrick_http2socket_on_goaway_received_callback_t on_goaway_received;
-    private_ rebrick_http2socket_on_window_update_callback_t on_window_update_received;
+    private_ rebrick_tcpsocket_on_accept_callback_t override_override_on_accept;
+    private_ rebrick_tcpsocket_on_close_callback_t override_override_on_connection_closed;
+    private_ rebrick_socket_on_read_callback_t override_override_on_read;
+    private_ rebrick_socket_on_write_callback_t override_override_on_write;
+    private_ rebrick_socket_on_error_callback_t override_override_on_error;
+    private_ rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read;
+    private_ rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;
+    private_ rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read;
+    private_ rebrick_http2socket_on_stream_close_callback_t on_stream_close;
+    private_ rebrick_http2socket_on_settings_read_callback_t on_settings_read;
+    private_ rebrick_http2socket_on_ping_read_callback_t on_ping_read;
+    private_ rebrick_http2socket_on_push_read_callback_t on_push_read;
+    private_ rebrick_http2socket_on_goaway_read_callback_t on_goaway_read;
+    private_ rebrick_http2socket_on_window_update_read_callback_t on_window_update_read;
     private_ void *override_override_callback_data;
     protected_ int32_t is_goaway_sended;
     protected_ int32_t is_goaway_received;
@@ -78,17 +78,17 @@ public_ typedef struct rebrick_http2socket
 
 #define cast_to_http2socket(s) cast(s, rebrick_http2socket_t *)
 
-#define base_http2socket_callbacks()                                               \
-    base_tlssocket_callbacks();                                                    \
-    rebrick_httpsocket_on_http_header_received_callback_t on_http_header_received; \
-    rebrick_httpsocket_on_http_body_received_callback_t on_http_body_received;     \
-    rebrick_httpsocket_on_socket_needs_upgrade_callback_t on_socket_needs_upgrade; \
-    rebrick_http2socket_on_stream_closed_callback_t on_stream_closed;              \
-    rebrick_http2socket_on_settings_received_callback_t on_settings_received;      \
-    rebrick_http2socket_on_ping_received_callback_t on_ping_received;              \
-    rebrick_http2socket_on_push_received_callback_t on_push_received;              \
-    rebrick_http2socket_on_goaway_received_callback_t on_goaway_received;          \
-    rebrick_http2socket_on_window_update_callback_t on_window_update_received;
+#define base_http2socket_callbacks()                                             \
+    base_tlssocket_callbacks();                                                  \
+    rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read;       \
+    rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;           \
+    rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read; \
+    rebrick_http2socket_on_stream_close_callback_t on_stream_close;              \
+    rebrick_http2socket_on_settings_read_callback_t on_settings_read;            \
+    rebrick_http2socket_on_ping_read_callback_t on_ping_read;                    \
+    rebrick_http2socket_on_push_read_callback_t on_push_read;                    \
+    rebrick_http2socket_on_goaway_read_callback_t on_goaway_read;                \
+    rebrick_http2socket_on_window_update_read_callback_t on_window_update_read;
 
 typedef struct rebrick_http2socket_callbacks
 {

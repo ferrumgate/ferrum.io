@@ -43,13 +43,13 @@ typedef void (*rebrick_socket_on_close_callback_t)(struct rebrick_socket *socket
 
 ////////////////////////// base socket //////////////////////////////
 
-#define base_callbacks()                                            \
-    base_object();                                                  \
-    protected_ void *callback_data;                                 \
-    protected_ rebrick_socket_on_read_callback_t on_data_received;  \
-    protected_ rebrick_socket_on_write_callback_t on_data_sended;   \
-    protected_ rebrick_socket_on_error_callback_t on_error_occured; \
-    protected_ rebrick_socket_on_close_callback_t on_closed;
+#define base_callbacks()                                    \
+    base_object();                                          \
+    protected_ void *callback_data;                         \
+    protected_ rebrick_socket_on_read_callback_t on_read;   \
+    protected_ rebrick_socket_on_write_callback_t on_write; \
+    protected_ rebrick_socket_on_error_callback_t on_error; \
+    protected_ rebrick_socket_on_close_callback_t on_close;
 
 typedef struct base_socket_callbacks
 {
@@ -58,22 +58,22 @@ typedef struct base_socket_callbacks
 
 #define cast_to_base_socket_callbacks(x) cast(((rebrick_basesocket_callbacks_t)(x)))
 
-#define base_socket()                                               \
-    base_object();                                                  \
-    public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];             \
-    public_ readonly_ char bind_port[REBRICK_PORT_STR_LEN];         \
-                                                                    \
-    protected_ uv_loop_t *loop;                                     \
-    protected_ union                                                \
-    {                                                               \
-        uv_tcp_t tcp;                                               \
-        uv_udp_t udp;                                               \
-    } handle;                                                       \
-    public_ readonly_ rebrick_sockaddr_t bind_addr;                 \
-    protected_ rebrick_socket_on_read_callback_t on_data_received;  \
-    protected_ rebrick_socket_on_write_callback_t on_data_sended;   \
-    protected_ rebrick_socket_on_error_callback_t on_error_occured; \
-    protected_ rebrick_socket_on_close_callback_t on_closed;        \
+#define base_socket()                                       \
+    base_object();                                          \
+    public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];     \
+    public_ readonly_ char bind_port[REBRICK_PORT_STR_LEN]; \
+                                                            \
+    protected_ uv_loop_t *loop;                             \
+    protected_ union                                        \
+    {                                                       \
+        uv_tcp_t tcp;                                       \
+        uv_udp_t udp;                                       \
+    } handle;                                               \
+    public_ readonly_ rebrick_sockaddr_t bind_addr;         \
+    protected_ rebrick_socket_on_read_callback_t on_read;   \
+    protected_ rebrick_socket_on_write_callback_t on_write; \
+    protected_ rebrick_socket_on_error_callback_t on_error; \
+    protected_ rebrick_socket_on_close_callback_t on_close; \
     protected_ void *callback_data;
 
 public_ typedef struct rebrick_socket

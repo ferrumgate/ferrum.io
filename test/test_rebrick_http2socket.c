@@ -173,13 +173,13 @@ static void http2_socket_as_client_create_get(void **tls)
     settings.settings_count = 1;
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_header_received = on_http_header_received;
-    callbacks.on_http_body_received = on_body_read_callback;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_header_read = on_http_header_received;
+    callbacks.on_http_body_read = on_body_read_callback;
 
     if (!*tls)
         result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
@@ -262,13 +262,13 @@ static void http2_socket_as_client_create_post(void **tls)
     settings.settings_count = 1;
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_header_received = on_http_header_received;
-    callbacks.on_http_body_received = on_body_read_callback;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_header_read = on_http_header_received;
+    callbacks.on_http_body_read = on_body_read_callback;
 
     if (!*tls)
         result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
@@ -408,14 +408,14 @@ static void http2_socket_as_client_create_get_server_push_streams(void **tls)
     settings.settings_count = 1;
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_header_received = on_http_header_received_for_push;
-    callbacks.on_http_body_received = on_body_read_callback_for_push;
-    callbacks.on_push_received = on_http2_push_stream;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_header_read = on_http_header_received_for_push;
+    callbacks.on_http_body_read = on_body_read_callback_for_push;
+    callbacks.on_push_read = on_http2_push_stream;
 
     if (!*tls)
         result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
@@ -517,12 +517,12 @@ static void http2_socket_as_serverserver_get(void **tls)
     settings.settings_count = 1;
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_header_read = on_http_header_received;
     is_connected = FALSE;
     is_header_received = FALSE;
 
@@ -605,12 +605,12 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
     settings.settings_count = 1;
 
     create2(rebrick_http2socket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_data_sended = on_data_send;
-    callbacks.on_error_occured = on_error_occured_callback;
-    callbacks.on_http_header_received = on_http_header_received;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_write = on_data_send;
+    callbacks.on_error = on_error_occured_callback;
+    callbacks.on_http_header_read = on_http_header_received;
     is_connected = FALSE;
     is_header_received = FALSE;
     if (!*tls)

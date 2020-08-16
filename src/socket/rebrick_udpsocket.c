@@ -17,13 +17,13 @@ static void on_send(uv_udp_send_t *req, int status)
         const rebrick_udpsocket_t *socket = cast_to_udpsocket(req->handle->data);
         if (status >= 0)
         {
-            if (socket->on_data_sended)
-                socket->on_data_sended(cast_to_socket(socket), socket->callback_data, source);
+            if (socket->on_write)
+                socket->on_write(cast_to_socket(socket), socket->callback_data, source);
         }
         else
         {
-            if (socket->on_error_occured)
-                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
+            if (socket->on_error)
+                socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
         }
     }
 
@@ -37,7 +37,7 @@ static void on_send(uv_udp_send_t *req, int status)
     }
     rebrick_free(req);
 }
-int32_t rebrick_udpsocket_send(rebrick_udpsocket_t *socket, rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func)
+int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func)
 {
 
     char current_time_str[32] = {0};
@@ -80,19 +80,19 @@ static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, con
             if (nread == UV_EOF)
             {
                 rebrick_log_debug(__FILE__, __LINE__, "socket closed\n");
-                if (socket->on_closed)
-                    socket->on_closed(cast_to_socket(socket), socket->callback_data);
+                if (socket->on_close)
+                    socket->on_close(cast_to_socket(socket), socket->callback_data);
             }
-            else if (socket->on_error_occured)
+            else if (socket->on_error)
             {
                 rebrick_log_debug(__FILE__, __LINE__, "socket error occured %zd\n", nread);
-                socket->on_error_occured(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
+                socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
             }
         }
-        else if (socket->on_data_received)
+        else if (socket->on_read)
         {
             rebrick_log_debug(__FILE__, __LINE__, "socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-            socket->on_data_received(cast_to_socket(socket), socket->callback_data, addr, cast(rcvbuf->base, uint8_t *), nread);
+            socket->on_read(cast_to_socket(socket), socket->callback_data, addr, cast(rcvbuf->base, uint8_t *), nread);
         }
     }
 
@@ -168,11 +168,11 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
 
     tmp->bind_addr = bind_addr;
     rebrick_util_addr_to_ip_string(&tmp->bind_addr, tmp->bind_ip);
-    rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port),
+    rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port);
 
-        tmp->on_data_received = callbacks ? callbacks->on_data_received : NULL;
-    tmp->on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
-    tmp->on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
+    tmp->on_read = callbacks ? callbacks->on_read : NULL;
+    tmp->on_write = callbacks ? callbacks->on_write : NULL;
+    tmp->on_error = callbacks ? callbacks->on_error : NULL;
 
     result = create_socket(tmp);
     if (result < 0)
@@ -217,7 +217,7 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
+int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -233,7 +233,7 @@ int32_t rebrick_udpsocket_send_buffer_size(rebrick_udpsocket_t *socket, int32_t 
     }
     return REBRICK_SUCCESS;
 }
-int32_t rebrick_udpsocket_recv_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
+int32_t rebrick_udpsocket_read_buffer_size(rebrick_udpsocket_t *socket, int32_t *value)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);

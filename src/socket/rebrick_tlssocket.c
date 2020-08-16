@@ -2,7 +2,7 @@
 
 /**
  * @brief client yada ssl olduğu için biz
- * içerden rebrick_tcpsocket_send yapıyoruz
+ * içerden rebrick_tcpsocket_write yapıyoruz
  * bu fonksiyon da aftersend_data isimli bir parametre alıyor
  * ve callback fonksiyona geçiyor.
  *
@@ -107,7 +107,7 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
             holder->client_data = NULL;
 
             rebrick_clean_func_t cleanfunc = {.func = clean_send_data_holder, .ptr = holder};
-            result = rebrick_tcpsocket_send(cast_to_tcpsocket(tlssocket), buftemp, n, cleanfunc);
+            result = rebrick_tcpsocket_write(cast_to_tcpsocket(tlssocket), buftemp, n, cleanfunc);
 
             if (result < 0)
             {
@@ -206,8 +206,8 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
 
                     error_occured = 1;
                     rebrick_free(tmpbuffer);
-                    if (tlssocket->on_error_occured)
-                        tlssocket->on_error_occured(cast_to_socket(tlssocket), tlssocket->override_callback_data, result);
+                    if (tlssocket->on_error)
+                        tlssocket->on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, result);
 
                     break;
                 }
@@ -238,7 +238,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket)
                             rebrick_clean_func_t cleanfunc = {.func = clean_send_data_holder, .ptr = holder};
                             //client datası olduğunu belirtmek için source 1 yapılıyor
                             cleanfunc.anydata.source = 1;
-                            result = rebrick_tcpsocket_send(cast_to_tcpsocket(tlssocket), buftemp, n, cleanfunc);
+                            result = rebrick_tcpsocket_write(cast_to_tcpsocket(tlssocket), buftemp, n, cleanfunc);
                             if (result < 0)
                             {
                                 rebrick_free(holder);
@@ -320,18 +320,18 @@ static void local_on_error_occured_callback(rebrick_socket_t *socket, void *call
     unused(callbackdata);
     rebrick_tlssocket_t *tlssocket = cast_to_tlssocket(socket);
 
-    if (tlssocket && tlssocket->override_on_error_occured)
-        tlssocket->override_on_error_occured(cast_to_socket(tlssocket), tlssocket->override_callback_data, error);
+    if (tlssocket && tlssocket->override_on_error)
+        tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, error);
 }
 
-#define call_after_connection(tlsserver, tlsclient)                                                                                                      \
-    if (tlsserver && tlsclient && !tlsclient->called_override_after_connection_accepted && tlsclient->override_on_connection_accepted)                   \
-    {                                                                                                                                                    \
-        tlsclient->called_override_after_connection_accepted++;                                                                                          \
-        tlsclient->override_on_connection_accepted(cast_to_socket(tlsserver), tlsclient->override_callback_data, &tlsclient->bind_addr.base, tlsclient); \
+#define call_after_connection(tlsserver, tlsclient)                                                                                         \
+    if (tlsserver && tlsclient && !tlsclient->called_override_after_connection_accept && tlsclient->override_on_accept)                     \
+    {                                                                                                                                       \
+        tlsclient->called_override_after_connection_accept++;                                                                               \
+        tlsclient->override_on_accept(cast_to_socket(tlsserver), tlsclient->override_callback_data, &tlsclient->bind_addr.base, tlsclient); \
     }
 
-static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket, void *callback_data, const struct sockaddr *addr, void *client_handle)
+static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, void *callback_data, const struct sockaddr *addr, void *client_handle)
 {
 
     char current_time_str[32] = {0};
@@ -370,8 +370,8 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
             rebrick_tlssocket_destroy(tlsclient);
         client_handle = NULL;
         rebrick_log_fatal(__FILE__, __LINE__, "ssl new failed for %s\n", tlsserver->tls_context->key);
-        if (tlsserver->override_on_error_occured)
-            tlsserver->override_on_error_occured(cast_to_socket(tlsserver), tlsserver->override_callback_data, result);
+        if (tlsserver->override_on_error)
+            tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, result);
         return;
     }
 
@@ -383,13 +383,13 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
     //valgrind overlap diyor
     if (tlsclient != tlsserver)
         strncpy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
-    tlsclient->override_on_connection_accepted = tlsserver->override_on_connection_accepted;
-    tlsclient->override_on_connection_closed = tlsserver->override_on_connection_closed;
-    tlsclient->override_on_data_received = tlsserver->override_on_data_received;
-    tlsclient->override_on_data_sended = tlsserver->override_on_data_sended;
-    tlsclient->override_on_error_occured = tlsserver->override_on_error_occured;
+    tlsclient->override_on_accept = tlsserver->override_on_accept;
+    tlsclient->override_on_close = tlsserver->override_on_close;
+    tlsclient->override_on_read = tlsserver->override_on_read;
+    tlsclient->override_on_write = tlsserver->override_on_write;
+    tlsclient->override_on_error = tlsserver->override_on_error;
     tlsclient->override_callback_data = tlsserver->override_callback_data;
-    tlsclient->override_on_sni_received = tlsserver->override_on_sni_received;
+    tlsclient->override_on_sni_read = tlsserver->override_on_sni_read;
     //tlsclient için callback_data kendisi geçilir.
     tlsclient->callback_data = tlsclient;
 
@@ -404,8 +404,8 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
                 rebrick_tlssocket_destroy(tlsclient);
             client_handle = NULL;
             rebrick_log_fatal(__FILE__, __LINE__, "connection accepted failed with error:%d\n", status);
-            if (tlsserver->override_on_error_occured)
-                tlsserver->override_on_error_occured(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
+            if (tlsserver->override_on_error)
+                tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
             return;
         }
         status = check_ssl_status(tlsclient, status);
@@ -423,8 +423,8 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
             client_handle = NULL;
             status = REBRICK_ERR_TLS_INIT;
             rebrick_log_fatal(__FILE__, __LINE__, "connection accepted failed with error:%d\n", status);
-            if (tlsserver->override_on_error_occured)
-                tlsserver->override_on_error_occured(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
+            if (tlsserver->override_on_error)
+                tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
             return;
         }
 
@@ -434,7 +434,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *serversocket
     }
 }
 
-static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *callback_data)
+static void local_on_connection_close_callback(rebrick_socket_t *socket, void *callback_data)
 {
 
     char current_time_str[32] = {0};
@@ -471,8 +471,8 @@ static void local_on_connection_closed_callback(rebrick_socket_t *socket, void *
         }
     }
 
-    if (tlssocket->override_on_connection_closed)
-        tlssocket->override_on_connection_closed(cast_to_socket(tlssocket), tlssocket->override_callback_data);
+    if (tlssocket->override_on_close)
+        tlssocket->override_on_close(cast_to_socket(tlssocket), tlssocket->override_callback_data);
 }
 
 static void local_after_data_received_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len)
@@ -509,8 +509,8 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
             }
             rebrick_log_error(__FILE__, __LINE__, "ssl bio write failed\n");
             rebrick_buffers_destroy(readedbuffer);
-            if (tlssocket->override_on_error_occured)
-                tlssocket->override_on_error_occured(cast_to_socket(tlssocket), tlssocket->override_callback_data, REBRICK_ERR_TLS_WRITE);
+            if (tlssocket->override_on_error)
+                tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, REBRICK_ERR_TLS_WRITE);
             return;
         }
         buffer += n;
@@ -538,14 +538,14 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
             rebrick_log_error(__FILE__, __LINE__, "ssl status failed %d:%d\n", n, status);
             rebrick_buffers_destroy(readedbuffer);
-            if (tlssocket->override_on_error_occured)
-                tlssocket->override_on_error_occured(cast_to_socket(tlssocket), tlssocket->override_callback_data, status);
+            if (tlssocket->override_on_error)
+                tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, status);
 
             return;
         }
     }
 
-    if (tlssocket->override_on_data_received)
+    if (tlssocket->override_on_read)
     {
         size_t array_len = 0;
         uint8_t *array;
@@ -553,7 +553,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
         if (array_len)
         {
-            tlssocket->override_on_data_received(cast_to_socket(tlssocket), tlssocket->override_callback_data, addr, array, array_len);
+            tlssocket->override_on_read(cast_to_socket(tlssocket), tlssocket->override_callback_data, addr, array, array_len);
             rebrick_free(array);
         }
     }
@@ -582,8 +582,8 @@ static void local_on_data_sended_callback(rebrick_socket_t *socket, void *callba
     //flush_buffers(tlssocket);
 
     if (source) //eğer gönderilen data client datası ise
-        if (tlssocket->override_on_data_sended)
-            tlssocket->override_on_data_sended(cast_to_socket(tlssocket), tlssocket->override_callback_data, NULL);
+        if (tlssocket->override_on_write)
+            tlssocket->override_on_write(cast_to_socket(tlssocket), tlssocket->override_callback_data, NULL);
 }
 
 /**
@@ -646,22 +646,22 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
 
     tlssocket->is_server = backlog_or_isclient;
 
-    tlssocket->override_on_connection_accepted = callbacks ? callbacks->on_connection_accepted : NULL;
-    tlssocket->override_on_connection_closed = callbacks ? callbacks->on_connection_closed : NULL;
-    tlssocket->override_on_data_received = callbacks ? callbacks->on_data_received : NULL;
-    tlssocket->override_on_data_sended = callbacks ? callbacks->on_data_sended : NULL;
+    tlssocket->override_on_accept = callbacks ? callbacks->on_accept : NULL;
+    tlssocket->override_on_close = callbacks ? callbacks->on_close : NULL;
+    tlssocket->override_on_read = callbacks ? callbacks->on_read : NULL;
+    tlssocket->override_on_write = callbacks ? callbacks->on_write : NULL;
     tlssocket->override_callback_data = callbacks ? callbacks->callback_data : NULL;
-    tlssocket->override_on_error_occured = callbacks ? callbacks->on_error_occured : NULL;
-    tlssocket->override_on_sni_received = callbacks ? callbacks->on_sni_received : NULL;
+    tlssocket->override_on_error = callbacks ? callbacks->on_error : NULL;
+    tlssocket->override_on_sni_read = callbacks ? callbacks->on_sni_received : NULL;
     tlssocket->tls_context = tls_context;
 
     create2(rebrick_tcpsocket_callbacks_t, local_callbacks);
     local_callbacks.callback_data = tlssocket;
-    local_callbacks.on_connection_accepted = local_on_connection_accepted_callback;
-    local_callbacks.on_connection_closed = local_on_connection_closed_callback;
-    local_callbacks.on_data_received = local_after_data_received_callback;
-    local_callbacks.on_data_sended = local_on_data_sended_callback;
-    local_callbacks.on_error_occured = local_on_error_occured_callback;
+    local_callbacks.on_accept = local_on_connection_accept_callback;
+    local_callbacks.on_connection_close = local_on_connection_close_callback;
+    local_callbacks.on_read = local_after_data_received_callback;
+    local_callbacks.on_write = local_on_data_sended_callback;
+    local_callbacks.on_error = local_on_error_occured_callback;
 
     //this is OOP inheritance with c
     //base class init function call.
@@ -672,8 +672,6 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
         rebrick_log_fatal(__FILE__, __LINE__, "tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
         return result;
     }
-
-    //rebrick_tcpsocket_nodelay(cast_to_tcpsocket(tlssocket),1);
 
     return REBRICK_SUCCESS;
 }
@@ -731,7 +729,7 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket)
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfuncs)
+int32_t rebrick_tlssocket_write(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfuncs)
 {
     char current_time_str[32] = {0};
     unused(current_time_str);
@@ -810,7 +808,7 @@ int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, siz
             rebrick_clean_func_t cleanfunc = {.func = clean_send_data_holder, .ptr = holder};
             //client datası olduğunu belirtmek için source 1 yapılıyor
             cleanfunc.anydata.source = 1;
-            result = rebrick_tcpsocket_send(cast_to_tcpsocket(socket), tmpbuffer, tmplen, cleanfunc);
+            result = rebrick_tcpsocket_write(cast_to_tcpsocket(socket), tmpbuffer, tmplen, cleanfunc);
             if (result < 0)
             {
                 rebrick_free(holder);
@@ -850,7 +848,7 @@ int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char
     socket->tls_context = context;
     SSL_set_SSL_CTX(socket->tls->ssl, context->tls_ctx);
     ///call sni callback
-    if (socket->override_on_sni_received)
-        socket->override_on_sni_received(cast_to_socket(socket), socket->override_callback_data, servername);
+    if (socket->override_on_sni_read)
+        socket->override_on_sni_read(cast_to_socket(socket), socket->override_callback_data, servername);
     return REBRICK_SUCCESS;
 }

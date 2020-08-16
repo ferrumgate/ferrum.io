@@ -114,10 +114,10 @@ static void ssl_client(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_error_occured = on_error_occured_callback;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsclient;
     result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, destination, 0, &callbacks);
@@ -143,7 +143,7 @@ Accept: text/html\r\n\
 
     loop(counter, 100, TRUE);
     rebrick_clean_func_t clean = {};
-    result = rebrick_tlssocket_send(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
+    result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
     assert_int_equal(result, 0);
     counter = 100;
     loop(counter, 100, TRUE);
@@ -193,7 +193,7 @@ content-length:52\r\n\
 <html><body><h1>server is working</h1></body></html>";
     int32_t counter = 10;
     rebrick_clean_func_t clean = {};
-    rebrick_tlssocket_send(client, cast(msg, uint8_t *), strlen(msg), clean);
+    rebrick_tlssocket_write(client, cast(msg, uint8_t *), strlen(msg), clean);
     loop(counter, 10, TRUE);
 
     loop(counter, 10, TRUE);
@@ -250,7 +250,7 @@ content-length:52\r\n\
 <html><body><h1>server is working</h1></body></html>";
     int32_t counter = 10;
     rebrick_clean_func_t clean = {};
-    rebrick_tlssocket_send(cast_to_tlssocket(socket), cast(msg, uint8_t *), strlen(msg), clean);
+    rebrick_tlssocket_write(cast_to_tlssocket(socket), cast(msg, uint8_t *), strlen(msg), clean);
     loop(counter, 10, TRUE);
 }
 /**
@@ -269,10 +269,10 @@ static void ssl_server(void **start)
     client_count = 0;
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_serverconnection_accepted_callback;
-    callbacks.on_connection_closed = on_serverconnection_closed_callback;
-    callbacks.on_data_received = on_serverdata_read_callback;
-    callbacks.on_error_occured = on_serverconnection_error_occured_callback;
+    callbacks.on_accept = on_serverconnection_accepted_callback;
+    callbacks.on_connection_close = on_serverconnection_closed_callback;
+    callbacks.on_read = on_serverdata_read_callback;
+    callbacks.on_error = on_serverconnection_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
     result = rebrick_tlssocket_new(&tlsserver, NULL, context_server, listen, 100, &callbacks);
@@ -305,10 +305,10 @@ static void ssl_client_verify(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_error_occured = on_serverconnection_error_occured_callback;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_error = on_serverconnection_error_occured_callback;
 
     rebrick_tlssocket_t *tlsclient;
     lastError = 0;
@@ -328,7 +328,7 @@ Accept: text/html\r\n\
 \r\n";
 
     rebrick_clean_func_t clean={};
-    result = rebrick_tlssocket_send(tlsclient, head, strlen(head) + 1, clean);*/
+    result = rebrick_tlssocket_write(tlsclient, head, strlen(head) + 1, clean);*/
 
     assert_int_equal(lastError, REBRICK_ERR_TLS_ERR);
     loop(counter, 100, TRUE);
@@ -354,10 +354,10 @@ static void ssl_client_download_data(void **start)
     rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_connection_accepted = on_connection_accepted_callback;
-    callbacks.on_connection_closed = on_connection_closed_callback;
-    callbacks.on_data_received = on_data_read_callback;
-    callbacks.on_error_occured = on_error_occured_callback;
+    callbacks.on_accept = on_connection_accepted_callback;
+    callbacks.on_connection_close = on_connection_closed_callback;
+    callbacks.on_read = on_data_read_callback;
+    callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsclient;
     result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, destination, 0, &callbacks);
@@ -383,7 +383,7 @@ Accept: text/html\r\n\
         counter--;
         usleep(1000);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-        result = rebrick_tlssocket_send(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
+        result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
         uv_run(uv_default_loop(), UV_RUN_NOWAIT);
     } while (result != 0 && counter && !is_connection_closed);
     assert_int_equal(result, 0);
@@ -439,7 +439,7 @@ static void ssl_server_for_manual(void **start)
     client_count = 0;
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_error_occured = on_error_occured_callback;
+    callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
     result = rebrick_tlssocket_new(&tlsserver, NULL, context_servermanual, listen, 100, &callbacks);
@@ -473,7 +473,7 @@ static void ssl_server_for_manual_sni(void **start)
     client_count = 0;
 
     create2(rebrick_tlssocket_callbacks_t, callbacks);
-    callbacks.on_error_occured = on_error_occured_callback;
+    callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
     result = rebrick_tlssocket_new(&tlsserver, "hamzakilic.com", context_test_com, listen, 10, &callbacks);

@@ -12,14 +12,14 @@ struct rebrick_tcpsocket;
  * @params addr
  * @params client_handle if client_handle is null then error occured
  */
-typedef void (*rebrick_tcpsocket_on_connection_accepted_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle);
+typedef void (*rebrick_tcpsocket_on_accept_callback_t)(struct rebrick_socket *socket, void *callback_data, const struct sockaddr *addr, void *client_handle);
 
 /**
  * @brief after socket is closed this function is called
  * @param socket which socket is used
  * @param callback_data , data when used with @see rebrick_tcpsocket_new(...);
  */
-typedef void (*rebrick_tcpsocket_on_connection_closed_callback_t)(struct rebrick_socket *socket, void *callback_data);
+typedef void (*rebrick_tcpsocket_on_close_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
 /**
  * @brief inheritance yapan sınıflar için kullanılacak child connection create method
@@ -27,15 +27,15 @@ typedef void (*rebrick_tcpsocket_on_connection_closed_callback_t)(struct rebrick
  */
 typedef struct rebrick_tcpsocket *(*rebrick_tcpsocket_create_client_t)();
 
-#define base_tcp_socket()                                                                \
-    base_socket();                                                                       \
-    private_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
-    private_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;     \
-    private_ struct rebrick_tcpsocket *clients;                                          \
-    private_ struct rebrick_tcpsocket *prev;                                             \
-    private_ struct rebrick_tcpsocket *next;                                             \
-    public_ readonly_ struct rebrick_tcpsocket *parent_socket;                           \
-    public_ readonly_ int32_t is_server;                                                 \
+#define base_tcp_socket()                                               \
+    base_socket();                                                      \
+    private_ rebrick_tcpsocket_on_accept_callback_t on_accept;          \
+    private_ rebrick_tcpsocket_on_close_callback_t on_connection_close; \
+    private_ struct rebrick_tcpsocket *clients;                         \
+    private_ struct rebrick_tcpsocket *prev;                            \
+    private_ struct rebrick_tcpsocket *next;                            \
+    public_ readonly_ struct rebrick_tcpsocket *parent_socket;          \
+    public_ readonly_ int32_t is_server;                                \
     private_ rebrick_tcpsocket_create_client_t create_client;
 
 public_ typedef struct rebrick_tcpsocket
@@ -46,10 +46,10 @@ public_ typedef struct rebrick_tcpsocket
 
 #define cast_to_tcpsocket(x) cast((x), rebrick_tcpsocket_t *)
 
-#define base_tcpsocket_callbacks()                                                         \
-    base_callbacks();                                                                      \
-    protected_ rebrick_tcpsocket_on_connection_accepted_callback_t on_connection_accepted; \
-    protected_ rebrick_tcpsocket_on_connection_closed_callback_t on_connection_closed;
+#define base_tcpsocket_callbacks()                               \
+    base_callbacks();                                            \
+    protected_ rebrick_tcpsocket_on_accept_callback_t on_accept; \
+    protected_ rebrick_tcpsocket_on_close_callback_t on_connection_close;
 
 public_ typedef struct rebrick_tcpsocket_callbacks
 {
@@ -95,6 +95,6 @@ int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int
 int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int enable);
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
-int32_t rebrick_tcpsocket_send(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 #endif

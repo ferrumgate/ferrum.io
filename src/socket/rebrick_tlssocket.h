@@ -25,23 +25,23 @@ protected_ typedef struct pending_data
     struct pending_data *prev, *next;
 } pending_data_t;
 
-typedef void (*rebrick_tlssocket_on_sni_received_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
+typedef void (*rebrick_tlssocket_on_sni_read_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
 
-#define base_ssl_socket()                                                                         \
-    base_tcp_socket();                                                                            \
-    private_ const rebrick_tls_context_t *tls_context;                                            \
-    private_ rebrick_tls_ssl_t *tls;                                                              \
-    private_ rebrick_tcpsocket_on_connection_accepted_callback_t override_on_connection_accepted; \
-    private_ rebrick_tcpsocket_on_connection_closed_callback_t override_on_connection_closed;     \
-    private_ rebrick_socket_on_read_callback_t override_on_data_received;                         \
-    private_ rebrick_socket_on_write_callback_t override_on_data_sended;                          \
-    private_ rebrick_socket_on_error_callback_t override_on_error_occured;                        \
-    private_ rebrick_tlssocket_on_sni_received_callback_t override_on_sni_received;               \
-    private_ void *override_callback_data;                                                        \
-    private_ pending_data_t *pending_write_list;                                                  \
-    private_ int32_t called_override_after_connection_accepted;                                   \
-    private_ int32_t sslhandshake_initted;                                                        \
-    public_ readonly_ char sni_pattern_or_name[REBRICK_TLS_SNI_MAX_LEN];                          \
+#define base_ssl_socket()                                                   \
+    base_tcp_socket();                                                      \
+    private_ const rebrick_tls_context_t *tls_context;                      \
+    private_ rebrick_tls_ssl_t *tls;                                        \
+    private_ rebrick_tcpsocket_on_accept_callback_t override_on_accept;     \
+    private_ rebrick_tcpsocket_on_close_callback_t override_on_close;       \
+    private_ rebrick_socket_on_read_callback_t override_on_read;            \
+    private_ rebrick_socket_on_write_callback_t override_on_write;          \
+    private_ rebrick_socket_on_error_callback_t override_on_error;          \
+    private_ rebrick_tlssocket_on_sni_read_callback_t override_on_sni_read; \
+    private_ void *override_callback_data;                                  \
+    private_ pending_data_t *pending_write_list;                            \
+    private_ int32_t called_override_after_connection_accept;               \
+    private_ int32_t sslhandshake_initted;                                  \
+    public_ readonly_ char sni_pattern_or_name[REBRICK_TLS_SNI_MAX_LEN];    \
     public_ readonly_ char sni[REBRICK_TLS_SNI_MAX_LEN];
 
 public_ typedef struct rebrick_tlssocket
@@ -54,7 +54,7 @@ public_ typedef struct rebrick_tlssocket
 
 #define base_tlssocket_callbacks() \
     base_tcpsocket_callbacks();    \
-    protected_ rebrick_tlssocket_on_sni_received_callback_t on_sni_received;
+    protected_ rebrick_tlssocket_on_sni_read_callback_t on_sni_received;
 
 typedef struct rebrick_tlssocket_callbacks
 {
@@ -98,7 +98,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket, const char *sni_patt
                                const rebrick_tlssocket_callbacks_t *callbacks);
 
 int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket);
-int32_t rebrick_tlssocket_send(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tlssocket_write(rebrick_tlssocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 
 int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char *servername);
 #endif
