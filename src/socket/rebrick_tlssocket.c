@@ -36,7 +36,6 @@ static enum sslstatus get_sslstatus(SSL *ssl, int n)
 
         return SSLSTATUS_OK;
     case SSL_ERROR_WANT_WRITE:
-        printf("ssl want write\n");
         return SSLSTATUS_WANT_WRITE;
     case SSL_ERROR_WANT_READ:
 
@@ -99,6 +98,7 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket)
         {
 
             char *xbuf = rebrick_malloc(n);
+            if_is_null_then_die(xbuf, "malloc problem\n");
             memcpy(xbuf, buftemp, n);
             send_data_holder_t *holder = create(send_data_holder_t);
             constructor(holder, send_data_holder_t);

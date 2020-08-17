@@ -25,6 +25,7 @@ rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linke
     fill_zero(item, sizeof(rebrick_linked_item_t));
     strcpy(item->type_name, "rebrick_linked_item_t");
     item->data = rebrick_malloc(len);
+    if_is_null_then_die(item->data, "malloc problem\n");
     if (item->data == NULL)
     {
         rebrick_free(item);
@@ -136,6 +137,7 @@ rebrick_linked_item_t *rebrick_util_create_linked_items(const char *str, const c
         return NULL;
 
     data = rebrick_malloc(len);
+    if_is_null_then_die(data, "malloc problem\n");
     if (data == NULL)
         return NULL;
 
