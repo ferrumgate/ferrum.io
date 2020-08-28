@@ -728,7 +728,10 @@ static int rebrick_tls_alpn_select_callback(unsigned char **out, unsigned char *
     return SSL_TLSEXT_ERR_OK;
 }
 
-int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
+int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *sni_pattern_or_name,
+                                 rebrick_tls_context_t *tls,
+                                 const rebrick_sockaddr_t *bind_addr,
+                                 const rebrick_sockaddr_t *peer_addr,
                                  int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                  const rebrick_http2_socket_settings_t *settings, const rebrick_http2socket_callbacks_t *callbacks)
 {
@@ -749,7 +752,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     {
 
         //create a new tls socket
-        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls, addr, backlog_or_isclient, create_client, &local_callbacks);
+        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls, bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks);
 
         if (!result && !tls->alpn_select_callback)
         {
@@ -759,7 +762,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     }
     else
     {
-        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
+        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
     }
     if (result < 0)
     {
@@ -787,7 +790,11 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
+int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket,
+                                const char *sni_pattern_or_name,
+                                rebrick_tls_context_t *tls,
+                                const rebrick_sockaddr_t *bind_addr,
+                                const rebrick_sockaddr_t *peer_addr,
                                 int32_t backlog_or_isclient,
                                 const rebrick_http2_socket_settings_t *settings,
                                 const rebrick_http2socket_callbacks_t *callbacks)
@@ -800,7 +807,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket, const char *sni_
     rebrick_http2socket_t *httpsocket = create(rebrick_http2socket_t);
     constructor(httpsocket, rebrick_http2socket_t);
 
-    result = rebrick_http2socket_init(httpsocket, sni_pattern_or_name, tls, addr,
+    result = rebrick_http2socket_init(httpsocket, sni_pattern_or_name, tls, bind_addr, peer_addr,
                                       backlog_or_isclient, local_create_client, settings, callbacks);
     if (result < 0)
     {

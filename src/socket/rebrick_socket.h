@@ -60,6 +60,8 @@ typedef struct base_socket_callbacks
 
 #define base_socket()                                       \
     base_object();                                          \
+    public_ readonly_ char peer_ip[REBRICK_IP_STR_LEN];     \
+    public_ readonly_ char peer_port[REBRICK_PORT_STR_LEN]; \
     public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];     \
     public_ readonly_ char bind_port[REBRICK_PORT_STR_LEN]; \
                                                             \
@@ -70,6 +72,7 @@ typedef struct base_socket_callbacks
         uv_udp_t udp;                                       \
     } handle;                                               \
     public_ readonly_ rebrick_sockaddr_t bind_addr;         \
+    public_ readonly_ rebrick_sockaddr_t peer_addr;         \
     protected_ rebrick_socket_on_read_callback_t on_read;   \
     protected_ rebrick_socket_on_write_callback_t on_write; \
     protected_ rebrick_socket_on_error_callback_t on_error; \

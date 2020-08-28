@@ -159,7 +159,7 @@ static void http_socket_as_client_create_get(void **start)
     callbacks.on_http_body_read = on_body_read_callback;
     callbacks.on_http_header_read = on_http_header_received;
 
-    result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 0, &callbacks);
+    result = rebrick_httpsocket_new(&socket, NULL, NULL, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, 0);
 
     loop(counter, 1000, !is_connected);
@@ -226,6 +226,7 @@ static void http_socket_as_client_create_post(void **start)
     unused(start);
     int32_t result;
     int32_t counter = 0;
+
     rebrick_sockaddr_t destination;
 
     rebrick_util_ip_port_to_addr("127.0.0.1", "9090", &destination);
@@ -242,7 +243,7 @@ static void http_socket_as_client_create_post(void **start)
     callbacks.on_http_body_read = on_body_read_callback;
     callbacks.on_http_header_read = on_http_header_received;
 
-    result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 0, &callbacks);
+    result = rebrick_httpsocket_new(&socket, NULL, NULL, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
 
     loop(counter, 10000, !is_connected);
@@ -324,6 +325,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
     unused(start);
     int32_t result;
     int32_t counter = 0;
+
     rebrick_sockaddr_t destination;
 
     rebrick_util_ip_port_to_addr("127.0.0.1", "9191", &destination);
@@ -340,7 +342,7 @@ static void http_socket_as_client_create_with_tls_post(void **start)
     callbacks.on_http_body_read = on_body_read_callback;
     callbacks.on_http_header_read = on_http_header_received;
 
-    result = rebrick_httpsocket_new(&socket, NULL, context_verify_none, destination, 0, &callbacks);
+    result = rebrick_httpsocket_new(&socket, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, REBRICK_SUCCESS);
 
     loop(counter, 10000, !is_connected);
@@ -423,6 +425,7 @@ static void http_socket_as_server_get(void **tls)
     unused(tls);
     int32_t result;
     int32_t counter = 0;
+
     rebrick_sockaddr_t destination;
 
     if (!*tls)
@@ -445,9 +448,9 @@ static void http_socket_as_server_get(void **tls)
     callbacks.on_http_header_read = on_http_header_received;
 
     if (!*tls)
-        result = rebrick_httpsocket_new(&socket, NULL, NULL, destination, 10, &callbacks);
+        result = rebrick_httpsocket_new(&socket, NULL, NULL, &destination, NULL, 10, &callbacks);
     else
-        result = rebrick_httpsocket_new(&socket, NULL, context_hamzakilic_com, destination, 10, &callbacks);
+        result = rebrick_httpsocket_new(&socket, NULL, context_hamzakilic_com, &destination, NULL, 10, &callbacks);
 
     if (!*tls)
         printf("for test curl -v http://localhost:9090\n");
@@ -515,7 +518,7 @@ int test_rebrick_httpsocket(void)
         cmocka_unit_test(http_socket_as_client_create_get),
         cmocka_unit_test(http_socket_as_client_create_post),
         cmocka_unit_test(http_socket_as_client_create_with_tls_post),
-        // cmocka_unit_test(http_socket_as_server_get),
+        cmocka_unit_test(http_socket_as_server_get),
         cmocka_unit_test(http_socket_as_server_get_tls),
 
     };

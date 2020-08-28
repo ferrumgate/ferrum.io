@@ -350,7 +350,11 @@ static int rebrick_tls_alpn_select_callback(unsigned char **out, unsigned char *
     return SSL_TLSEXT_ERR_OK;
 }
 
-int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
+int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket,
+                                const char *sni_pattern_or_name,
+                                rebrick_tls_context_t *tls_context,
+                                const rebrick_sockaddr_t *bind_addr,
+                                const rebrick_sockaddr_t *peer_addr,
                                 int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                 const rebrick_httpsocket_callbacks_t *callbacks)
 
@@ -370,7 +374,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
 
     if (tls_context || (sni_pattern_or_name && strlen(sni_pattern_or_name)))
     {
-        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls_context, addr, backlog_or_isclient, create_client, &local_callbacks);
+        result = rebrick_tlssocket_init(cast_to_tlssocket(httpsocket), sni_pattern_or_name, tls_context, bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks);
         if (!result && tls_context && !tls_context->alpn_select_callback)
         {
             result = rebrick_tls_context_set_alpn_protos(tls_context, REBRICK_HTTP_ALPN_PROTO, REBRIKC_HTTP_ALPN_PROTO_LEN, rebrick_tls_alpn_select_callback);
@@ -380,7 +384,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     else
     {
 
-        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
+        result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
     }
     if (result < 0)
     {
@@ -400,7 +404,11 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket, const char *sn
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
+int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket,
+                               const char *sni_pattern_or_name,
+                               rebrick_tls_context_t *tls_context,
+                               const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, const rebrick_httpsocket_callbacks_t *callbacks)
 {
 
@@ -411,7 +419,7 @@ int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pa
     rebrick_httpsocket_t *httpsocket = create(rebrick_httpsocket_t);
     constructor(httpsocket, rebrick_httpsocket_t);
 
-    result = rebrick_httpsocket_init(httpsocket, sni_pattern_or_name, tls_context, addr,
+    result = rebrick_httpsocket_init(httpsocket, sni_pattern_or_name, tls_context, bind_addr, peer_addr,
                                      backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {

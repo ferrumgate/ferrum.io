@@ -61,6 +61,7 @@ static void on_read(rebrick_socket_t *socket, void *callback_data, const struct 
 static void rebrick_tcpsocket_asserver_communication(void **start)
 {
     unused(start);
+
     const char *port = "9999";
     rebrick_tcpsocket_t *server;
     rebrick_sockaddr_t addr;
@@ -73,7 +74,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start)
     callbacks.on_read = on_read;
     callbacks.on_error = on_error_occured;
 
-    result = rebrick_tcpsocket_new(&server, addr, 10, &callbacks);
+    result = rebrick_tcpsocket_new(&server, &addr, NULL, 10, &callbacks);
     assert_int_equal(result, 0);
 
     client_connected = 0;
@@ -191,6 +192,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
 {
 
     unused(start);
+
     const char *port = "9998";
     rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
@@ -211,7 +213,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start)
     callbacks.on_write = on_datasend;
     callbacks.on_error = on_error_occured;
 
-    result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
+    result = rebrick_tcpsocket_new(&client, NULL, &addr, 0, &callbacks);
 
     //check a little
     int counter = 10;
@@ -336,6 +338,7 @@ static void rebrick_tcpsocket_asclient_memory(void **start)
 {
 
     unused(start);
+
     const char *port = "80";
     rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
@@ -362,7 +365,7 @@ Accept: text/html\r\n\
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        int32_t result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
+        int32_t result = rebrick_tcpsocket_new(&client, NULL, &addr, 0, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -410,6 +413,7 @@ static void rebrick_tcp_client_download_data(void **start)
 {
 
     unused(start);
+
     const char *port = "80";
     rebrick_tcpsocket_t *client;
     rebrick_sockaddr_t addr;
@@ -437,7 +441,7 @@ Accept: text/html\r\n\
     {
 
         connection_closed_memorytest = 0;
-        int32_t result = rebrick_tcpsocket_new(&client, addr, 0, &callbacks);
+        int32_t result = rebrick_tcpsocket_new(&client, NULL, &addr, 0, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little
@@ -532,7 +536,7 @@ Accept-Ranges: bytes\r\n\
     {
 
         connected_client = NULL;
-        int32_t result = rebrick_tcpsocket_new(&server, addr, 10, &callbacks);
+        int32_t result = rebrick_tcpsocket_new(&server, &addr, NULL, 10, &callbacks);
         assert_int_equal(result, REBRICK_SUCCESS);
 
         //check a little

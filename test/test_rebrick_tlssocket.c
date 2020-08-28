@@ -120,7 +120,7 @@ static void ssl_client(void **start)
     callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsclient;
-    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, destination, 0, &callbacks);
+    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -275,7 +275,7 @@ static void ssl_server(void **start)
     callbacks.on_error = on_serverconnection_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver, NULL, context_server, listen, 100, &callbacks);
+    result = rebrick_tlssocket_new(&tlsserver, NULL, context_server, &listen, NULL, 100, &callbacks);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
@@ -311,7 +311,7 @@ static void ssl_client_verify(void **start)
 
     rebrick_tlssocket_t *tlsclient;
     lastError = 0;
-    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify, destination, 0, &callbacks);
+    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, 0);
     int counter = 100000;
     is_connected = 1;
@@ -359,7 +359,7 @@ static void ssl_client_download_data(void **start)
     callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsclient;
-    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, destination, 0, &callbacks);
+    result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
     assert_int_equal(result, 0);
     int counter = 100;
     is_connected = 1;
@@ -441,7 +441,7 @@ static void ssl_server_for_manual(void **start)
     callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver, NULL, context_servermanual, listen, 100, &callbacks);
+    result = rebrick_tlssocket_new(&tlsserver, NULL, context_servermanual, &listen, NULL, 100, &callbacks);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;
@@ -474,7 +474,7 @@ static void ssl_server_for_manual_sni(void **start)
     callbacks.on_error = on_error_occured_callback;
 
     rebrick_tlssocket_t *tlsserver;
-    result = rebrick_tlssocket_new(&tlsserver, "hamzakilic.com", context_test_com, listen, 10, &callbacks);
+    result = rebrick_tlssocket_new(&tlsserver, "hamzakilic.com", context_test_com, &listen, NULL, 10, &callbacks);
     assert_int_equal(result, 0);
     int counter;
     server_connection_status = 1;

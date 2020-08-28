@@ -86,10 +86,17 @@ typedef struct rebrick_httpsocket_callbacks
 
 #define cast_to_httpsocket_callbacks(x) cast(x, rebrick_httpsocket_callbacks_t *)
 
-int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
+int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket,
+                               const char *sni_pattern_or_name,
+                               rebrick_tls_context_t *tls, const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, const rebrick_httpsocket_callbacks_t *callbacks);
 
-int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls, rebrick_sockaddr_t addr,
+int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *socket,
+                                const char *sni_pattern_or_name,
+                                rebrick_tls_context_t *tls,
+                                const rebrick_sockaddr_t *bind_addr,
+                                const rebrick_sockaddr_t *peer_addr,
                                 int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                 const rebrick_httpsocket_callbacks_t *callbacks);
 

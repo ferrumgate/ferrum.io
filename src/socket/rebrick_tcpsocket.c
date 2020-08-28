@@ -56,10 +56,10 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
     result = uv_write(request, cast(&socket->handle.tcp, uv_stream_t *), &buf, 1, on_send);
     if (result < 0)
     {
-        rebrick_log_info(__FILE__, __LINE__, "sending data to  %s port:%s failed: %s\n", socket->bind_ip, socket->bind_port, uv_strerror(result));
+        rebrick_log_info(__FILE__, __LINE__, "sending data to  %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
-    rebrick_log_debug(__FILE__, __LINE__, "data sended  len:%zu to   %s port:%s\n", len, socket->bind_ip, socket->bind_port);
+    rebrick_log_debug(__FILE__, __LINE__, "data sended  len:%zu to   %s port:%s\n", len, socket->peer_ip, socket->peer_port);
     return REBRICK_SUCCESS;
 }
 
@@ -201,9 +201,9 @@ static void on_connection(uv_stream_t *server, int status)
     temp = sizeof(struct sockaddr_storage);
     result = uv_tcp_getpeername(&client->handle.tcp, &client->bind_addr.base, &temp);
 
-    rebrick_util_addr_to_ip_string(&client->bind_addr, client->bind_ip);
-    rebrick_util_addr_to_port_string(&client->bind_addr, client->bind_port);
-    rebrick_log_debug(__FILE__, __LINE__, "connected client from %s:%s\n", client->bind_ip, client->bind_port);
+    rebrick_util_addr_to_ip_string(&client->bind_addr, client->peer_ip);
+    rebrick_util_addr_to_port_string(&client->bind_addr, client->peer_port);
+    rebrick_log_debug(__FILE__, __LINE__, "connected client from %s:%s\n", client->peer_ip, client->peer_port);
 
     client->handle.tcp.data = client;
     client->on_client_close = serversocket->on_client_close;
@@ -245,14 +245,24 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket)
     uv_connect_t *connect = create(uv_connect_t);
     if_is_null_then_die(connect, "malloc problem\n");
     connect->data = socket;
-    result = uv_tcp_connect(connect, &socket->handle.tcp, &socket->bind_addr.base, on_connect);
+    if (socket->bind_addr.base.sa_family != AF_UNSPEC)
+    {
+        result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
+        if (result < 0)
+        {
+            rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+            return REBRICK_ERR_UV + result;
+        }
+    }
+
+    result = uv_tcp_connect(connect, &socket->handle.tcp, &socket->peer_addr.base, on_connect);
     if (result < 0)
     {
         rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
 
-    rebrick_log_info(__FILE__, __LINE__, "socket connected to %s port:%s\n", socket->bind_ip, socket->bind_port);
+    rebrick_log_info(__FILE__, __LINE__, "socket connected to %s port:%s\n", socket->peer_ip, socket->peer_port);
     socket->handle.tcp.data = socket;
     uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
     uv_read_start(tmp, on_alloc, on_recv);
@@ -293,7 +303,9 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr,
+int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
+                               const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t createclient,
                                const rebrick_tcpsocket_callbacks_t *callbacks)
 {
@@ -302,10 +314,15 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
     int32_t result;
     //burası önemli,callback data
     socket->callback_data = callbacks ? callbacks->callback_data : NULL;
+    if (bind_addr)
+        memcpy(&socket->bind_addr, bind_addr, sizeof(rebrick_sockaddr_t));
+    if (peer_addr)
+        memcpy(&socket->peer_addr, peer_addr, sizeof(rebrick_sockaddr_t));
 
-    socket->bind_addr = addr;
     rebrick_util_addr_to_ip_string(&socket->bind_addr, socket->bind_ip);
     rebrick_util_addr_to_port_string(&socket->bind_addr, socket->bind_port);
+    rebrick_util_addr_to_ip_string(&socket->peer_addr, socket->peer_ip);
+    rebrick_util_addr_to_port_string(&socket->peer_addr, socket->peer_port);
 
     socket->on_read = callbacks ? callbacks->on_read : NULL;
     socket->on_write = callbacks ? callbacks->on_write : NULL;
@@ -322,7 +339,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
         result = create_client_socket(socket);
     if (result < 0)
     {
-        rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", socket->bind_ip, socket->bind_port);
+        rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", socket->peer_ip, socket->peer_port);
         return result;
     }
 
@@ -330,7 +347,9 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t a
 }
 
 int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
-                              rebrick_sockaddr_t bind_addr, int32_t backlog_or_isclient,
+                              const rebrick_sockaddr_t *bind_addr,
+                              const rebrick_sockaddr_t *peer_addr,
+                              int32_t backlog_or_isclient,
                               const rebrick_tcpsocket_callbacks_t *callbacks)
 {
     char current_time_str[32] = {0};
@@ -339,12 +358,11 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
     rebrick_tcpsocket_t *data = create(rebrick_tcpsocket_t);
     constructor(data, rebrick_tcpsocket_t);
 
-    result = rebrick_tcpsocket_init(data, bind_addr, backlog_or_isclient, create_client, callbacks);
+    result = rebrick_tcpsocket_init(data, bind_addr, peer_addr, backlog_or_isclient, create_client, callbacks);
     if (result < 0)
     {
-        rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", data->bind_ip, data->bind_port);
+        rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", data->peer_ip, data->peer_port);
         rebrick_free(data);
-
         return result;
     }
 
@@ -403,7 +421,7 @@ int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket)
         if (!uv_is_closing(handle))
         {
 
-            rebrick_log_info(__FILE__, __LINE__, "closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
+            rebrick_log_info(__FILE__, __LINE__, "closing connection %s port:%s\n", socket->peer_ip, socket->peer_port);
             uv_close(handle, on_close);
         }
     }

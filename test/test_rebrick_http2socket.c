@@ -182,9 +182,9 @@ static void http2_socket_as_client_create_get(void **tls)
     callbacks.on_http_body_read = on_body_read_callback;
 
     if (!*tls)
-        result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, NULL, NULL, &destination, 0, &settings, &callbacks);
     else
-        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, NULL, &destination, 0, &settings, &callbacks);
     assert_int_equal(result, 0);
 
     loop(counter, 1000, !is_connected);
@@ -271,9 +271,9 @@ static void http2_socket_as_client_create_post(void **tls)
     callbacks.on_http_body_read = on_body_read_callback;
 
     if (!*tls)
-        result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, NULL, NULL, &destination, 0, &settings, &callbacks);
     else
-        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, NULL, &destination, 0, &settings, &callbacks);
     assert_int_equal(result, 0);
 
     loop(counter, 1000, !is_connected);
@@ -418,9 +418,9 @@ static void http2_socket_as_client_create_get_server_push_streams(void **tls)
     callbacks.on_push_read = on_http2_push_stream;
 
     if (!*tls)
-        result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, NULL, NULL, &destination, 0, &settings, &callbacks);
     else
-        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, destination, 0, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, "hamzakilic.com", context_verify_none, NULL, &destination, 0, &settings, &callbacks);
     assert_int_equal(result, 0);
 
     loop(counter, 1000, !is_connected);
@@ -527,9 +527,9 @@ static void http2_socket_as_serverserver_get(void **tls)
     is_header_received = FALSE;
 
     if (!*tls)
-        result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 10, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, NULL, &destination, NULL, 10, &settings, &callbacks);
     else
-        result = rebrick_http2socket_new(&socket, NULL, context_hamzakilic_com, destination, 10, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, context_hamzakilic_com, &destination, NULL, 10, &settings, &callbacks);
 
     printf("http2 server started on localhost:9898\n");
     if (!*tls)
@@ -614,9 +614,9 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
     is_connected = FALSE;
     is_header_received = FALSE;
     if (!*tls)
-        result = rebrick_http2socket_new(&socket, NULL, NULL, destination, 10, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, NULL, &destination, NULL, 10, &settings, &callbacks);
     else
-        result = rebrick_http2socket_new(&socket, NULL, context_hamzakilic_com, destination, 10, &settings, &callbacks);
+        result = rebrick_http2socket_new(&socket, NULL, context_hamzakilic_com, &destination, NULL, 10, &settings, &callbacks);
 
     if (!*tls)
         printf("execute nghttp -v http://localhost:9898/push\n");
@@ -696,16 +696,16 @@ int test_rebrick_http2socket(void)
 {
     const struct CMUnitTest tests[] = {
 
-        //cmocka_unit_test(http2_socket_as_client_create_get),
-        // cmocka_unit_test(http2_socket_as_client_create_get_tls),
-        // cmocka_unit_test(http2_socket_as_client_create_post),
-        // cmocka_unit_test(http2_socket_as_client_create_post_tls),
-        //cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),
+        cmocka_unit_test(http2_socket_as_client_create_get),
+        cmocka_unit_test(http2_socket_as_client_create_get_tls),
+        cmocka_unit_test(http2_socket_as_client_create_post),
+        cmocka_unit_test(http2_socket_as_client_create_post_tls),
+        cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams),
         //cmocka_unit_test(http2_socket_as_client_create_get_server_push_streams_tls),
-        //cmocka_unit_test(http2_socket_as_serverserver_get),
+        cmocka_unit_test(http2_socket_as_serverserver_get),
         cmocka_unit_test(http2_socket_as_serverserver_get_tls),
-        //cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams),
-        // cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams_tls)
+        cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams),
+        //cmocka_unit_test(http2_socket_as_serverserver_create_get_server_push_streams_tls)
 
     };
     return cmocka_run_group_tests(tests, setup, teardown);

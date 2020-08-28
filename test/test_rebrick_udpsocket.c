@@ -91,7 +91,7 @@ static void rebrick_udpsocket_asserver_communication(void **start)
     callbacks.on_write = on_server_send;
     callbacks.on_error = on_error_occured;
 
-    int32_t result = rebrick_udpsocket_new(&server, bind, &callbacks);
+    int32_t result = rebrick_udpsocket_new(&server, &bind, &callbacks);
     assert_int_equal(result, 0);
     //check loop
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
@@ -220,7 +220,7 @@ static void test_rebrick_udpsocket_check_memory(void **state)
     for (int i = 0; i < COUNTER; ++i)
     {
 
-        result = rebrick_udpsocket_new(&dnsclient, bindaddr, &callbacks);
+        result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
         assert_int_equal(result, 0);
 
         sended_count = 0;
@@ -285,7 +285,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state)
     callbacks.on_write = on_dnsclient_send;
     callbacks.on_error = on_dnsclient_error_occured;
 
-    result = rebrick_udpsocket_new(&dnsclient, bindaddr, &callbacks);
+    result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
     assert_int_equal(result, 0);
 
 #define COUNTER 250
@@ -335,7 +335,7 @@ static void test_rebrick_udpsocket_check_memory3(void **state)
     callbacks.on_write = NULL;
     callbacks.on_error = on_dnsclient_error_occured;
 
-    int32_t result = rebrick_udpsocket_new(&dnsclient, bindaddr, &callbacks);
+    int32_t result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
     assert_int_equal(result, 0);
 
     received_count = 0;

@@ -600,8 +600,13 @@ static struct rebrick_tcpsocket *local_create_client()
     return cast_to_tcpsocket(client);
 }
 
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
-                               int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
+                               const char *sni_pattern_or_name,
+                               const rebrick_tls_context_t *tls_context,
+                               const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
+                               int32_t backlog_or_isclient,
+                               rebrick_tcpsocket_create_client_t create_client,
                                const rebrick_tlssocket_callbacks_t *callbacks)
 {
 
@@ -665,7 +670,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
 
     //this is OOP inheritance with c
     //base class init function call.
-    result = rebrick_tcpsocket_init(cast_to_tcpsocket(tlssocket), addr, backlog_or_isclient, create_client, &local_callbacks);
+    result = rebrick_tcpsocket_init(cast_to_tcpsocket(tlssocket), bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks);
     if (result)
     {
         int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
@@ -676,8 +681,13 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket, const char *sni_p
     return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tlscontext, rebrick_sockaddr_t addr,
-                              int32_t backlog_or_isclient, const rebrick_tlssocket_callbacks_t *callbacks)
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket,
+                              const char *sni_pattern_or_name,
+                              rebrick_tls_context_t *tlscontext,
+                              const rebrick_sockaddr_t *bind_addr,
+                              const rebrick_sockaddr_t *peer_addr,
+                              int32_t backlog_or_isclient,
+                              const rebrick_tlssocket_callbacks_t *callbacks)
 {
 
     char current_time_str[32] = {0};
@@ -687,7 +697,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
     rebrick_tlssocket_t *tlssocket = create(rebrick_tlssocket_t);
     constructor(tlssocket, rebrick_tlssocket_t);
 
-    result = rebrick_tlssocket_init(tlssocket, sni_pattern_or_name, tlscontext, addr, backlog_or_isclient, local_create_client, callbacks);
+    result = rebrick_tlssocket_init(tlssocket, sni_pattern_or_name, tlscontext, bind_addr, peer_addr, backlog_or_isclient, local_create_client, callbacks);
     if (result < 0)
     {
         rebrick_free(tlssocket);

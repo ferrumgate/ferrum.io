@@ -74,8 +74,13 @@ typedef struct rebrick_tlssocket_callbacks
  * @param on_data_sended
  * @return int32_t
  */
-int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_pattern_or_name, rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
-                              int32_t backlog_or_isclient, const rebrick_tlssocket_callbacks_t *callbacks);
+int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket,
+                              const char *sni_pattern_or_name,
+                              rebrick_tls_context_t *tls_context,
+                              const rebrick_sockaddr_t *bind_addr,
+                              const rebrick_sockaddr_t *peer_addr,
+                              int32_t backlog_or_isclient,
+                              const rebrick_tlssocket_callbacks_t *callbacks);
 
 /**
  * @brief inits a socket, think init functions like contructors in OOP
@@ -93,8 +98,13 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket, const char *sni_patt
  * @param create_client
  * @return int32_t
  */
-int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket, const char *sni_pattern_or_name, const rebrick_tls_context_t *tls_context, rebrick_sockaddr_t addr,
-                               int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
+int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *socket,
+                               const char *sni_pattern_or_name,
+                               const rebrick_tls_context_t *tls_context,
+                               const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
+                               int32_t backlog_or_isclient,
+                               rebrick_tcpsocket_create_client_t create_client,
                                const rebrick_tlssocket_callbacks_t *callbacks);
 
 int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket);

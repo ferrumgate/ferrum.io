@@ -69,7 +69,11 @@ public_ typedef struct rebrick_tcpsocket_callbacks
  * @param on_data_sended
  * @return int32_t
  */
-int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t addr, int32_t backlog_or_isclient, const rebrick_tcpsocket_callbacks_t *callbacks);
+int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
+                              const rebrick_sockaddr_t *bind_addr,
+                              const rebrick_sockaddr_t *peer_addr,
+                              int32_t backlog_or_isclient,
+                              const rebrick_tcpsocket_callbacks_t *callbacks);
 
 /**
  * @brief
@@ -87,7 +91,7 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket, rebrick_sockaddr_t a
  * @return int32_t
  */
 
-int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, rebrick_sockaddr_t addr,
+int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, const rebrick_sockaddr_t *bind_addr, const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
                                const rebrick_tcpsocket_callbacks_t *callbacks);
 int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable);

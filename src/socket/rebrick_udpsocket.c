@@ -146,14 +146,14 @@ static int32_t create_socket(rebrick_udpsocket_t *socket)
         rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
         return REBRICK_ERR_UV + result;
     }
-    rebrick_log_info(__FILE__, __LINE__, "socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
+    rebrick_log_info(__FILE__, __LINE__, "socket started at %s port:%s\n", socket->peer_ip, socket->peer_port);
     socket->handle.udp.data = socket;
 
     return REBRICK_SUCCESS;
 }
 
 int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
-                              rebrick_sockaddr_t bind_addr,
+                              const rebrick_sockaddr_t *bind_addr,
                               const rebrick_udpsocket_callbacks_t *callbacks)
 {
 
@@ -165,8 +165,8 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
 
     //burası önemli,callback data
     tmp->callback_data = callbacks ? callbacks->callback_data : NULL;
-
-    tmp->bind_addr = bind_addr;
+    if (bind_addr)
+        memcpy(&tmp->bind_addr.base, bind_addr, sizeof(rebrick_sockaddr_t));
     rebrick_util_addr_to_ip_string(&tmp->bind_addr, tmp->bind_ip);
     rebrick_util_addr_to_port_string(&tmp->bind_addr, tmp->bind_port);
 
@@ -210,7 +210,7 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket)
         if (!uv_is_closing(handle))
         {
 
-            rebrick_log_info(__FILE__, __LINE__, "closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
+            rebrick_log_info(__FILE__, __LINE__, "closing connection %s port:%s\n", socket->peer_ip, socket->peer_port);
             uv_close(handle, on_close);
         }
     }
