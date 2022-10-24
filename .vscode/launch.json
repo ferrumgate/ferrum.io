@@ -1,0 +1,74 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "(gdb) Attach",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/test/test",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/dns.router",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [{"name": "LISTEN_PORT","value": "9090"},
+                {"name": "LISTEN_FAMILY","value": "IPV4"},
+                {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],
+            "additionalSOLibSearchPath": "${workspaceFolder}/external/libs/lib",
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "buildprod",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/test",
+            "environment": [{"name": "LISTEN_PORT","value": "9090"},
+                {"name": "LISTEN_FAMILY","value": "IPV4_IPV6"},
+                {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],
+            "externalConsole": false,
+            "additionalSOLibSearchPath": "${workspaceFolder}/external/libs/lib",
+            "MIMode": "gdb",
+            "preLaunchTask": "buildtest",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+
+
+
+    ]
+}

@@ -1,0 +1,5 @@
+Name: cmocka
+Description: The cmocka unit testing library
+Version: 1.1.5
+Libs: -L/work/projects/ferrum/ferrum.io/external/libs/lib -lcmocka
+Cflags: -I/work/projects/ferrum/ferrum.io/external/libs/include

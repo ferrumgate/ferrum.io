@@ -1,0 +1,4 @@
+#ifndef __REBRICK_PROTOCOL_UPGRADE_H__
+#define __REBRICK_PROTOCOL_UPGRADE_H__
+
+#endif

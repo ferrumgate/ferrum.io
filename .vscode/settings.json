@@ -1,0 +1,37 @@
+{
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "googletest.failed",
+                "settings": {
+                    "foreground": "#f00"
+                }
+            },
+            {
+                "scope": "googletest.passed",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            },
+            {
+                "scope": "googletest.run",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            }
+        ]
+    },
+    "files.associations": {
+        "rebrick_log.h": "c",
+        "rebrick_async_udpsocket.h": "c",
+        "rebrick_util.h": "c",
+        "rebrick_tls.h": "c",
+        "type_traits": "cpp",
+        "typeinfo": "c",
+        "udpecho.h": "c",
+        "tcpecho.h": "c",
+        "unistd.h": "c",
+        "cmocka.h": "c",
+        "rebrick_http2socket.h": "c"
+    }
+}

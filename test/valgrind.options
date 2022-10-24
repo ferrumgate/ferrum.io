@@ -1,0 +1,382 @@
+{
+   Ignore OpenSSL Cond
+   Memcheck:Cond
+   ...
+   obj:*/libcrypto*
+}
+{
+   Ignore OpenSSL Cond2
+   Memcheck:Cond
+   ...
+   obj:*/libssl*
+}
+{
+   Ignore OpenSSL Val8
+   Memcheck:Value8
+   ...
+   obj:*/libcrypto*
+}
+{
+   Ignore OpenSSL Val8-2
+   Memcheck:Value8
+   ...
+   obj:*/libssl*
+
+}
+{
+   openssl uninitialized copy
+   Memcheck:Cond
+   fun:values_equal_display_error
+   fun:_assert_int_equal
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_tlssocket
+   fun:main
+}
+{
+   test_code_bug
+   Memcheck:Cond
+   fun:bcmp
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_tlssocket
+   fun:main
+}
+{
+   openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_tcpsocket_write
+   fun:flush_buffers
+   fun:local_on_connection_accepted_callback
+   fun:on_connect
+   fun:uv__stream_connect
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+}
+{
+   openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_tcpsocket_write
+   fun:flush_ssl_buffers
+   fun:check_ssl_status
+   fun:local_on_connection_accepted_callback
+   fun:on_connect
+   fun:uv__stream_connect
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+}
+{
+   openssl uninitialized copy
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:uv__writev
+   fun:uv__write
+   fun:uv_write2
+   fun:rebrick_tcpsocket_write
+   fun:flush_ssl_buffers
+   fun:check_ssl_status
+   fun:flush_buffers
+   fun:after_io
+   fun:uv__run_check
+   fun:uv_run
+   fun:ssl_server
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+}
+{
+   libuv on_connection getpeername
+   Memcheck:Param
+   socketcall.getpeername(name)
+   fun:getpeername
+   fun:uv__getsockpeername
+   fun:on_connection
+   fun:uv__server_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:rebrick_tcpsocket_asserver_communication
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_tcpsocket
+   fun:main
+}
+{
+   openssl uninitialized copy
+   Memcheck:Cond
+   fun:_assert_int_equal
+   fun:ssl_client
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_tlssocket
+   fun:main
+}
+{
+   nss_load_library
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   fun:_dl_load_cache_lookup
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:do_dlopen
+   fun:_dl_catch_exception
+   fun:_dl_catch_error
+   fun:dlerror_run
+   fun:__libc_dlopen_mode
+   fun:nss_load_library
+}
+{
+   nss_load_library2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:do_dlopen
+   fun:_dl_catch_exception
+   fun:_dl_catch_error
+   fun:dlerror_run
+   fun:__libc_dlopen_mode
+   fun:nss_load_library
+}
+{
+   nss_load_library3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dl_check_map_versions
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:do_dlopen
+   fun:_dl_catch_exception
+   fun:_dl_catch_error
+   fun:dlerror_run
+   fun:__libc_dlopen_mode
+   fun:nss_load_library
+   fun:__nss_lookup_function
+   fun:gaih_inet.constprop.7
+}
+{
+   nss_load_library4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_dl_new_object
+   fun:_dl_map_object_from_fd
+   fun:_dl_map_object
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   fun:do_dlopen
+   fun:_dl_catch_exception
+   fun:_dl_catch_error
+   fun:dlerror_run
+   fun:__libc_dlopen_mode
+   fun:nss_load_library
+}
+{
+   nghttp2-1
+   Memcheck:Value8
+   ...
+   fun:tolower
+   fun:rebrick_http_key_value_new2
+   fun:rebrick_http_header_add_header2
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   nghttp2-2
+   Memcheck:Cond
+   ...
+   fun:tolower
+   fun:rebrick_http_key_value_new2
+   fun:rebrick_http_header_add_header2
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   httpparser-1
+   Memcheck:Cond
+   ...
+   fun:parse_headers
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   httpparser-2
+   Memcheck:Value8
+   ...
+   fun:parse_headers
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-1
+   Memcheck:Cond
+   fun:strcmp
+   fun:string_equal_display_error
+   fun:_assert_string_equal
+   fun:http_socket_as_client_create_with_tls_post
+}
+{
+   tls problem-2
+   Memcheck:Cond
+   ...
+   fun:tolower
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   ...
+}
+{
+   tls problem-3
+   Memcheck:Value8
+   ...
+   fun:tolower
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   ...
+}
+{
+   tls problem-4
+   Memcheck:Cond
+   ...
+   fun:strncasecmp
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   ...
+}
+{
+   tls problem-5
+   Memcheck:Cond
+   fun:____strtol_l_internal
+   fun:atoi
+   fun:http_socket_as_client_create_with_tls_post
+   fun:cmocka_run_one_test_or_fixture
+   fun:cmocka_run_one_tests
+   fun:_cmocka_run_group_tests
+   fun:test_rebrick_httpsocket
+   fun:main
+}
+{
+   tls problem-6
+   Memcheck:Cond
+   fun:parse_http_version
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-7
+   Memcheck:Cond
+   ...
+   fun:parse_response
+   fun:phr_parse_response
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls problem-8
+   Memcheck:Cond
+   fun:values_equal_display_error
+   fun:_assert_int_equal
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-9
+   Memcheck:Cond
+   fun:_assert_int_equal
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-10
+   Memcheck:Value8
+   fun:____strtol_l_internal
+   fun:atoi
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls problem-11
+   Memcheck:Cond
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   fun:on_recv
+   fun:uv__read
+   fun:uv__stream_io
+   fun:uv__io_poll
+   fun:uv_run
+   fun:http_socket_as_client_create_with_tls_post
+   ...
+}
+{
+   tls proble-12
+   Memcheck:Cond
+   fun:rebrick_httpstatus_reasonphrase
+   fun:rebrick_http_header_new4
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
+{
+   tls proble-13
+   Memcheck:Value8
+   fun:rebrick_httpstatus_reasonphrase
+   fun:rebrick_http_header_new4
+   fun:local_after_data_received_callback
+   fun:local_after_data_received_callback
+   ...
+}
