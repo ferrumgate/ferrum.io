@@ -57,6 +57,8 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
     if (result < 0)
     {
         rebrick_log_info(__FILE__, __LINE__, "sending data to  %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
+        roksit_free(request->data);
+        roksit_free(request);
         return REBRICK_ERR_UV + result;
     }
     rebrick_log_debug(__FILE__, __LINE__, "data sended  len:%zu to   %s port:%s\n", len, socket->peer_ip, socket->peer_port);
@@ -180,7 +182,7 @@ static void on_connection(uv_stream_t *server, int status)
         return;
     }
 
-    //burayı override etmeyi başarsak//ssl için yol açmış oluruz
+    // burayı override etmeyi başarsak//ssl için yol açmış oluruz
 
     rebrick_tcpsocket_t *client = serversocket->create_client();
 
@@ -191,8 +193,8 @@ static void on_connection(uv_stream_t *server, int status)
     {
         // TODO: make it threadsafe
         rebrick_log_fatal(__FILE__, __LINE__, "accept error uverror:%d %s\n", result, uv_strerror(result));
-        //burada client direk free edilebilmeli
-        //başka bir şey olmadan
+        // burada client direk free edilebilmeli
+        // başka bir şey olmadan
         //@see rebrick_tcpsocket.h
         rebrick_free(client);
 
@@ -217,7 +219,7 @@ static void on_connection(uv_stream_t *server, int status)
 
     DL_APPEND(serversocket->clients, client);
 
-    //start reading client
+    // start reading client
     uv_stream_t *tmp = cast(&client->handle.tcp, uv_stream_t *);
     uv_read_start(tmp, on_alloc, on_recv);
 
@@ -312,7 +314,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
     char current_time_str[32] = {0};
     unused(current_time_str);
     int32_t result;
-    //burası önemli,callback data
+    // burası önemli,callback data
     socket->callback_data = callbacks ? callbacks->callback_data : NULL;
     if (bind_addr)
         memcpy(&socket->bind_addr, bind_addr, sizeof(rebrick_sockaddr_t));
@@ -386,7 +388,7 @@ static void on_close(uv_handle_t *handle)
                 rebrick_log_debug(__FILE__, __LINE__, "handle closed\n");
                 socket->on_client_close(cast_to_socket(socket), socket->callback_data);
             }
-            //server is closing
+            // server is closing
             if (!socket->parent_socket)
             {
 
@@ -415,7 +417,7 @@ int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket)
     unused(current_time_str);
     if (socket)
     {
-        //close if server is ready
+        // close if server is ready
         uv_handle_t *handle = cast(&socket->handle.tcp, uv_handle_t *);
 
         if (!uv_is_closing(handle))
