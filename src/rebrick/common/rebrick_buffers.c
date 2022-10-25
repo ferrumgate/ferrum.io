@@ -9,7 +9,7 @@ int32_t rebrick_buffers_new(rebrick_buffers_t **buffer, uint8_t *buf, size_t len
   if (!malloc_size)
     malloc_size = (size_t)1024;
 
-  rebrick_buffers_t *buf_tmp = create(rebrick_buffers_t);
+  rebrick_buffers_t *buf_tmp = new1(rebrick_buffers_t);
   constructor(buf_tmp, rebrick_buffers_t);
 
   buf_tmp->head_page = NULL;
@@ -19,7 +19,7 @@ int32_t rebrick_buffers_new(rebrick_buffers_t **buffer, uint8_t *buf, size_t len
   int32_t remain_size = len;
   int32_t total_size = 0;
   while (remain_size > 0) {
-    rebrick_buffers_page_t *tmp = create(rebrick_buffers_page_t);
+    rebrick_buffers_page_t *tmp = new1(rebrick_buffers_page_t);
     constructor(tmp, rebrick_buffers_page_t);
     tmp->buf = rebrick_malloc(default_malloc_size);
     if_is_null_then_die(tmp->buf, "malloc problem\n");
@@ -77,7 +77,7 @@ int32_t rebrick_buffers_add(rebrick_buffers_t *buffer, uint8_t *buf, size_t len)
     space_len = default_malloc_size - last_elm->len;
     copied_size = remain_size > space_len ? space_len : remain_size;
     if (copied_size == 0) {
-      rebrick_buffers_page_t *tmp = create(rebrick_buffers_page_t);
+      rebrick_buffers_page_t *tmp = new1(rebrick_buffers_page_t);
       constructor(tmp, rebrick_buffers_page_t);
       tmp->buf = rebrick_malloc(default_malloc_size);
       if_is_null_then_die(tmp->buf, "malloc problem\n");

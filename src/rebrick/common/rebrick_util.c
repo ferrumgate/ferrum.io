@@ -16,7 +16,7 @@ int rebrick_util_str_endswith(const char *domainname, const char *search) {
 }
 
 rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linked_item_t *previous) {
-  rebrick_linked_item_t *item = create(rebrick_linked_item_t);
+  rebrick_linked_item_t *item = new1(rebrick_linked_item_t);
   if (item == NULL)
     return NULL;
   fill_zero(item, sizeof(rebrick_linked_item_t));

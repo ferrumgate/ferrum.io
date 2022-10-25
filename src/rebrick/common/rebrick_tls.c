@@ -34,7 +34,7 @@ int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func, struct rebric
     }
   }
   if (!founded) {
-    rebrick_tls_checkitem_t *item = create(rebrick_tls_checkitem_t);
+    rebrick_tls_checkitem_t *item = new1(rebrick_tls_checkitem_t);
     constructor(item, rebrick_tls_checkitem_t);
     item->socket = socket;
     item->func = func;
@@ -74,7 +74,7 @@ int32_t rebrick_before_io_list_add(rebrick_tls_checkitem_func func, struct rebri
     }
   }
   if (!founded) {
-    rebrick_tls_checkitem_t *item = create(rebrick_tls_checkitem_t);
+    rebrick_tls_checkitem_t *item = new1(rebrick_tls_checkitem_t);
     constructor(item, rebrick_tls_checkitem_t);
     item->socket = socket;
     item->func = func;
@@ -160,10 +160,10 @@ int32_t rebrick_tls_init() {
     SSL_CTX_set_tlsext_servername_arg(context_sni->tls_ctx, context_sni);
 
     // after io part
-    tls_after_io_checklist = create(rebrick_tls_checkitem_list_t);
+    tls_after_io_checklist = new1(rebrick_tls_checkitem_list_t);
     constructor(tls_after_io_checklist, rebrick_tls_checkitem_list_t);
 
-    tls_before_io_checklist = create(rebrick_tls_checkitem_list_t);
+    tls_before_io_checklist = new1(rebrick_tls_checkitem_list_t);
     constructor(tls_before_io_checklist, rebrick_tls_checkitem_list_t);
 
     uv_check_init(uv_default_loop(), &check);
@@ -252,7 +252,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     return REBRICK_SUCCESS;
   }
 
-  rebrick_tls_context_t *ctx = create(rebrick_tls_context_t);
+  rebrick_tls_context_t *ctx = new1(rebrick_tls_context_t);
   constructor(ctx, rebrick_tls_context_t);
 
   ctx->tls_ctx = SSL_CTX_new(TLS_method());
@@ -305,7 +305,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     SSL_CTX_clear_options(ctx->tls_ctx, clearoptions);
 
   struct rebrick_tls_context_hashitem *hash;
-  hash = create(struct rebrick_tls_context_hashitem);
+  hash = new1(struct rebrick_tls_context_hashitem);
   constructor(hash, struct rebrick_tls_context_hashitem);
   hash->ctx = ctx;
   strncpy(hash->key, ctx->key, REBRICK_TLS_KEY_LEN - 1);
@@ -519,7 +519,7 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
   BIO_set_nbio(read, 1);
   BIO_set_nbio(write, 1);
 
-  rebrick_tls_ssl_t *state = create(rebrick_tls_ssl_t);
+  rebrick_tls_ssl_t *state = new1(rebrick_tls_ssl_t);
   constructor(state, rebrick_tls_ssl_t);
   state->ssl = tmp;
   state->read = read;

@@ -35,10 +35,10 @@ typedef void (*rebrick_socket_on_error_callback_t)(struct rebrick_socket *socket
 
 typedef void (*rebrick_socket_on_close_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
-#define rebrick_clean_func_clone(x, y)                         \
-  rebrick_clean_func_t *newptr = create(rebrick_clean_func_t); \
-  constructor(newptr, rebrick_clean_func_t);                   \
-  memcpy(newptr, (x), sizeof(rebrick_clean_func_t));           \
+#define rebrick_clean_func_clone(x, y)                       \
+  rebrick_clean_func_t *newptr = new1(rebrick_clean_func_t); \
+  constructor(newptr, rebrick_clean_func_t);                 \
+  memcpy(newptr, (x), sizeof(rebrick_clean_func_t));         \
   (y) = newptr;
 
 ////////////////////////// base socket //////////////////////////////

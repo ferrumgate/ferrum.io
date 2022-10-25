@@ -9,7 +9,7 @@ int32_t rebrick_buffer_new(rebrick_buffer_t **buffer, uint8_t *buf, size_t len, 
   if (!malloc_size)
     malloc_size = (size_t)1024;
 
-  rebrick_buffer_t *buf_tmp = create(rebrick_buffer_t);
+  rebrick_buffer_t *buf_tmp = new1(rebrick_buffer_t);
   constructor(buf_tmp, rebrick_buffer_t);
   buf_tmp->malloc_size = malloc_size;
 

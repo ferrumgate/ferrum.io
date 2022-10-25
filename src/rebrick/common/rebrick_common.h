@@ -85,8 +85,8 @@
 #define rebrick_free(x) free(x)
 #define rebrick_realloc(x, y) realloc(x, y)
 #define rebrick_calloc(x, y) calloc(x, y)
-#define create(x) rebrick_malloc(sizeof(x))
-#define new1(x) create(x)
+
+#define new1(x) rebrick_malloc(sizeof(x))
 
 #define constructor(x, y)                                      \
   if (!x) {                                                    \
@@ -96,12 +96,10 @@
   fill_zero(x, sizeof(y));                                     \
   strncpy(x->type_name, #y, REBRICK_STRUCT_NAME_LEN - 1);
 
-#define create2(y, x)       \
+#define new2(y, x)          \
   y x;                      \
   fill_zero(&x, sizeof(y)); \
   strncpy(x.type_name, #y, REBRICK_STRUCT_NAME_LEN - 1);
-
-#define new2(y, x) create2(y, x)
 
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))

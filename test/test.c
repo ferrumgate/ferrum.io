@@ -23,7 +23,7 @@ extern int test_rebrick_http2socket();
 int main() {
   fprintf(stdout, "starting test\n");
 
-  /* if (test_rebrick_filestream())
+  if (test_rebrick_filestream())
     exit(1);
 
   if (test_rebrick_util())
@@ -43,7 +43,7 @@ int main() {
 
   if (test_rebrick_udpsocket())
     exit(1);
- */
+
   if (test_rebrick_tcpsocket())
     exit(1);
 

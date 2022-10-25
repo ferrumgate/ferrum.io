@@ -22,7 +22,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
-  rebrick_timer_t *tmp = create(rebrick_timer_t);
+  rebrick_timer_t *tmp = new1(rebrick_timer_t);
   constructor(tmp, rebrick_timer_t);
 
   result = uv_timer_init(uv_default_loop(), &(tmp->timer));

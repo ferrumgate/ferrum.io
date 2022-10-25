@@ -38,7 +38,7 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
     return REBRICK_ERR_IO_CLOSED;
   }
 
-  uv_write_t *request = create(uv_write_t);
+  uv_write_t *request = new1(uv_write_t);
   if_is_null_then_die(request, "malloc problem\n");
   fill_zero(request, sizeof(uv_write_t));
   uv_buf_t buf = uv_buf_init(cast(buffer, char *), len);
@@ -124,7 +124,7 @@ static void on_connect(uv_connect_t *connection, int status) {
 static rebrick_tcpsocket_t *create_client() {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_tcpsocket_t *client = create(rebrick_tcpsocket_t);
+  rebrick_tcpsocket_t *client = new1(rebrick_tcpsocket_t);
   constructor(client, rebrick_tcpsocket_t);
   return client;
 }
@@ -213,7 +213,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
     return REBRICK_ERR_UV + result;
   }
   uv_tcp_keepalive(&socket->handle.tcp, 1, 60);
-  uv_connect_t *connect = create(uv_connect_t);
+  uv_connect_t *connect = new1(uv_connect_t);
   if_is_null_then_die(connect, "malloc problem\n");
   connect->data = socket;
   if (socket->bind_addr.base.sa_family != AF_UNSPEC) {
@@ -317,7 +317,7 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;
-  rebrick_tcpsocket_t *data = create(rebrick_tcpsocket_t);
+  rebrick_tcpsocket_t *data = new1(rebrick_tcpsocket_t);
   constructor(data, rebrick_tcpsocket_t);
 
   result = rebrick_tcpsocket_init(data, bind_addr, peer_addr, backlog_or_isclient, create_client, callbacks);

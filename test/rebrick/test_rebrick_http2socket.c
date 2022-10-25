@@ -159,7 +159,7 @@ static void http2_socket_as_client_create_get(void **tls) {
   settings.entries[0] = maxstream;
   settings.settings_count = 1;
 
-  create2(rebrick_http2socket_callbacks_t, callbacks);
+  new2(rebrick_http2socket_callbacks_t, callbacks);
   callbacks.on_accept = on_connection_accepted_callback;
   callbacks.on_client_close = on_connection_closed_callback;
   callbacks.on_read = on_data_read_callback;
@@ -246,7 +246,7 @@ static void http2_socket_as_client_create_post(void **tls) {
   settings.entries[0] = maxstream;
   settings.settings_count = 1;
 
-  create2(rebrick_http2socket_callbacks_t, callbacks);
+  new2(rebrick_http2socket_callbacks_t, callbacks);
   callbacks.on_accept = on_connection_accepted_callback;
   callbacks.on_client_close = on_connection_closed_callback;
   callbacks.on_read = on_data_read_callback;
@@ -386,7 +386,7 @@ static void http2_socket_as_client_create_get_server_push_streams(void **tls) {
   settings.entries[0] = maxstream;
   settings.settings_count = 1;
 
-  create2(rebrick_http2socket_callbacks_t, callbacks);
+  new2(rebrick_http2socket_callbacks_t, callbacks);
   callbacks.on_accept = on_connection_accepted_callback;
   callbacks.on_client_close = on_connection_closed_callback;
   callbacks.on_read = on_data_read_callback;
@@ -493,7 +493,7 @@ static void http2_socket_as_serverserver_get(void **tls) {
   settings.entries[0] = maxstream;
   settings.settings_count = 1;
 
-  create2(rebrick_http2socket_callbacks_t, callbacks);
+  new2(rebrick_http2socket_callbacks_t, callbacks);
   callbacks.on_accept = on_connection_accepted_callback;
   callbacks.on_client_close = on_connection_closed_callback;
   callbacks.on_read = on_data_read_callback;
@@ -533,7 +533,7 @@ loop(counter,10000,TRUE); */
     result = rebrick_http2socket_send_header(last_client_handle, &streamid, NGHTTP2_FLAG_NONE, header_response);
     loop(counter, 100, TRUE);
     const char *msg = "hello http2 server\n";
-    create2(rebrick_clean_func_t, func);
+    new2(rebrick_clean_func_t, func);
     rebrick_http2socket_send_body(last_client_handle, streamid, NGHTTP2_FLAG_END_STREAM, cast_to_uint8ptr(msg), strlen(msg), func);
     loop(counter, 1000, TRUE);
     assert_int_equal(result, REBRICK_SUCCESS);
@@ -578,7 +578,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
   settings.entries[0] = maxstream;
   settings.settings_count = 1;
 
-  create2(rebrick_http2socket_callbacks_t, callbacks);
+  new2(rebrick_http2socket_callbacks_t, callbacks);
   callbacks.on_accept = on_connection_accepted_callback;
   callbacks.on_client_close = on_connection_closed_callback;
   callbacks.on_read = on_data_read_callback;
@@ -611,7 +611,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
     result = rebrick_http2socket_send_header(last_client_handle, &streamid, NGHTTP2_FLAG_NONE, header_response);
     loop(counter, 1000, TRUE);
     const char *msg = "hello http2 server\n";
-    create2(rebrick_clean_func_t, func);
+    new2(rebrick_clean_func_t, func);
     rebrick_http2socket_send_body(last_client_handle, streamid, NGHTTP2_FLAG_END_STREAM, cast_to_uint8ptr(msg), strlen(msg), func);
     loop(counter, 1000, TRUE);
     assert_int_equal(result, REBRICK_SUCCESS);
@@ -638,7 +638,7 @@ static void http2_socket_as_serverserver_create_get_server_push_streams(void **t
     rebrick_http_header_add_header(push_response1, "content-type", "text/plain");
     rebrick_http2socket_send_header(last_client_handle, &pushstream_id1, NGHTTP2_FLAG_NONE, push_response1);
     const char *content1 = "hello content1\n";
-    create2(rebrick_clean_func_t, clean);
+    new2(rebrick_clean_func_t, clean);
     rebrick_http2socket_send_body(last_client_handle, pushstream_id1, NGHTTP2_FLAG_END_STREAM, cast_to_uint8ptr(content1), strlen(content1), clean);
     loop(counter, 100, TRUE);
 

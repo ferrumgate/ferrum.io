@@ -77,7 +77,7 @@ static void rebrick_udpsocket_asserver_communication(void **start) {
   const char *dest_port = "9999";
   rebrick_sockaddr_t client;
   rebrick_util_to_rebrick_sockaddr(&client, dest_ip, dest_port);
-  create2(rebrick_udpsocket_callbacks_t, callbacks);
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
   callbacks.callback_data = cast(testdata, void *);
   callbacks.on_read = on_server_received;
   callbacks.on_write = on_server_send;
@@ -195,7 +195,7 @@ static void test_rebrick_udpsocket_check_memory(void **state) {
   rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
   rebrick_udpsocket_t *dnsclient;
 
-  create2(rebrick_udpsocket_callbacks_t, callbacks);
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
   callbacks.on_read = on_dnsclient_received;
   callbacks.on_write = on_dnsclient_send;
@@ -262,7 +262,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state) {
   rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
   rebrick_udpsocket_t *dnsclient;
 
-  create2(rebrick_udpsocket_callbacks_t, callbacks);
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
   callbacks.on_read = on_dnsclient_received;
   callbacks.on_write = on_dnsclient_send;
@@ -310,7 +310,7 @@ static void test_rebrick_udpsocket_check_memory3(void **state) {
   rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "9595");
   rebrick_udpsocket_t *dnsclient;
 
-  create2(rebrick_udpsocket_callbacks_t, callbacks);
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
   callbacks.on_read = on_dnsclient_received;
   callbacks.on_write = NULL;

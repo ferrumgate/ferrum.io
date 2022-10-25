@@ -69,7 +69,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start) {
   struct callbackdata data;
   int32_t result = rebrick_util_ip_port_to_addr("0.0.0.0", port, &addr);
   assert_int_equal(result, 0);
-  create2(rebrick_tcpsocket_callbacks_t, callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
   callbacks.on_accept = on_newclient_connection;
   callbacks.on_read = on_read;
@@ -200,7 +200,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start) {
 
   result = tcp_echo_listen();
 
-  create2(rebrick_tcpsocket_callbacks_t, callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
   callbacks.on_accept = on_connection_accepted;
   callbacks.on_close = on_connection_closed;
@@ -339,7 +339,7 @@ Accept: text/html\r\n\
 \r\n";
 #define COUNTER 10
 
-  create2(rebrick_tcpsocket_callbacks_t, callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
   callbacks.on_accept = on_connection_accepted_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
@@ -408,7 +408,7 @@ Accept: text/html\r\n\
 \r\n";
 #define COUNTER 1
 
-  create2(rebrick_tcpsocket_callbacks_t, callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
   callbacks.on_accept = on_connection_accepted_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
@@ -500,7 +500,7 @@ Accept-Ranges: bytes\r\n\
 #undef COUNTER
 #define COUNTER 100
 
-  create2(rebrick_tcpsocket_callbacks_t, callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
   callbacks.on_accept = on_connection_accepted_memorytest;
   callbacks.on_client_close = on_connection_closed_memorytest;

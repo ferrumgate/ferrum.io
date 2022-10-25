@@ -36,7 +36,7 @@
 static int32_t rebrick_http2_stream_new(rebrick_http2_stream_t **stream, int32_t stream_id, int32_t parent_stream_id) {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_http2_stream_t *tmp = create(rebrick_http2_stream_t);
+  rebrick_http2_stream_t *tmp = new1(rebrick_http2_stream_t);
   constructor(tmp, rebrick_http2_stream_t);
   tmp->stream_id = stream_id;
   tmp->parent_stream_id = parent_stream_id;
@@ -644,7 +644,7 @@ static struct rebrick_tcpsocket *local_create_client() {
   unused(current_time_str);
   int32_t result;
   unused(result);
-  rebrick_http2socket_t *client = create(rebrick_http2socket_t);
+  rebrick_http2socket_t *client = new1(rebrick_http2socket_t);
   constructor(client, rebrick_http2socket_t);
 
   return cast_to_tcpsocket(client);
@@ -674,7 +674,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
   int32_t result;
   unused(result);
 
-  create2(rebrick_tlssocket_callbacks_t, local_callbacks);
+  new2(rebrick_tlssocket_callbacks_t, local_callbacks);
   local_callbacks.on_accept = local_on_connection_accepted_callback;
   local_callbacks.on_client_close = local_on_connection_closed_callback;
   local_callbacks.on_read = local_after_data_received_callback;
@@ -731,7 +731,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket,
   unused(current_time_str);
   int32_t result;
   unused(result);
-  rebrick_http2socket_t *httpsocket = create(rebrick_http2socket_t);
+  rebrick_http2socket_t *httpsocket = new1(rebrick_http2socket_t);
   constructor(httpsocket, rebrick_http2socket_t);
 
   result = rebrick_http2socket_init(httpsocket, sni_pattern_or_name, tls, bind_addr, peer_addr,

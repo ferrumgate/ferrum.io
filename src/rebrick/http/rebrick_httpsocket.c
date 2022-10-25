@@ -269,7 +269,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 static struct rebrick_tcpsocket *local_create_client() {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_httpsocket_t *client = create(rebrick_httpsocket_t);
+  rebrick_httpsocket_t *client = new1(rebrick_httpsocket_t);
   constructor(client, rebrick_httpsocket_t);
   return cast_to_tcpsocket(client);
 }
@@ -319,7 +319,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket,
   unused(result);
   httpsocket->override_override_tls_context = tls_context;
 
-  create2(rebrick_tlssocket_callbacks_t, local_callbacks);
+  new2(rebrick_tlssocket_callbacks_t, local_callbacks);
   local_callbacks.on_accept = local_on_connection_accepted_callback;
   local_callbacks.on_client_close = local_on_connection_closed_callback;
   local_callbacks.on_read = local_after_data_received_callback;
@@ -364,7 +364,7 @@ int32_t rebrick_httpsocket_new(rebrick_httpsocket_t **socket,
   unused(current_time_str);
   int32_t result;
   unused(result);
-  rebrick_httpsocket_t *httpsocket = create(rebrick_httpsocket_t);
+  rebrick_httpsocket_t *httpsocket = new1(rebrick_httpsocket_t);
   constructor(httpsocket, rebrick_httpsocket_t);
 
   result = rebrick_httpsocket_init(httpsocket, sni_pattern_or_name, tls_context, bind_addr, peer_addr,

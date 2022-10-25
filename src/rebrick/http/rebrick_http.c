@@ -103,7 +103,7 @@ int32_t rebrick_http_header_new(rebrick_http_header_t **header, const char *sche
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_http_header_t *tmp = create(rebrick_http_header_t);
+  rebrick_http_header_t *tmp = new1(rebrick_http_header_t);
   constructor(tmp, rebrick_http_header_t);
   if (scheme) {
     size_t scheme_len = strlen(scheme);
@@ -141,7 +141,7 @@ int32_t rebrick_http_header_new2(rebrick_http_header_t **header, const char *sch
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_http_header_t *tmp = create(rebrick_http_header_t);
+  rebrick_http_header_t *tmp = new1(rebrick_http_header_t);
   constructor(tmp, rebrick_http_header_t);
   if (scheme) {
     if (scheme_len > REBRICK_HTTP_MAX_SCHEME_LEN - 1)
@@ -176,7 +176,7 @@ int32_t rebrick_http_header_new3(rebrick_http_header_t **header, int32_t status,
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_http_header_t *tmp = create(rebrick_http_header_t);
+  rebrick_http_header_t *tmp = new1(rebrick_http_header_t);
   constructor(tmp, rebrick_http_header_t);
   const char *status_code = rebrick_httpstatus_reasonphrase(status);
   if (status_code) {
@@ -197,7 +197,7 @@ int32_t rebrick_http_header_new4(rebrick_http_header_t **header, int32_t status,
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_http_header_t *tmp = create(rebrick_http_header_t);
+  rebrick_http_header_t *tmp = new1(rebrick_http_header_t);
   constructor(tmp, rebrick_http_header_t);
   const char *status_code = rebrick_httpstatus_reasonphrase(status);
   if (status_code) {
@@ -219,7 +219,7 @@ int32_t rebrick_http_header_new5(rebrick_http_header_t **header, int32_t is_requ
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_http_header_t *tmp = create(rebrick_http_header_t);
+  rebrick_http_header_t *tmp = new1(rebrick_http_header_t);
   constructor(tmp, rebrick_http_header_t);
   tmp->is_request = is_request ? TRUE : FALSE;
   tmp->major_version = major;

@@ -38,7 +38,7 @@ int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_socka
   char dst_port[REBRICK_PORT_STR_LEN];
   int32_t result;
 
-  uv_udp_send_t *request = create(uv_udp_send_t);
+  uv_udp_send_t *request = new1(uv_udp_send_t);
   fill_zero(request, sizeof(uv_udp_send_t));
   uv_buf_t buf = uv_buf_init(cast(buffer, char *), len);
 
@@ -139,7 +139,7 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;
-  rebrick_udpsocket_t *tmp = create(rebrick_udpsocket_t);
+  rebrick_udpsocket_t *tmp = new1(rebrick_udpsocket_t);
   constructor(tmp, rebrick_udpsocket_t);
 
   // burası önemli,callback data

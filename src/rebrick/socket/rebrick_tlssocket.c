@@ -89,7 +89,7 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket) {
       char *xbuf = rebrick_malloc(n);
       if_is_null_then_die(xbuf, "malloc problem\n");
       memcpy(xbuf, buftemp, n);
-      send_data_holder_t *holder = create(send_data_holder_t);
+      send_data_holder_t *holder = new1(send_data_holder_t);
       constructor(holder, send_data_holder_t);
       holder->internal_data = xbuf;
       holder->internal_data_len = n;
@@ -200,7 +200,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket) {
             n = BIO_read(tlssocket->tls->write, buftemp, sizeof(buftemp));
             if (n > 0) {
 
-              send_data_holder_t *holder = create(send_data_holder_t);
+              send_data_holder_t *holder = new1(send_data_holder_t);
               constructor(holder, send_data_holder_t);
               holder->internal_data = tmpbuffer;
               holder->internal_data_len = len;
@@ -529,7 +529,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *socket, void *callba
 static struct rebrick_tcpsocket *local_create_client() {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_tlssocket_t *client = create(rebrick_tlssocket_t);
+  rebrick_tlssocket_t *client = new1(rebrick_tlssocket_t);
   constructor(client, rebrick_tlssocket_t);
   return cast_to_tcpsocket(client);
 }
@@ -588,7 +588,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
   tlssocket->override_on_sni_read = callbacks ? callbacks->on_sni_received : NULL;
   tlssocket->tls_context = tls_context;
 
-  create2(rebrick_tcpsocket_callbacks_t, local_callbacks);
+  new2(rebrick_tcpsocket_callbacks_t, local_callbacks);
   local_callbacks.callback_data = tlssocket;
   local_callbacks.on_accept = local_on_connection_accept_callback;
   local_callbacks.on_client_close = local_on_connection_close_callback;
@@ -620,7 +620,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket,
   unused(current_time_str);
   int32_t result;
 
-  rebrick_tlssocket_t *tlssocket = create(rebrick_tlssocket_t);
+  rebrick_tlssocket_t *tlssocket = new1(rebrick_tlssocket_t);
   constructor(tlssocket, rebrick_tlssocket_t);
 
   result = rebrick_tlssocket_init(tlssocket, sni_pattern_or_name, tlscontext, bind_addr, peer_addr, backlog_or_isclient, local_create_client, callbacks);
@@ -694,7 +694,7 @@ int32_t rebrick_tlssocket_write(rebrick_tlssocket_t *socket, uint8_t *buffer, si
       } while (n > 0);
     } else if (result == REBRICK_ERR_TLS_INIT_NOT_FINISHED) {
       // ssl problemli ise sonra yazalım
-      pending_data_t *data = create(pending_data_t);
+      pending_data_t *data = new1(pending_data_t);
       constructor(data, pending_data_t);
       rebrick_buffers_new(&data->data, (uint8_t *)(buffer + writen_len), (size_t)(temp_len - writen_len), REBRICK_BUFFER_MALLOC_SIZE);
 
@@ -714,7 +714,7 @@ int32_t rebrick_tlssocket_write(rebrick_tlssocket_t *socket, uint8_t *buffer, si
     size_t tmplen = 0;
     rebrick_buffers_to_array(buffertmp, &tmpbuffer, &tmplen);
     if (tmplen) {
-      send_data_holder_t *holder = create(send_data_holder_t);
+      send_data_holder_t *holder = new1(send_data_holder_t);
       constructor(holder, send_data_holder_t);
       holder->internal_data = tmpbuffer;
       holder->internal_data_len = len;

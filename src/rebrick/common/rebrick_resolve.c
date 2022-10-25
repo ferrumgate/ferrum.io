@@ -59,10 +59,10 @@ int32_t rebrick_resolve(const char *domain, rebrick_resolve_type_t type, on_reso
   unused(current_time_str);
 
   rebrick_log_info(__FILE__, __LINE__, "resolving %s with type:%d\n", domain, type);
-  uv_getaddrinfo_t *handle = create(uv_getaddrinfo_t);
+  uv_getaddrinfo_t *handle = new1(uv_getaddrinfo_t);
   fill_zero(handle, sizeof(uv_getaddrinfo_t));
 
-  rebrick_resolver_t *resolver = create(rebrick_resolver_t);
+  rebrick_resolver_t *resolver = new1(rebrick_resolver_t);
   constructor(resolver, rebrick_resolver_t)
       strncpy(resolver->domain, domain, REBRICK_DOMAIN_LEN - 1);
   resolver->type = type;

@@ -148,7 +148,7 @@ static void filestream_async_read(void **start) {
   int32_t counter = 0;
 
   // burada path değişiyor o yüzden hangisi diye bulmak lazım
-  create2(rebrick_filestream_callbacks_t, callbacks);
+  new2(rebrick_filestream_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
   callbacks.on_close = on_file_close;
   callbacks.on_error = on_file_error;
@@ -209,7 +209,7 @@ static void filestream_async_write(void **start) {
   int32_t counter = 0;
 
   // burada path değişiyor o yüzden hangisi diye bulmak lazım
-  create2(rebrick_filestream_callbacks_t, callbacks);
+  new2(rebrick_filestream_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
   callbacks.on_close = on_file_close;
   callbacks.on_error = on_file_error;
