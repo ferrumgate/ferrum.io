@@ -37,7 +37,7 @@ static enum sslstatus get_sslstatus(SSL *ssl, int n) {
 
     return SSLSTATUS_WANT_READ;
   case SSL_ERROR_ZERO_RETURN:
-    return SSLSTATUS_CLOSED;
+    return SSLSTATUS_OK;
   case SSL_ERROR_SYSCALL:
   default:
     return SSLSTATUS_FAIL;
@@ -340,12 +340,13 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
   if (tlsclient != tlsserver)
     strncpy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
   tlsclient->override_on_accept = tlsserver->override_on_accept;
-  tlsclient->override_on_client_close = tlsserver->override_on_client_close;
+  // tlsclient->override_on_client_close = tlsserver->override_on_client_close;
   tlsclient->override_on_read = tlsserver->override_on_read;
   tlsclient->override_on_write = tlsserver->override_on_write;
   tlsclient->override_on_error = tlsserver->override_on_error;
   tlsclient->override_callback_data = tlsserver->override_callback_data;
   tlsclient->override_on_sni_read = tlsserver->override_on_sni_read;
+  tlsclient->on_close = tlsserver->override_on_client_close;
   // tlsclient için callback_data kendisi geçilir.
   tlsclient->callback_data = tlsclient;
 

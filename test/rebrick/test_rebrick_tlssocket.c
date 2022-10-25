@@ -111,19 +111,21 @@ static void ssl_client(void **start) {
   callbacks.on_error = on_error_occured_callback;
 
   rebrick_tlssocket_t *tlsclient;
-  result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
-  assert_int_equal(result, 0);
-  int counter = 100000;
   is_connected = 1;
   is_connection_closed = 0;
+  result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
+
+  assert_int_equal(result, 0);
+  int counter = 100000;
+
   totalreaded_len = 0;
-  loop(counter, 100000, (is_connected && !is_connection_closed));
+  loop(counter, 100000, is_connected);
 
   assert_int_equal(is_connected, 0);
   assert_int_equal(is_connection_closed, 0);
 
   char *head = "GET / HTTP/1.1\r\n\
-Host: www.google.com\r\n\
+Host: localhost\r\n\
 User-Agent: curl\r\n\
 Accept: text/html\r\n\
 \r\n";
@@ -134,13 +136,13 @@ Accept: text/html\r\n\
 
   loop(counter, 100, TRUE);
   rebrick_clean_func_t clean = {};
-  result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
+  result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head), clean);
   assert_int_equal(result, 0);
   counter = 100;
-  loop(counter, 100, TRUE);
 
   assert_int_equal(result, 0);
   loop(counter, 10000, !is_datareaded);
+  fprintf(stderr, "%s\n", readedbuffer);
   tempresult = memcmp("HTTP/1.1 200", readedbuffer, 12);
   assert_int_equal(tempresult, 0);
 
@@ -188,11 +190,12 @@ content-length:52\r\n\
 
 static void on_serverconnection_closed_callback(rebrick_socket_t *sockethandle, void *callback_data) {
   unused(callback_data);
-
+  fprintf(stderr, "client closed\n");
   rebrick_tlssocket_t *socket = cast(sockethandle, rebrick_tlssocket_t *);
   unused(socket);
   if (socket->parent_socket) {
     client_count--;
+    fprintf(stderr, "client closed2\n");
   }
   // rebrick_tlssocket_destroy(socket);
 }
@@ -261,7 +264,7 @@ static void ssl_server(void **start) {
   assert_int_equal(result, 0);
   int counter;
   server_connection_status = 1;
-  loop(counter, 100000, TRUE);
+  loop(counter, 1000000, !client_count);
 
   counter = 10;
   while (client_count) {
@@ -290,19 +293,20 @@ static void ssl_client_verify(void **start) {
 
   rebrick_tlssocket_t *tlsclient;
   lastError = 0;
+  is_connected = 1;
+  is_connection_closed = 0;
   result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify, NULL, &destination, 0, &callbacks);
   assert_int_equal(result, 0);
   int counter = 100000;
-  is_connected = 1;
-  is_connection_closed = 0;
+
   loop(counter, 10000, is_connected);
 
-  counter = 100;
+  counter = 10000;
   loop(counter, 100, TRUE);
 
   assert_int_equal(lastError, REBRICK_ERR_TLS_ERR);
-  loop(counter, 100, TRUE);
-  // rebrick_tlssocket_destroy(tlsclient);
+  loop(counter, 1000, TRUE);
+  rebrick_tlssocket_destroy(tlsclient);
 
   loop(counter, 100, TRUE);
 }
@@ -329,11 +333,12 @@ static void ssl_client_download_data(void **start) {
   callbacks.on_error = on_error_occured_callback;
 
   rebrick_tlssocket_t *tlsclient;
+  is_connected = 1;
+  is_connection_closed = 0;
   result = rebrick_tlssocket_new(&tlsclient, NULL, context_verify_none, NULL, &destination, 0, &callbacks);
   assert_int_equal(result, 0);
   int counter = 100;
-  is_connected = 1;
-  is_connection_closed = 0;
+
   loop(counter, 100, (is_connected && !is_connection_closed));
 
   assert_int_equal(is_connected, 0);
@@ -351,7 +356,7 @@ Accept: text/html\r\n\
     counter--;
     usleep(1000);
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head) + 1, clean);
+    result = rebrick_tlssocket_write(tlsclient, cast(head, uint8_t *), strlen(head), clean);
     uv_run(uv_default_loop(), UV_RUN_NOWAIT);
   } while (result != 0 && counter && !is_connection_closed);
   assert_int_equal(result, 0);
@@ -454,8 +459,8 @@ static void ssl_server_for_manual_sni(void **start) {
 int test_rebrick_tlssocket(void) {
 
   const struct CMUnitTest tests[] = {
-      cmocka_unit_test(ssl_client),
-      // cmocka_unit_test(ssl_server),
+      // cmocka_unit_test(ssl_client),
+      cmocka_unit_test(ssl_server),
       // cmocka_unit_test(ssl_client_verify),
       // cmocka_unit_test(ssl_client_download_data),
       // cmocka_unit_test(ssl_client_memory_test),
