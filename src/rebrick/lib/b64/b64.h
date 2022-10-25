@@ -37,31 +37,30 @@ static const char base64_table[] = {
     '4', '5', '6', '7', '8', '9', '+', '/'};
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  /**
+/**
  * Encode `unsigned char *' source with `size_t' size.
  * Returns a `char *' base64 encoded string.
  */
 
-  char *
-  b64_encode(const unsigned char *, size_t);
+char *
+b64_encode(const unsigned char *, size_t);
 
-  /**
+/**
  * Dencode `char *' source with `size_t' size.
  * Returns a `unsigned char *' base64 decoded string.
  */
-  unsigned char *
-  b64_decode(const char *, size_t);
+unsigned char *
+b64_decode(const char *, size_t);
 
-  /**
+/**
  * Dencode `char *' source with `size_t' size.
  * Returns a `unsigned char *' base64 decoded string + size of decoded string.
  */
-  unsigned char *
-  b64_decode_ex(const char *, size_t, size_t *);
+unsigned char *
+b64_decode_ex(const char *, size_t, size_t *);
 
 #ifdef __cplusplus
 }

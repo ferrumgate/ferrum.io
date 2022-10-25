@@ -27,33 +27,31 @@ typedef void (*rebrick_tcpsocket_on_close_callback_t)(struct rebrick_socket *soc
  */
 typedef struct rebrick_tcpsocket *(*rebrick_tcpsocket_create_client_t)();
 
-#define base_tcp_socket()                                           \
-    base_socket();                                                  \
-    private_ rebrick_tcpsocket_on_accept_callback_t on_accept;      \
-    private_ rebrick_tcpsocket_on_close_callback_t on_client_close; \
-    private_ struct rebrick_tcpsocket *clients;                     \
-    private_ struct rebrick_tcpsocket *prev;                        \
-    private_ struct rebrick_tcpsocket *next;                        \
-    public_ readonly_ struct rebrick_tcpsocket *parent_socket;      \
-    public_ readonly_ int32_t is_server;                            \
-    private_ rebrick_tcpsocket_create_client_t create_client;
+#define base_tcp_socket()                                         \
+  base_socket();                                                  \
+  private_ rebrick_tcpsocket_on_accept_callback_t on_accept;      \
+  private_ rebrick_tcpsocket_on_close_callback_t on_client_close; \
+  private_ struct rebrick_tcpsocket *clients;                     \
+  private_ struct rebrick_tcpsocket *prev;                        \
+  private_ struct rebrick_tcpsocket *next;                        \
+  public_ readonly_ struct rebrick_tcpsocket *parent_socket;      \
+  public_ readonly_ int32_t is_server;                            \
+  private_ rebrick_tcpsocket_create_client_t create_client;
 
-public_ typedef struct rebrick_tcpsocket
-{
-    base_tcp_socket();
+public_ typedef struct rebrick_tcpsocket {
+  base_tcp_socket();
 
 } rebrick_tcpsocket_t;
 
 #define cast_to_tcpsocket(x) cast((x), rebrick_tcpsocket_t *)
 
-#define base_tcpsocket_callbacks()                               \
-    base_callbacks();                                            \
-    protected_ rebrick_tcpsocket_on_accept_callback_t on_accept; \
-    protected_ rebrick_tcpsocket_on_close_callback_t on_client_close;
+#define base_tcpsocket_callbacks()                             \
+  base_callbacks();                                            \
+  protected_ rebrick_tcpsocket_on_accept_callback_t on_accept; \
+  protected_ rebrick_tcpsocket_on_close_callback_t on_client_close;
 
-public_ typedef struct rebrick_tcpsocket_callbacks
-{
-    base_tcpsocket_callbacks();
+public_ typedef struct rebrick_tcpsocket_callbacks {
+  base_tcpsocket_callbacks();
 } rebrick_tcpsocket_callbacks_t;
 
 #define cast_to_tcpsocket_callbacks(x) cast((x), rebrick_tcpsocket_callbacks_t *)

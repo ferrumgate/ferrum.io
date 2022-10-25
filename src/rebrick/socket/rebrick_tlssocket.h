@@ -9,56 +9,53 @@
  * @brief openssl is an interesting library, that sometimes you need pending data
  *
  */
-protected_ typedef struct pending_data
-{
-    base_object();
-    rebrick_buffers_t *data;
-    /**
-     * @brief clean function
-     *
-     */
-    rebrick_clean_func_t *clean_func;
-    /**
-     * @brief this fields prev and next means, this is a list
-     *
-     */
-    struct pending_data *prev, *next;
+protected_ typedef struct pending_data {
+  base_object();
+  rebrick_buffers_t *data;
+  /**
+   * @brief clean function
+   *
+   */
+  rebrick_clean_func_t *clean_func;
+  /**
+   * @brief this fields prev and next means, this is a list
+   *
+   */
+  struct pending_data *prev, *next;
 } pending_data_t;
 
 typedef void (*rebrick_tlssocket_on_sni_read_callback_t)(struct rebrick_socket *socket, void *callback_data, const char *sni);
 
-#define base_ssl_socket()                                                    \
-    base_tcp_socket();                                                       \
-    private_ const rebrick_tls_context_t *tls_context;                       \
-    private_ rebrick_tls_ssl_t *tls;                                         \
-    private_ rebrick_tcpsocket_on_accept_callback_t override_on_accept;      \
-    private_ rebrick_tcpsocket_on_close_callback_t override_on_client_close; \
-    private_ rebrick_socket_on_read_callback_t override_on_read;             \
-    private_ rebrick_socket_on_write_callback_t override_on_write;           \
-    private_ rebrick_socket_on_error_callback_t override_on_error;           \
-    private_ rebrick_tlssocket_on_sni_read_callback_t override_on_sni_read;  \
-    private_ void *override_callback_data;                                   \
-    private_ pending_data_t *pending_write_list;                             \
-    private_ int32_t called_override_after_connection_accept;                \
-    private_ int32_t sslhandshake_initted;                                   \
-    public_ readonly_ char sni_pattern_or_name[REBRICK_TLS_SNI_MAX_LEN];     \
-    public_ readonly_ char sni[REBRICK_TLS_SNI_MAX_LEN];
+#define base_ssl_socket()                                                  \
+  base_tcp_socket();                                                       \
+  private_ const rebrick_tls_context_t *tls_context;                       \
+  private_ rebrick_tls_ssl_t *tls;                                         \
+  private_ rebrick_tcpsocket_on_accept_callback_t override_on_accept;      \
+  private_ rebrick_tcpsocket_on_close_callback_t override_on_client_close; \
+  private_ rebrick_socket_on_read_callback_t override_on_read;             \
+  private_ rebrick_socket_on_write_callback_t override_on_write;           \
+  private_ rebrick_socket_on_error_callback_t override_on_error;           \
+  private_ rebrick_tlssocket_on_sni_read_callback_t override_on_sni_read;  \
+  private_ void *override_callback_data;                                   \
+  private_ pending_data_t *pending_write_list;                             \
+  private_ int32_t called_override_after_connection_accept;                \
+  private_ int32_t sslhandshake_initted;                                   \
+  public_ readonly_ char sni_pattern_or_name[REBRICK_TLS_SNI_MAX_LEN];     \
+  public_ readonly_ char sni[REBRICK_TLS_SNI_MAX_LEN];
 
-public_ typedef struct rebrick_tlssocket
-{
-    base_ssl_socket()
+public_ typedef struct rebrick_tlssocket {
+  base_ssl_socket()
 
 } rebrick_tlssocket_t;
 
 #define cast_to_tlssocket(x) cast(x, rebrick_tlssocket_t *)
 
 #define base_tlssocket_callbacks() \
-    base_tcpsocket_callbacks();    \
-    protected_ rebrick_tlssocket_on_sni_read_callback_t on_sni_received;
+  base_tcpsocket_callbacks();      \
+  protected_ rebrick_tlssocket_on_sni_read_callback_t on_sni_received;
 
-typedef struct rebrick_tlssocket_callbacks
-{
-    base_tlssocket_callbacks();
+typedef struct rebrick_tlssocket_callbacks {
+  base_tlssocket_callbacks();
 } rebrick_tlssocket_callbacks_t;
 
 #define cast_to_tlssocket_callbacks(x) cast(x, rebrick_tlssocket_callbacks_t *);

@@ -3,17 +3,15 @@
 
 #include "rebrick_socket.h"
 
-public_ typedef struct rebrick_udpsocket
-{
-    base_socket();
+public_ typedef struct rebrick_udpsocket {
+  base_socket();
 
 } rebrick_udpsocket_t;
 
 #define cast_to_udpsocket(x) cast((x), rebrick_udpsocket_t *)
 
-public_ typedef struct rebrick_udpsocket_callbacks
-{
-    base_callbacks();
+public_ typedef struct rebrick_udpsocket_callbacks {
+  base_callbacks();
 } rebrick_udpsocket_callbacks_t;
 
 #define cast_to_udpsocket_callbacks(x) cast(x, rebrick_udpsocket_callback_t *)

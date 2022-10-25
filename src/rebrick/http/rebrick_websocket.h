@@ -3,10 +3,9 @@
 
 #include "../socket/rebrick_tlssocket.h"
 
-public_ typedef struct rebrick_websocket
-{
+public_ typedef struct rebrick_websocket {
 
-    base_ssl_socket();
+  base_ssl_socket();
 
 } rebrick_websocket_t;
 

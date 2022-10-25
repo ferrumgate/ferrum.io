@@ -4,11 +4,10 @@
 
 #include "rebrick_http.h"
 
-typedef enum
-{
-    http2,
-    websocket,
-    websocket2
+typedef enum {
+  http2,
+  websocket,
+  websocket2
 } rebrick_upgrade_socket_type_t;
 
 struct rebrick_httpsocket;
@@ -34,54 +33,52 @@ typedef void (*rebrick_httpsocket_on_socket_upgrade_read_callback_t)(struct rebr
  * allways executes callback when new data arrives
  *
  */
-public_ typedef struct rebrick_httpsocket
-{
-    base_ssl_socket();
+public_ typedef struct rebrick_httpsocket {
+  base_ssl_socket();
 
-    private_ rebrick_tcpsocket_on_accept_callback_t override_override_on_accept;
-    private_ rebrick_tcpsocket_on_close_callback_t override_override_on_client_close;
-    private_ rebrick_socket_on_read_callback_t override_override_on_read;
-    private_ rebrick_socket_on_write_callback_t override_override_on_write;
-    private_ rebrick_socket_on_error_callback_t override_override_on_error;
-    private_ rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read;
-    private_ rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;
-    private_ rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read;
-    private_ rebrick_tls_context_t *override_override_tls_context;
-    private_ void *override_override_callback_data;
+  private_ rebrick_tcpsocket_on_accept_callback_t override_override_on_accept;
+  private_ rebrick_tcpsocket_on_close_callback_t override_override_on_client_close;
+  private_ rebrick_socket_on_read_callback_t override_override_on_read;
+  private_ rebrick_socket_on_write_callback_t override_override_on_write;
+  private_ rebrick_socket_on_error_callback_t override_override_on_error;
+  private_ rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read;
+  private_ rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;
+  private_ rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read;
+  private_ rebrick_tls_context_t *override_override_tls_context;
+  private_ void *override_override_callback_data;
 
-    public_ readonly_ rebrick_http_header_t *received_header;
-    public_ readonly_ rebrick_http_header_t *send_header;
+  public_ readonly_ rebrick_http_header_t *received_header;
+  public_ readonly_ rebrick_http_header_t *send_header;
 
-    private_ rebrick_buffer_t *tmp_buffer;
-    private_ int32_t is_header_parsed;
-    public_ size_t header_len;
-    public_ readonly_ size_t content_received_length;
+  private_ rebrick_buffer_t *tmp_buffer;
+  private_ int32_t is_header_parsed;
+  public_ size_t header_len;
+  public_ readonly_ size_t content_received_length;
 
-    struct
-    {
-        struct phr_header headers[REBRICK_HTTP_MAX_HEADERS];
-        const char *method, *path;
-        int minor_version;
-        size_t method_len, path_len, num_headers;
-        int32_t status;
-        const char *status_msg;
-        size_t status_msg_len;
-        size_t pos;
-    } parsing_params;
+  struct
+  {
+    struct phr_header headers[REBRICK_HTTP_MAX_HEADERS];
+    const char *method, *path;
+    int minor_version;
+    size_t method_len, path_len, num_headers;
+    int32_t status;
+    const char *status_msg;
+    size_t status_msg_len;
+    size_t pos;
+  } parsing_params;
 
 } rebrick_httpsocket_t;
 
 #define cast_to_httpsocket(x) cast(x, rebrick_httpsocket_t *)
 
-#define base_httpsocket_callbacks()                                        \
-    base_tlssocket_callbacks();                                            \
-    rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read; \
-    rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;     \
-    rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read;
+#define base_httpsocket_callbacks()                                      \
+  base_tlssocket_callbacks();                                            \
+  rebrick_httpsocket_on_http_header_read_callback_t on_http_header_read; \
+  rebrick_httpsocket_on_http_body_read_callback_t on_http_body_read;     \
+  rebrick_httpsocket_on_socket_upgrade_read_callback_t on_socket_upgrade_read;
 
-typedef struct rebrick_httpsocket_callbacks
-{
-    base_httpsocket_callbacks();
+typedef struct rebrick_httpsocket_callbacks {
+  base_httpsocket_callbacks();
 } rebrick_httpsocket_callbacks_t;
 
 #define cast_to_httpsocket_callbacks(x) cast(x, rebrick_httpsocket_callbacks_t *)
