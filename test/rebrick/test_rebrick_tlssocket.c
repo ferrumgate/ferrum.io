@@ -460,7 +460,7 @@ int test_rebrick_tlssocket(void) {
 
   const struct CMUnitTest tests[] = {
       // cmocka_unit_test(ssl_client),
-      cmocka_unit_test(ssl_server),
+      // cmocka_unit_test(ssl_server),
       // cmocka_unit_test(ssl_client_verify),
       // cmocka_unit_test(ssl_client_download_data),
       // cmocka_unit_test(ssl_client_memory_test),

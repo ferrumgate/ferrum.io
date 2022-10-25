@@ -180,7 +180,7 @@ static void on_connection(uv_stream_t *server, int status) {
   rebrick_log_debug(__FILE__, __LINE__, "connected client from %s:%s\n", client->peer_ip, client->peer_port);
 
   client->handle.tcp.data = client;
-  client->on_client_close = serversocket->on_client_close;
+  client->on_close = serversocket->on_client_close;
   client->on_read = serversocket->on_read;
   client->on_write = serversocket->on_write;
   client->callback_data = serversocket->callback_data;
@@ -219,6 +219,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
   if (socket->bind_addr.base.sa_family != AF_UNSPEC) {
     result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
     if (result < 0) {
+      rebrick_free(connect);
       rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
@@ -226,6 +227,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
 
   result = uv_tcp_connect(connect, &socket->handle.tcp, &socket->peer_addr.base, on_connect);
   if (result < 0) {
+    rebrick_free(connect);
     rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
@@ -292,6 +294,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
   socket->on_accept = callbacks ? callbacks->on_accept : NULL;
   socket->on_client_close = callbacks ? callbacks->on_client_close : NULL;
   socket->on_error = callbacks ? callbacks->on_error : NULL;
+  socket->on_close = callbacks ? callbacks->on_close : NULL;
   socket->create_client = createclient;
   socket->is_server = backlog_or_isclient;
   if (backlog_or_isclient) {
@@ -337,9 +340,9 @@ static void on_close(uv_handle_t *handle) {
       rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
       handle->data = NULL;
 
-      if (socket->on_client_close) {
+      if (socket->on_close) {
         rebrick_log_debug(__FILE__, __LINE__, "handle closed\n");
-        socket->on_client_close(cast_to_socket(socket), socket->callback_data);
+        socket->on_close(cast_to_socket(socket), socket->callback_data);
       }
       // server is closing
       if (!socket->parent_socket) {
