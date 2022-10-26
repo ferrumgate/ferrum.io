@@ -64,11 +64,7 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf) 
   const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
 
   if (nread <= 0) {
-    if (nread == UV_EOF) {
-      rebrick_log_debug(__FILE__, __LINE__, "socket closed\n");
-      if (socket->on_close)
-        socket->on_close(cast_to_socket(socket), socket->callback_data);
-    } else if (socket->on_error) {
+    if (socket->on_error) {
       rebrick_log_debug(__FILE__, __LINE__, "socket error occured %zd\n", nread);
       socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
     }
@@ -107,14 +103,14 @@ static void on_connect(uv_connect_t *connection, int status) {
   char current_time_str[32] = {0};
   unused(current_time_str);
 
-  rebrick_tcpsocket_t *serversocket = cast_to_tcpsocket(connection->data);
+  rebrick_tcpsocket_t *socket = cast_to_tcpsocket(connection->data);
 
-  if (serversocket) {
+  if (socket) {
     if (status < 0) {
-      if (serversocket->on_error)
-        serversocket->on_error(cast_to_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
-    } else if (serversocket->on_accept) {
-      serversocket->on_accept(cast_to_socket(serversocket), serversocket->callback_data, NULL, serversocket);
+      if (socket->on_error)
+        socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + status);
+    } else if (socket->on_connect) {
+      socket->on_connect(cast_to_socket(socket), socket->callback_data);
     }
   }
 
@@ -134,7 +130,7 @@ static rebrick_tcpsocket_t *create_client() {
  * @param server
  * @param status
  */
-static void on_connection(uv_stream_t *server, int status) {
+static void on_client_connected(uv_stream_t *server, int status) {
   char current_time_str[32] = {0};
   unused(current_time_str);
 
@@ -195,8 +191,8 @@ static void on_connection(uv_stream_t *server, int status) {
   uv_stream_t *tmp = cast(&client->handle.tcp, uv_stream_t *);
   uv_read_start(tmp, on_alloc, on_recv);
 
-  if (serversocket->on_accept) {
-    serversocket->on_accept(cast_to_socket(serversocket), client->callback_data, &client->bind_addr.base, client);
+  if (serversocket->on_client_connect) {
+    serversocket->on_client_connect(cast_to_socket(serversocket), client->callback_data, &client->bind_addr.base, client);
   }
 }
 
@@ -258,7 +254,7 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
     return REBRICK_ERR_UV + result;
   }
 
-  result = uv_listen(cast(&socket->handle.tcp, uv_stream_t *), backlog, on_connection);
+  result = uv_listen(cast(&socket->handle.tcp, uv_stream_t *), backlog, on_client_connected);
   if (result < 0) {
     rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
@@ -291,10 +287,11 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
 
   socket->on_read = callbacks ? callbacks->on_read : NULL;
   socket->on_write = callbacks ? callbacks->on_write : NULL;
-  socket->on_accept = callbacks ? callbacks->on_accept : NULL;
+  socket->on_client_connect = callbacks ? callbacks->on_client_connect : NULL;
   socket->on_client_close = callbacks ? callbacks->on_client_close : NULL;
   socket->on_error = callbacks ? callbacks->on_error : NULL;
   socket->on_close = callbacks ? callbacks->on_close : NULL;
+  socket->on_connect = callbacks ? callbacks->on_connect : NULL;
   socket->create_client = createclient;
   socket->is_server = backlog_or_isclient;
   if (backlog_or_isclient) {

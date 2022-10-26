@@ -504,7 +504,7 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
   // copy from server structure
   if (httpsocket->is_server) {
     socket->override_override_callback_data = httpsocket->override_override_callback_data;
-    socket->override_override_on_accept = httpsocket->override_override_on_accept;
+    socket->override_override_on_client_connect = httpsocket->override_override_on_client_connect;
     socket->override_override_on_connection_closed = httpsocket->override_override_on_connection_closed;
     socket->override_override_on_read = httpsocket->override_override_on_read;
     socket->override_override_on_write = httpsocket->override_override_on_write;
@@ -549,8 +549,8 @@ static void local_on_connection_accepted_callback(rebrick_socket_t *ssocket, voi
   /* result = nghttp2_session_send(socket->parsing_params.session);
   check_nghttp2_result_call_error(result, socket);*/
 
-  if (socket->override_override_on_accept)
-    socket->override_override_on_accept(cast_to_socket(httpsocket), socket->override_override_callback_data, addr, socket);
+  if (socket->override_override_on_client_connect)
+    socket->override_override_on_client_connect(cast_to_socket(httpsocket), socket->override_override_callback_data, addr, socket);
 }
 
 static void local_on_connection_closed_callback(rebrick_socket_t *ssocket, void *callback_data) {
@@ -675,7 +675,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
   unused(result);
 
   new2(rebrick_tlssocket_callbacks_t, local_callbacks);
-  local_callbacks.on_accept = local_on_connection_accepted_callback;
+  local_callbacks.on_client_connect = local_on_connection_accepted_callback;
   local_callbacks.on_client_close = local_on_connection_closed_callback;
   local_callbacks.on_read = local_after_data_received_callback;
   local_callbacks.on_write = local_on_data_sended_callback;
@@ -700,7 +700,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
   // set no delay for tcp socket, this is important
   rebrick_tcpsocket_nodelay(cast_to_tcpsocket(httpsocket), 1);
   memcpy(&httpsocket->settings, settings, sizeof(rebrick_http2_socket_settings_t));
-  httpsocket->override_override_on_accept = callbacks ? callbacks->on_accept : NULL;
+  httpsocket->override_override_on_client_connect = callbacks ? callbacks->on_client_connect : NULL;
   httpsocket->override_override_on_connection_closed = callbacks ? callbacks->on_client_close : NULL;
   httpsocket->override_override_on_read = callbacks ? callbacks->on_read : NULL;
   httpsocket->override_override_on_write = callbacks ? callbacks->on_write : NULL;

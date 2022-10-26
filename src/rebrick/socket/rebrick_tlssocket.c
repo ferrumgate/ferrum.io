@@ -284,10 +284,10 @@ static void local_on_error_occured_callback(rebrick_socket_t *socket, void *call
     tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, error);
 }
 
-#define call_after_connection(tlsserver, tlsclient)                                                                                     \
-  if (tlsserver && tlsclient && !tlsclient->called_override_after_connection_accept && tlsclient->override_on_accept) {                 \
-    tlsclient->called_override_after_connection_accept++;                                                                               \
-    tlsclient->override_on_accept(cast_to_socket(tlsserver), tlsclient->override_callback_data, &tlsclient->bind_addr.base, tlsclient); \
+#define call_after_connection(tlsserver, tlsclient)                                                                                             \
+  if (tlsserver && tlsclient && !tlsclient->called_override_after_client_connect && tlsclient->override_on_client_connect) {                    \
+    tlsclient->called_override_after_client_connect++;                                                                                          \
+    tlsclient->override_on_client_connect(cast_to_socket(tlsserver), tlsclient->override_callback_data, &tlsclient->bind_addr.base, tlsclient); \
   }
 
 static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, void *callback_data, const struct sockaddr *addr, void *client_handle) {
@@ -339,7 +339,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
   // valgrind overlap diyor
   if (tlsclient != tlsserver)
     strncpy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
-  tlsclient->override_on_accept = tlsserver->override_on_accept;
+  tlsclient->override_on_client_connect = tlsserver->override_on_client_connect;
   // tlsclient->override_on_client_close = tlsserver->override_on_client_close;
   tlsclient->override_on_read = tlsserver->override_on_read;
   tlsclient->override_on_write = tlsserver->override_on_write;
@@ -579,7 +579,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
 
   tlssocket->is_server = backlog_or_isclient;
 
-  tlssocket->override_on_accept = callbacks ? callbacks->on_accept : NULL;
+  tlssocket->override_on_client_connect = callbacks ? callbacks->on_client_connect : NULL;
   tlssocket->override_on_client_close = callbacks ? callbacks->on_client_close : NULL;
   tlssocket->override_on_read = callbacks ? callbacks->on_read : NULL;
   tlssocket->override_on_write = callbacks ? callbacks->on_write : NULL;
@@ -590,7 +590,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
 
   new2(rebrick_tcpsocket_callbacks_t, local_callbacks);
   local_callbacks.callback_data = tlssocket;
-  local_callbacks.on_accept = local_on_connection_accept_callback;
+  local_callbacks.on_client_connect = local_on_connection_accept_callback;
   local_callbacks.on_client_close = local_on_connection_close_callback;
   local_callbacks.on_read = local_after_data_received_callback;
   local_callbacks.on_write = local_on_data_sended_callback;

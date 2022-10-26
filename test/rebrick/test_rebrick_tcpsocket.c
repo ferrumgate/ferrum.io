@@ -71,7 +71,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start) {
   assert_int_equal(result, 0);
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_accept = on_newclient_connection;
+  callbacks.on_client_connect = on_newclient_connection;
   callbacks.on_read = on_read;
   callbacks.on_error = on_error_occured;
 
@@ -202,7 +202,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start) {
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_accept = on_connection_accepted;
+  callbacks.on_connect = on_connection_accepted;
   callbacks.on_close = on_connection_closed;
   callbacks.on_read = on_datarecevied;
   callbacks.on_write = on_datasend;
@@ -265,7 +265,7 @@ static void on_error_occured_memorytest(rebrick_socket_t *socket, void *callback
   unused(socket);
   unused(callbackdata);
   unused(error);
-  rebrick_tcpsocket_destroy(cast(socket, rebrick_tcpsocket_t *));
+  // rebrick_tcpsocket_destroy(cast(socket, rebrick_tcpsocket_t *));
 }
 
 int connected_to_memorytest = 0;
@@ -341,7 +341,7 @@ Accept: text/html\r\n\
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_accept = on_connection_accepted_memorytest;
+  callbacks.on_client_connect = on_connection_accepted_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
@@ -410,7 +410,7 @@ Accept: text/html\r\n\
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_accept = on_connection_accepted_memorytest;
+  callbacks.on_connect = on_connection_accepted_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
@@ -502,7 +502,7 @@ Accept-Ranges: bytes\r\n\
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_accept = on_connection_accepted_memorytest;
+  callbacks.on_client_connect = on_connection_accepted_memorytest;
   callbacks.on_client_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
