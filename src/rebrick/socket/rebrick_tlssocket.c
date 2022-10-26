@@ -639,8 +639,8 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket) {
   unused(current_time_str);
 
   if (socket) {
-    // buraya başka kod yazmaya gerek yok
-    if (socket->parent_socket) {
+
+    /* if (socket->parent_socket) {
       int32_t result = SSL_shutdown(socket->tls->ssl);
       check_ssl_status(socket, result);
     } else {
@@ -650,7 +650,9 @@ int32_t rebrick_tlssocket_destroy(rebrick_tlssocket_t *socket) {
         int32_t result = SSL_shutdown(tsocket->tls->ssl);
         check_ssl_status(tsocket, result);
       }
-    }
+    } */
+    int32_t result = SSL_shutdown(socket->tls->ssl);
+    check_ssl_status(socket, result);
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(socket));
 
     // rebrick_free(socket) yapmakmak lazım, zaten tcpsocket yapıyor

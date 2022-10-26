@@ -181,11 +181,9 @@ static void on_client_connected(uv_stream_t *server, int status) {
   client->on_write = serversocket->on_write;
   client->callback_data = serversocket->callback_data;
   client->on_error = serversocket->on_error;
-  client->parent_socket = serversocket;
+  client->is_server = FALSE;
 
   client->loop = serversocket->loop;
-
-  DL_APPEND(serversocket->clients, client);
 
   // start reading client
   uv_stream_t *tmp = cast(&client->handle.tcp, uv_stream_t *);
@@ -340,20 +338,6 @@ static void on_close(uv_handle_t *handle) {
       if (socket->on_close) {
         rebrick_log_debug(__FILE__, __LINE__, "handle closed\n");
         socket->on_close(cast_to_socket(socket), socket->callback_data);
-      }
-      // server is closing
-      if (!socket->parent_socket) {
-
-        struct rebrick_tcpsocket *el, *tmp;
-        DL_FOREACH_SAFE(socket->clients, el, tmp) {
-          DL_DELETE(socket->clients, el);
-          el->parent_socket = NULL;
-          rebrick_tcpsocket_destroy(el);
-        }
-      } else {
-
-        if (socket->parent_socket->clients)
-          DL_DELETE(socket->parent_socket->clients, socket);
       }
 
       rebrick_free(socket);

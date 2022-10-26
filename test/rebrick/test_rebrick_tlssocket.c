@@ -64,7 +64,7 @@ static void on_error_occured_callback(rebrick_socket_t *socket, void *callback, 
 
 static int32_t is_connected = 1;
 
-static void on_accept_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle) {
+static void on_client_connect_callback(rebrick_socket_t *socket, void *callback_data, const struct sockaddr *addr, void *client_handle) {
   is_connected = 0;
   unused(callback_data);
   unused(addr);
@@ -105,7 +105,7 @@ static void ssl_client(void **start) {
   rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
   new2(rebrick_tlssocket_callbacks_t, callbacks);
-  callbacks.on_client_connect = on_accept_callback;
+  callbacks.on_client_connect = on_client_connect_callback;
   callbacks.on_client_close = on_client_close_callback;
   callbacks.on_read = on_data_read_callback;
   callbacks.on_error = on_error_occured_callback;
@@ -190,14 +190,9 @@ content-length:52\r\n\
 
 static void on_serverconnection_closed_callback(rebrick_socket_t *sockethandle, void *callback_data) {
   unused(callback_data);
-  fprintf(stderr, "client closed\n");
+
   rebrick_tlssocket_t *socket = cast(sockethandle, rebrick_tlssocket_t *);
   unused(socket);
-  if (socket->parent_socket) {
-    client_count--;
-    fprintf(stderr, "client closed2\n");
-  }
-  // rebrick_tlssocket_destroy(socket);
 }
 static int32_t datareadedserver = 0;
 static char readedbufferserver[65536 * 2] = {0};
@@ -286,7 +281,7 @@ static void ssl_client_verify(void **start) {
   rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
   new2(rebrick_tlssocket_callbacks_t, callbacks);
-  callbacks.on_client_connect = on_accept_callback;
+  callbacks.on_client_connect = on_client_connect_callback;
   callbacks.on_client_close = on_client_close_callback;
   callbacks.on_read = on_data_read_callback;
   callbacks.on_error = on_serverconnection_error_occured_callback;
@@ -327,7 +322,7 @@ static void ssl_client_download_data(void **start) {
   rebrick_util_ip_port_to_addr("127.0.0.1", "443", &destination);
 
   new2(rebrick_tlssocket_callbacks_t, callbacks);
-  callbacks.on_client_connect = on_accept_callback;
+  callbacks.on_client_connect = on_client_connect_callback;
   callbacks.on_client_close = on_client_close_callback;
   callbacks.on_read = on_data_read_callback;
   callbacks.on_error = on_error_occured_callback;
@@ -382,17 +377,6 @@ static void ssl_client_memory_test(void **state) {
     ssl_client_download_data(state);
     counter--;
   }
-}
-
-static void on_serverconnectionmanuel_closed_callback(rebrick_socket_t *sockethandle, void *callback_data) {
-  unused(callback_data);
-
-  rebrick_tlssocket_t *socket = cast(sockethandle, rebrick_tlssocket_t *);
-  unused(socket);
-  if (socket->parent_socket) {
-    client_count--;
-  }
-  // rebrick_tlssocket_destroy(socket);
 }
 
 // for testing curl --insecure -v http://localhost:8443 and see certificate

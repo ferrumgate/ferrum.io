@@ -37,14 +37,13 @@ static void on_error_occured(rebrick_socket_t *socket, void *callbackdata, int32
 }
 
 int client_connected = 0;
-static void on_newclient_connection(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle) {
-
+static void on_client_connect(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle) {
   unused(socket);
   unused(callbackdata);
   unused(addr);
   unused(client_handle);
-  struct callbackdata *data = cast(callbackdata, struct callbackdata *);
 
+  struct callbackdata *data = cast(callbackdata, struct callbackdata *);
   data->client = client_handle;
   data->addr = cast(addr, struct sockaddr *);
   client_connected = 1;
@@ -71,43 +70,31 @@ static void rebrick_tcpsocket_asserver_communication(void **start) {
   assert_int_equal(result, 0);
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_client_connect = on_newclient_connection;
+  callbacks.on_client_connect = on_client_connect;
   callbacks.on_read = on_read;
   callbacks.on_error = on_error_occured;
 
   result = rebrick_tcpsocket_new(&server, &addr, NULL, 10, &callbacks);
   assert_int_equal(result, 0);
   int32_t counter = 200;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(1000);
-  }
+  loop(counter, 200, TRUE);
 
   client_connected = 0;
 
   result = tcp_echo_start(atoi(port), 0);
   // check loop
   counter = 20;
-  while (counter-- && !client_connected) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(1000);
-  }
+  loop(counter, 20, !client_connected);
 
   assert_int_equal(result, 0);
   usleep(100);
   assert_int_equal(client_connected, 1);
-  // struct sockaddr_in *s = data.addr;
-  // assert_int_equal(s->sin_addr.s_addr,INADDR_LOOPBACK);
 
   char *hello = "hello";
   tcp_echo_send(hello);
   // check loop
   counter = 20;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(1000);
-  }
-
+  loop(counter, 20, TRUE);
   assert_string_equal(data.buffer, hello);
 
   char *world = "world";
@@ -117,10 +104,7 @@ static void rebrick_tcpsocket_asserver_communication(void **start) {
 
   // check loop
   counter = 20;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(1000);
-  }
+  loop(counter, 20, TRUE);
 
   char readed[ECHO_BUF_SIZE] = {'\0'};
   result = tcp_echo_recv(readed);
@@ -130,19 +114,12 @@ static void rebrick_tcpsocket_asserver_communication(void **start) {
   rebrick_tcpsocket_destroy(data.client);
 
   counter = 100;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
-  }
+  loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_destroy(server);
 
   counter = 100;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
-  }
-
+  loop(counter, 100, TRUE);
   tcp_echo_stop();
 }
 
@@ -152,6 +129,14 @@ static void on_connection_accepted(rebrick_socket_t *socket, void *callbackdata,
   unused(addr);
 
   unused(client_handle);
+  unused(socket);
+  struct callbackdata *data = cast(callbackdata, struct callbackdata *);
+  unused(data);
+  connected_toserver = 1;
+}
+
+static void on_connect(rebrick_socket_t *socket, void *callbackdata) {
+  unused(callbackdata);
   unused(socket);
   struct callbackdata *data = cast(callbackdata, struct callbackdata *);
   unused(data);
@@ -202,7 +187,7 @@ static void rebrick_tcpsocket_asclient_communication(void **start) {
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_connect = on_connection_accepted;
+  callbacks.on_connect = on_connect;
   callbacks.on_close = on_connection_closed;
   callbacks.on_read = on_datarecevied;
   callbacks.on_write = on_datasend;
@@ -212,49 +197,37 @@ static void rebrick_tcpsocket_asclient_communication(void **start) {
 
   // check a little
   int counter = 10;
-  while (counter) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(10000);
-    if (connected_toserver)
-      break;
-    counter--;
-  }
+  loop(counter, 100, !connected_toserver);
 
   assert_int_equal(connected_toserver, 1);
   datareceived_ok = 0;
   counter = 10;
   while (counter) {
+    loop(counter, 10, TRUE);
     result = tcp_echo_send("deneme");
     if (result >= 0)
       break;
+    loop(counter, 10, TRUE);
     counter--;
   }
   counter = 10;
-  while (counter) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(10000);
-    if (datareceived_ok)
-      break;
-    counter--;
-  }
+  loop(counter, 10000, !datareceived_ok);
+
   assert_int_equal(datareceived_ok, 1);
 
   assert_string_equal(data.buffer, "deneme");
   rebrick_clean_func_t cleanfunc = {};
   rebrick_tcpsocket_write(client, cast("valla", uint8_t *), 6, cleanfunc);
 
-  uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-  usleep(100);
+  loop(counter, 10, TRUE);
+
   char recvbuf[ECHO_BUF_SIZE] = {'\0'};
 
   tcp_echo_recv(recvbuf);
   assert_string_equal(recvbuf, "valla");
   rebrick_tcpsocket_destroy(client);
   counter = 100;
-  while (counter--) {
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    usleep(100);
-  }
+  loop(counter, 100, TRUE);
 
   tcp_echo_stop();
 }
@@ -265,13 +238,13 @@ static void on_error_occured_memorytest(rebrick_socket_t *socket, void *callback
   unused(socket);
   unused(callbackdata);
   unused(error);
-  // rebrick_tcpsocket_destroy(cast(socket, rebrick_tcpsocket_t *));
 }
 
 int connected_to_memorytest = 0;
 int connected_to_memorytest_counter = 0;
 rebrick_tcpsocket_t *connected_client;
-static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle) {
+
+static void on_client_connect_memorytest(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr, void *client_handle) {
   unused(callbackdata);
   unused(addr);
 
@@ -281,6 +254,12 @@ static void on_connection_accepted_memorytest(rebrick_socket_t *socket, void *ca
   connected_to_memorytest = 1;
   connected_to_memorytest_counter++;
   connected_client = cast(client_handle, rebrick_tcpsocket_t *);
+}
+
+static void on_connect_memorytest(rebrick_socket_t *socket, void *callbackdata) {
+  unused(callbackdata);
+  unused(socket);
+  connected_to_memorytest = 1;
 }
 
 int connection_closed_memorytest = 0;
@@ -317,7 +296,6 @@ static void on_datasend_memorytest(rebrick_socket_t *socket, void *callback_data
 
 /**
  * @brief connect to a docker http server and get data
- * test folder altındaki, docker_ssl altındaki run.sh
  * @param start
  */
 static void rebrick_tcpsocket_asclient_memory(void **start) {
@@ -341,7 +319,7 @@ Accept: text/html\r\n\
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_client_connect = on_connection_accepted_memorytest;
+  callbacks.on_connect = on_connect_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
@@ -354,10 +332,7 @@ Accept: text/html\r\n\
 
     // check a little
     int counter = 1000;
-    while (--counter && !connected_to_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(1000);
-    }
+    loop(counter, 1000, !connected_to_memorytest);
 
     datasended_memorytest = 0;
     datareceived_ok_memorytest = 0;
@@ -366,25 +341,19 @@ Accept: text/html\r\n\
     result = rebrick_tcpsocket_write(client, cast(head, uint8_t *), strlen(head) + 1, cleanfunc);
 
     counter = 1000;
-    while (--counter && !datasended_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(1000);
-    }
+    loop(counter, 1000, !datasended_memorytest);
+
     assert_int_equal(datasended_memorytest, 10); // this value is used above
 
     counter = 1000;
-    while (--counter && !datareceived_ok_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(1000);
-    }
+    loop(counter, 1000, !datareceived_ok_memorytest);
+
     assert_true(datareceived_ok_memorytest > 0);
 
     rebrick_tcpsocket_destroy(client);
     counter = 1000;
-    while (--counter && !connection_closed_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(1000);
-    }
+    loop(counter, 1000, !connection_closed_memorytest);
+
     assert_true(connection_closed_memorytest != 0);
   }
 }
@@ -406,11 +375,11 @@ Host: nodejs.org\r\n\
 User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
 Accept: text/html\r\n\
 \r\n";
-#define COUNTER 1
+#define COUNTER 10
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_connect = on_connection_accepted_memorytest;
+  callbacks.on_connect = on_connect_memorytest;
   callbacks.on_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
@@ -424,10 +393,7 @@ Accept: text/html\r\n\
 
     // check a little
     int counter = 1000;
-    while (--counter && !connected_to_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(1000);
-    }
+    loop(counter, 1000, !connected_to_memorytest);
 
     datasended_memorytest = 0;
     datareceived_ok_memorytest = 0;
@@ -437,23 +403,11 @@ Accept: text/html\r\n\
 
     counter = 1000;
     datareceived_ok_total_memorytest = 1;
-
-    while (counter && !connection_closed_memorytest) {
-      usleep(100);
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      counter--;
-    }
-    fprintf(stderr, "hamza %d\n", connection_closed_memorytest);
-    // if (!connection_closed_memorytest) {
+    loop(counter, 1000, !connection_closed_memorytest);
 
     counter = 100;
     rebrick_tcpsocket_destroy(client);
-
-    while (counter--) {
-      usleep(100);
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-    }
-    //}
+    loop(counter, 100, TRUE);
 
     assert_true(connection_closed_memorytest != 0);
   }
@@ -502,13 +456,13 @@ Accept-Ranges: bytes\r\n\
 
   new2(rebrick_tcpsocket_callbacks_t, callbacks);
   callbacks.callback_data = &data;
-  callbacks.on_client_connect = on_connection_accepted_memorytest;
+  callbacks.on_client_connect = on_client_connect_memorytest;
   callbacks.on_client_close = on_connection_closed_memorytest;
   callbacks.on_read = on_datarecevied_memorytest;
   callbacks.on_write = on_datasend_memorytest;
   callbacks.on_error = on_error_occured_memorytest;
   rebrick_tcpsocket_t *server;
-
+  printf("for testing curl http://localhost:8585\n");
   for (int i = 0; i < COUNTER; ++i) {
 
     connected_client = NULL;
@@ -519,10 +473,7 @@ Accept-Ranges: bytes\r\n\
     int counter = 100;
     connected_to_memorytest = 0;
     connected_to_memorytest_counter = 0;
-    while (--counter && !connected_to_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(100);
-    }
+    loop(counter, 100, !connected_to_memorytest);
 
     datasended_memorytest = 0;
     datareceived_ok_memorytest = 0;
@@ -530,33 +481,22 @@ Accept-Ranges: bytes\r\n\
     connection_closed_memorytestcounter = 0;
 
     counter = 100;
-    while (--counter && !datareceived_ok_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(100);
-    }
+    loop(counter, 100, !datareceived_ok_memorytest);
+
     rebrick_clean_func_t cleanfunc = {};
-    // assert_true(datareceived_ok_memorytest > 0);
+
     if (connected_client)
       result = rebrick_tcpsocket_write(connected_client, cast(html, uint8_t *), strlen(html) + 1, cleanfunc);
 
     counter = 100;
-    while (--counter && !datasended_memorytest) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(100);
-    }
-    // assert_int_equal(datasended_memorytest, 10); //this value is used above
+    loop(counter, 100, !datasended_memorytest);
 
     rebrick_tcpsocket_destroy(server);
+    if (connected_client)
+      rebrick_tcpsocket_destroy(connected_client);
     counter = 100;
-    while (--counter && connection_closed_memorytestcounter != 2) {
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      usleep(100);
-    }
-
-    // assert_true(connected_to_memorytest!=0);
+    loop(counter, 100, connection_closed_memorytestcounter != 2);
   }
-
-  // getchar();
 }
 
 int test_rebrick_tcpsocket(void) {
@@ -565,7 +505,7 @@ int test_rebrick_tcpsocket(void) {
       cmocka_unit_test(rebrick_tcpsocket_asclient_communication),
       cmocka_unit_test(rebrick_tcpsocket_asclient_memory),
       cmocka_unit_test(rebrick_tcp_client_download_data),
-      /*cmocka_unit_test(rebrick_tcpsocket_asserver_memory)*/
+      cmocka_unit_test(rebrick_tcpsocket_asserver_memory)
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

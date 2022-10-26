@@ -96,7 +96,7 @@ int tcp_echo_recv(char buf[ECHO_BUF_SIZE]) {
 int tcp_echo_send(const char *msg) {
   err = send(client_fd, msg, strlen(msg) + 1, 0);
   if (err < 0)
-    return on_error("Client write failed\n");
+    return on_error("tcp echo client write failed\n");
   return err;
 }
 

@@ -748,7 +748,7 @@ int32_t rebrick_http2socket_new(rebrick_http2socket_t **socket,
 int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket) {
   unused(socket);
   if (socket) {
-    if (socket->is_server) {
+    /* if (socket->is_server) {
       rebrick_tcpsocket_t *client;
       DL_FOREACH(socket->clients, client) {
         if (!cast_to_http2socket(client)->is_goaway_sended)
@@ -759,8 +759,11 @@ int32_t rebrick_http2socket_destroy(rebrick_http2socket_t *socket) {
       if (!socket->is_goaway_sended)
         rebrick_http2socket_send_goaway(socket, NULL, 0);
       nghttp2_session_send(socket->parsing_params.session);
-    }
+    } */
 
+    if (!socket->is_goaway_sended)
+      rebrick_http2socket_send_goaway(socket, NULL, 0);
+    nghttp2_session_send(socket->parsing_params.session);
     if (socket->tls_context) {
       return rebrick_tlssocket_destroy(cast_to_tlssocket(socket));
     } else {
