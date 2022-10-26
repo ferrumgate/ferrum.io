@@ -26,6 +26,17 @@ void rebrick_log_debug(const char *file, int32_t line, const char *fmt, ...) {
     va_end(myargs);
   }
 }
+void rebrick_log_warn(const char *file, int32_t line, const char *fmt, ...) {
+  if (log_level >= REBRICK_LOG_WARN) {
+    char current_time_str[32] = {0};
+    unused(current_time_str);
+    fprintf(stderr, "[%s] [WARN] %s:%d - ", rebrick_util_time_r(current_time_str), file, line);
+    va_list myargs;
+    va_start(myargs, fmt);
+    vfprintf(stderr, fmt, myargs);
+    va_end(myargs);
+  }
+}
 
 void rebrick_log_fatal(const char *file, int32_t line, const char *fmt, ...) {
   if (log_level >= REBRICK_LOG_FATAL) {

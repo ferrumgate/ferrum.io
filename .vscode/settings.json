@@ -35,7 +35,8 @@
         "unistd.h": "c",
         "cmocka.h": "c",
         "rebrick_http2socket.h": "c",
-        "limits.h": "c"
+        "limits.h": "c",
+        "rebrick_httpsocket.h": "c"
     },
     "editor.formatOnSave": true
 }

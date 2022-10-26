@@ -18,5 +18,6 @@ void rebrick_log_info(const char *file, int32_t line, const char *fmt, ...);
 void rebrick_log_debug(const char *file, int32_t line, const char *fmt, ...);
 void rebrick_log_fatal(const char *file, int32_t line, const char *fmt, ...);
 void rebrick_log_error(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_warn(const char *file, int32_t line, const char *fmt, ...);
 
 #endif

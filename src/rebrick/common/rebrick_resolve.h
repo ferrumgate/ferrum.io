@@ -13,4 +13,7 @@ typedef void (*on_resolve_callback_t)(const char *domain, int32_t type, rebrick_
 typedef void (*on_resolve_error_callback_t)(const char *domain, int32_t type, int32_t error);
 int32_t rebrick_resolve(const char *domain, rebrick_resolve_type_t type, on_resolve_callback_t on_resolve, on_resolve_error_callback_t on_error);
 
+int32_t rebrick_resolve_sync(const char *domain, rebrick_resolve_type_t type,
+                             rebrick_sockaddr_t **addr, size_t *len);
+
 #endif

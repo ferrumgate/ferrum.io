@@ -114,13 +114,39 @@ static void test_string_to_rebrick_socket_success() {
   assert_string_equal(buff, anyipv6);
 }
 
+static void test_rebrick_resolve_sync() {
+  const char *domain = "www.google.com";
+  rebrick_sockaddr_t addr;
+  int32_t result = rebrick_util_resolve_sync(domain, &addr, 90);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(addr.base.sa_family, AF_INET6);
+  assert_int_equal(ntohs(addr.v6.sin6_port), 90);
+  assert_int_not_equal(addr.v6.sin6_addr.__in6_u.__u6_addr16, 0);
+
+  domain = "1.1.1.1:514";
+  result = rebrick_util_resolve_sync(domain, &addr, 3);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(addr.base.sa_family, AF_INET);
+  assert_int_equal(ntohs(addr.v4.sin_port), 514);
+  assert_int_equal(addr.v4.sin_addr.s_addr, 16843009);
+
+  domain = "www.baidu.com:514";
+  result = rebrick_util_resolve_sync(domain, &addr, 3);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(addr.base.sa_family, AF_INET);
+  assert_int_equal(ntohs(addr.v4.sin_port), 514);
+  assert_int_not_equal(addr.v4.sin_addr.s_addr, 0);
+}
+
 int test_rebrick_util(void) {
 
   const struct CMUnitTest tests[] = {
 
       cmocka_unit_test(null_test_success),
       cmocka_unit_test(linked_items_success),
-      cmocka_unit_test(test_string_to_rebrick_socket_success)};
+      cmocka_unit_test(test_string_to_rebrick_socket_success),
+      cmocka_unit_test(test_rebrick_resolve_sync),
+  };
 
   return cmocka_run_group_tests(tests, setup, teardown);
 }

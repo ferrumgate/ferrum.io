@@ -82,12 +82,60 @@ static void resolve_google2_com_failed(void **start) {
   assert_true(last_error < 0);
 }
 
+static void resolve_sync_google_com(void **start) {
+  unused(start);
+  rebrick_sockaddr_t *addrlist;
+  size_t len;
+  int32_t result = rebrick_resolve_sync("www.google.com", A, &addrlist, &len);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_not_equal(len, 0);
+  assert_ptr_not_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+
+  result = rebrick_resolve_sync("www.yahoo.com", A, &addrlist, &len);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_not_equal(len, 0);
+  assert_ptr_not_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+
+  result = rebrick_resolve_sync("www.ya2hoo2.com", A, &addrlist, &len);
+  assert_int_equal(result, REBRICK_ERR_RESOLV);
+  assert_int_equal(len, 0);
+  assert_ptr_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+
+  result = rebrick_resolve_sync("www.hamzakilic.com", AAAA, &addrlist, &len);
+  assert_int_equal(result, REBRICK_ERR_RESOLV);
+  assert_int_equal(len, 0);
+  assert_ptr_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+
+  result = rebrick_resolve_sync("1.1.1.1", AAAA, &addrlist, &len);
+  assert_int_equal(result, REBRICK_ERR_RESOLV);
+  assert_int_equal(len, 0);
+  assert_ptr_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+
+  result = rebrick_resolve_sync("1.1.1.1", A, &addrlist, &len);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(len, 1);
+  assert_ptr_not_equal(addrlist, NULL);
+  if (addrlist)
+    rebrick_free(addrlist);
+}
+
 int test_rebrick_resolve(void) {
   const struct CMUnitTest tests[] = {
 
       cmocka_unit_test(resolve_google_com_A),
       cmocka_unit_test(resolve_google_com_AAAA),
-      cmocka_unit_test(resolve_google2_com_failed)
+      cmocka_unit_test(resolve_google2_com_failed),
+      cmocka_unit_test(resolve_sync_google_com),
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

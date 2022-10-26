@@ -2,6 +2,7 @@
 #define __REBRICK_UTIL_H__
 #include "rebrick_common.h"
 #include "rebrick_log.h"
+#include "rebrick_resolve.h"
 #include <sys/types.h>
 #include <sys/time.h>
 
@@ -166,3 +167,16 @@ int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t 
   }
 
 #endif // MACRO
+
+/**
+ * @brief resolves a domain{:port} to @see rebrick_sockaddr_t
+ * @param url domain and port like www.google.com:514 or just www.google.com
+ * @param addr destination address
+ */
+int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
+                                  int32_t defaultport);
+
+/**
+ * @brief get current hostname
+ */
+int32_t rebrick_util_gethostname(char hostname[REBRICK_HOSTNAME_LEN]);

@@ -19,3 +19,6 @@ echo $CURRENT_FOLDER
 echo "starting nginx ssl"
 cd $CURRENT_FOLDER/test/rebrick/docker_ssl
 bash run.sh
+
+docker stop redis
+docker run --name redis --rm -d -ti -p 6379:6379 redis

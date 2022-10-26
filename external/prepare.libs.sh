@@ -59,11 +59,11 @@ make install
 
 ######### install hiredis ############
 cd $CURRENTFOLDER
+DESTFOLDER=$(pwd)/libs
 cp hiredis-1.0.2.zip $TMPFOLDER
 cd $TMPFOLDER
 unzip hiredis-1.0.2.zip
 cd hiredis-1.0.2
-DESTFOLDER=$(pwd)/libs
 export PREFIX=$DESTFOLDER
 make
 make install

@@ -38,6 +38,7 @@
 #define REBRICK_ERR_IO_CLOSED -10
 #define REBRICK_ERR_IO_CLOSING -11
 #define REBRICK_ERR_IO_END -12
+#define REBRICK_ERR_RESOLV -13
 #define REBRICK_ERR_IO_ERR -19
 
 #define REBRICK_ERR_TLS_INIT -20
@@ -73,13 +74,17 @@
 #define REBRICK_IP_STR_LEN 64
 
 #define REBRICK_DOMAIN_LEN 2048
-
+#define REBRICK_HOSTNAME_LEN 64
+#define REBRICK_MAX_ENV_LEN 64
 #define REBRICK_PORT_STR_LEN 8
+#define REBRICK_HOST_STR_LEN 64
+#define REBRICK_NAME_STR_LEN 64
 
 #define REBRICK_TLS_KEY_LEN 128
 #define REBRICK_CA_VERIFY_PATH_MAX_LEN 1024
 #define REBRICK_TLS_ALPN_MAX_LEN 128
 
+#define rebrick_kill_current_process(n) exit(n)
 /* @brief allocation methods */
 #define rebrick_malloc(x) malloc(x)
 #define rebrick_free(x) free(x)
@@ -126,7 +131,7 @@
 #define cast_to_uint8ptr(x) cast(x, uint8_t *)
 #define cast_to_const_uint8ptr(x) cast(x, const uint8_t *)
 #define cast_to_charptr(x) cast(x, char *)
-#define cast_to_const_charptr(x) cast(x, cont char *)
+#define cast_to_const_charptr(x) cast(x, const char *)
 #define cast_to_sockaddr(x) cast(x, struct sockaddr *)
 
 #define public_

@@ -19,33 +19,37 @@ extern int test_rebrick_tlssocket();
 extern int test_rebrick_http();
 extern int test_rebrick_httpsocket();
 extern int test_rebrick_http2socket();
-
+// ferrum tests
+extern int test_ferrum_redis();
+extern int test_ferrum_config();
 int main() {
   fprintf(stdout, "starting test\n");
 
-  /*  if (test_rebrick_filestream())
-     exit(1);
+  /*    if (test_rebrick_filestream())
+      exit(1);
 
-   if (test_rebrick_util())
-     exit(1);
+    if (test_rebrick_util())
+      exit(1);
 
-   if (test_rebrick_resolve())
-     exit(1);
+    if (test_rebrick_resolve())
+      exit(1);
 
-   if (test_rebrick_buffer())
-     exit(1);
+    if (test_rebrick_buffer())
+      exit(1);
 
-   if (test_rebrick_buffers())
-     exit(1);
+    if (test_rebrick_buffers())
+      exit(1);
 
-   if (test_rebrick_timer())
-     exit(1); */
+    if (test_rebrick_timer())
+      exit(1);
 
-  if (test_rebrick_udpsocket())
-    exit(1);
+     if (test_rebrick_udpsocket())
+       exit(1);
 
-  if (test_rebrick_tcpsocket())
-    exit(1);
+     if (test_rebrick_tcpsocket())
+       exit(1);  */
+
+  // these below tests are not validated yet
 
   /*
     if (test_rebrick_tls())
@@ -64,7 +68,15 @@ int main() {
     //   exit(1);
 
 
+
     getchar(); */
+
+  // ferrum tests
+
+  if (test_ferrum_redis())
+    exit(1);
+  if (test_ferrum_config())
+    exit(1);
 
   return 0;
 }
