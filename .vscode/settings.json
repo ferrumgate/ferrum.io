@@ -21,6 +21,8 @@
             }
         ]
     },
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "C_Cpp.default.cStandard": "gnu17",
     "files.associations": {
         "rebrick_log.h": "c",
         "rebrick_async_udpsocket.h": "c",
@@ -32,6 +34,8 @@
         "tcpecho.h": "c",
         "unistd.h": "c",
         "cmocka.h": "c",
-        "rebrick_http2socket.h": "c"
-    }
+        "rebrick_http2socket.h": "c",
+        "limits.h": "c"
+    },
+    "editor.formatOnSave": true
 }
