@@ -31,7 +31,7 @@ static redisAsyncContext *createContext(const char *host, int32_t port, int32_t 
 
   redisAsyncContext *rcontext = redisAsyncConnect(host, port);
   if (rcontext->err) {
-    ferrum_log_error(__FILE__, __LINE__, "redis context failed %s\n", rcontext->errstr);
+    ferrum_log_error("redis context failed %s\n", rcontext->errstr);
     redisAsyncFree(rcontext);
     return NULL;
   }
@@ -47,7 +47,7 @@ static redisAsyncContext *createContext(const char *host, int32_t port, int32_t 
 
 static int32_t reconnect(ferrum_redis_t *redis) {
 
-  ferrum_log_debug(__FILE__, __LINE__, "reconnecting redis %s:%d\n", redis->host, redis->port);
+  ferrum_log_debug("reconnecting redis %s:%d\n", redis->host, redis->port);
 
   redisAsyncContext *rcontext = createContext(redis->host, redis->port, redis->query_timeout_ms);
   if (!rcontext) {
@@ -62,7 +62,7 @@ void connectCallback(const redisAsyncContext *c, int status) {
 
   ferrum_redis_t *redis = cast(c->data, ferrum_redis_t *);
   if (status != REDIS_OK) {
-    ferrum_log_error(__FILE__, __LINE__, "redis connect error: %s\n", c->errstr);
+    ferrum_log_error("redis connect error: %s\n", c->errstr);
     rebrick_timer_start(redis->connection_checker);
     return;
   }
@@ -72,18 +72,18 @@ void connectCallback(const redisAsyncContext *c, int status) {
                                        "subscribe %s",
                                        redis->subscribe.channel);
     if (result) {
-      ferrum_log_fatal(__FILE__, __LINE__, "redis subscribe failed %s\n", c->errstr);
+      ferrum_log_fatal("redis subscribe failed %s\n", c->errstr);
     } else
       redis->subscribe.isSubConnected = TRUE;
   }
 
-  ferrum_log_debug(__FILE__, __LINE__, "redis connected\n");
+  ferrum_log_debug("redis connected\n");
 }
 
 void disconnectCallback(const redisAsyncContext *c, int status) {
 
   if (status != REDIS_OK) {
-    ferrum_log_error(__FILE__, __LINE__, "redis disconnect because of error: %s\n", c->errstr);
+    ferrum_log_error("redis disconnect because of error: %s\n", c->errstr);
     //  return;
   }
   ferrum_redis_t *redis = cast(c->data, ferrum_redis_t *);
@@ -91,7 +91,7 @@ void disconnectCallback(const redisAsyncContext *c, int status) {
 
   if (status == REDIS_OK) {
     ferrum_redis_destroy(redis);
-    ferrum_log_debug(__FILE__, __LINE__, "redis disconnected by user\n");
+    ferrum_log_debug("redis disconnected by user\n");
   } else {
     // redisAsyncFree(const_cast(c, redisAsyncContext *));
     rebrick_timer_start(redis->connection_checker);
@@ -100,7 +100,7 @@ void disconnectCallback(const redisAsyncContext *c, int status) {
 int32_t connection_check(void *data) {
 
   ferrum_redis_t *redis = cast(data, ferrum_redis_t *);
-  ferrum_log_info(__FILE__, __LINE__, "trying to connect redis %s:%d\n", redis->host, redis->port);
+  ferrum_log_info("trying to connect redis %s:%d\n", redis->host, redis->port);
   if (redis->is_connected)
     return FERRUM_SUCCESS;
   if (!reconnect(redis)) // if reconnect is success
@@ -112,7 +112,7 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
 
   ferrum_redis_t *tmp = new1(ferrum_redis_t);
   if (!tmp) {
-    ferrum_log_fatal(__FILE__, __LINE__, "malloc problem\n");
+    ferrum_log_fatal("malloc problem\n");
     rebrick_kill_current_process(REBRICK_ERR_MALLOC);
   }
   constructor(tmp, ferrum_redis_t);
@@ -151,7 +151,7 @@ int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
 
 int32_t ferrum_redis_destroy(ferrum_redis_t *redis) {
 
-  ferrum_log_debug(__FILE__, __LINE__, "destroying redis connection\n");
+  ferrum_log_debug("destroying redis connection\n");
   if (redis) {
     if (redis->connection_checker) {
       rebrick_timer_destroy(redis->connection_checker);
@@ -170,10 +170,10 @@ int32_t ferrum_redis_destroy(ferrum_redis_t *redis) {
 
 int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, const char *fmt, ...) {
 
-  ferrum_log_debug(__FILE__, __LINE__, "sending command\n");
+  ferrum_log_debug("sending command\n");
   if (!redis->is_connected) {
 
-    ferrum_log_error(__FILE__, __LINE__, "redis is not connected\n");
+    ferrum_log_error("redis is not connected\n");
     return FERRUM_ERR_REDIS;
   }
   va_list args;
@@ -181,7 +181,7 @@ int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, co
   int32_t result = redisvAsyncCommand(redis->rcontext, command->callback.func, command, fmt, args);
   va_end(args);
   if (result) {
-    ferrum_log_error(__FILE__, __LINE__, "redis sending cmd error %d\n", result);
+    ferrum_log_error("redis sending cmd error %d\n", result);
     return FERRUM_ERR_REDIS;
   }
   return FERRUM_SUCCESS;
@@ -191,7 +191,7 @@ int32_t ferrum_redis_cmd_new(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
 
   ferrum_redis_cmd_t *tmp = new1(ferrum_redis_cmd_t);
   if (!tmp) {
-    ferrum_log_fatal(__FILE__, __LINE__, "malloc problem\n");
+    ferrum_log_fatal("malloc problem\n");
     rebrick_kill_current_process(REBRICK_ERR_MALLOC);
   }
   constructor(tmp, ferrum_redis_cmd_t);
@@ -209,7 +209,7 @@ int32_t ferrum_redis_cmd_new2(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type
   ferrum_redis_cmd_t *tmp;
   int32_t result = ferrum_redis_cmd_new(&tmp, id, type, callback, callback_data1);
   if (result) {
-    ferrum_log_error(__FILE__, __LINE__, "redis cmd create new2 failed with error: %d\n", result);
+    ferrum_log_error("redis cmd create new2 failed with error: %d\n", result);
     return result;
   }
   tmp->callback.arg2 = callback_data2;

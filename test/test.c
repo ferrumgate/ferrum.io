@@ -19,12 +19,16 @@ extern int test_rebrick_tlssocket();
 extern int test_rebrick_http();
 extern int test_rebrick_httpsocket();
 extern int test_rebrick_http2socket();
+extern int test_rebrick_conntrack();
 // ferrum tests
 extern int test_ferrum_redis();
 extern int test_ferrum_config();
 int main() {
   fprintf(stdout, "starting test\n");
 
+  if (test_rebrick_conntrack()) {
+    exit(1);
+  }
   /*    if (test_rebrick_filestream())
       exit(1);
 

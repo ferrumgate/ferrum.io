@@ -5,7 +5,7 @@ static void on_close(uv_handle_t *handle);
 static void on_send(uv_write_t *req, int status) {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_log_debug(__FILE__, __LINE__, "socket on send called and status:%d\n", status);
+  rebrick_log_debug("socket on send called and status:%d\n", status);
 
   rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
   void *source = clean_func ? clean_func->anydata.ptr : NULL;
@@ -47,12 +47,12 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
 
   result = uv_write(request, cast(&socket->handle.tcp, uv_stream_t *), &buf, 1, on_send);
   if (result < 0) {
-    rebrick_log_info(__FILE__, __LINE__, "sending data to  %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
+    rebrick_log_info("sending data to  %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
     rebrick_free(request->data);
     rebrick_free(request);
     return REBRICK_ERR_UV + result;
   }
-  rebrick_log_debug(__FILE__, __LINE__, "data sended  len:%zu to   %s port:%s\n", len, socket->peer_ip, socket->peer_port);
+  rebrick_log_debug("data sended  len:%zu to   %s port:%s\n", len, socket->peer_ip, socket->peer_port);
   return REBRICK_SUCCESS;
 }
 
@@ -65,11 +65,11 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf) 
 
   if (nread <= 0) {
     if (socket->on_error) {
-      rebrick_log_debug(__FILE__, __LINE__, "socket error occured %zd\n", nread);
+      rebrick_log_debug("socket error occured %zd\n", nread);
       socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
     }
   } else if (socket->on_read) {
-    rebrick_log_debug(__FILE__, __LINE__, "socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
+    rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
     socket->on_read(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
   }
 
@@ -81,7 +81,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf) 
   char current_time_str[32] = {0};
   unused(current_time_str);
   if (suggested_size <= 0) {
-    rebrick_log_info(__FILE__, __LINE__, "socket suggested_size is 0 from \n");
+    rebrick_log_info("socket suggested_size is 0 from \n");
     return;
   }
 
@@ -89,7 +89,7 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf) 
   if_is_null_then_die(buf->base, "malloc problem\n");
   buf->len = suggested_size;
   fill_zero(buf->base, buf->len);
-  rebrick_log_debug(__FILE__, __LINE__, "malloc socket:%lu %p\n", buf->len, buf->base);
+  rebrick_log_debug("malloc socket:%lu %p\n", buf->len, buf->base);
 }
 
 /**
@@ -137,7 +137,7 @@ static void on_client_connected(uv_stream_t *server, int status) {
   int32_t result;
   int32_t temp = 0;
   if (!server) {
-    rebrick_log_fatal(__FILE__, __LINE__, "server parameter is null\n");
+    rebrick_log_fatal("server parameter is null\n");
     return;
   }
 
@@ -145,7 +145,7 @@ static void on_client_connected(uv_stream_t *server, int status) {
   rebrick_tcpsocket_t *serversocket = cast_to_tcpsocket(tcp->data);
 
   if (status < 0) {
-    rebrick_log_debug(__FILE__, __LINE__, "error on_new_connection\n");
+    rebrick_log_debug("error on_new_connection\n");
     if (server && serversocket->on_error)
       serversocket->on_error(cast_to_socket(serversocket), serversocket->callback_data, REBRICK_ERR_UV + status);
     return;
@@ -160,7 +160,7 @@ static void on_client_connected(uv_stream_t *server, int status) {
   result = uv_accept(server, cast(&client->handle.tcp, uv_stream_t *));
   if (result < 0) {
     // TODO: make it threadsafe
-    rebrick_log_fatal(__FILE__, __LINE__, "accept error uverror:%d %s\n", result, uv_strerror(result));
+    rebrick_log_fatal("accept error uverror:%d %s\n", result, uv_strerror(result));
     // burada client direk free edilebilmeli
     // başka bir şey olmadan
     //@see rebrick_tcpsocket.h
@@ -173,7 +173,7 @@ static void on_client_connected(uv_stream_t *server, int status) {
 
   rebrick_util_addr_to_ip_string(&client->bind_addr, client->peer_ip);
   rebrick_util_addr_to_port_string(&client->bind_addr, client->peer_port);
-  rebrick_log_debug(__FILE__, __LINE__, "connected client from %s:%s\n", client->peer_ip, client->peer_port);
+  rebrick_log_debug("connected client from %s:%s\n", client->peer_ip, client->peer_port);
 
   client->handle.tcp.data = client;
   client->on_close = serversocket->on_client_close;
@@ -203,7 +203,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
   result = uv_tcp_init(socket->loop, &socket->handle.tcp);
   if (result < 0) {
     // TODO: make it thread safe
-    rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
   uv_tcp_keepalive(&socket->handle.tcp, 1, 60);
@@ -214,7 +214,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
     result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
     if (result < 0) {
       rebrick_free(connect);
-      rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+      rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
   }
@@ -222,11 +222,11 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
   result = uv_tcp_connect(connect, &socket->handle.tcp, &socket->peer_addr.base, on_connect);
   if (result < 0) {
     rebrick_free(connect);
-    rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
 
-  rebrick_log_info(__FILE__, __LINE__, "socket connected to %s port:%s\n", socket->peer_ip, socket->peer_port);
+  rebrick_log_info("socket connected to %s port:%s\n", socket->peer_ip, socket->peer_port);
   socket->handle.tcp.data = socket;
   uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
   uv_read_start(tmp, on_alloc, on_recv);
@@ -242,22 +242,22 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
   result = uv_tcp_init(socket->loop, &socket->handle.tcp);
   if (result < 0) {
     // TODO: make it thread safe
-    rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
 
   result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
   if (result < 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
 
   result = uv_listen(cast(&socket->handle.tcp, uv_stream_t *), backlog, on_client_connected);
   if (result < 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "socket failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
-  rebrick_log_info(__FILE__, __LINE__, "socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
+  rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
   socket->handle.tcp.data = socket;
 
   return REBRICK_SUCCESS;
@@ -297,7 +297,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
   } else
     result = create_client_socket(socket);
   if (result < 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", socket->peer_ip, socket->peer_port);
+    rebrick_log_fatal("create socket failed bind at %s port:%s\n", socket->peer_ip, socket->peer_port);
     return result;
   }
 
@@ -317,7 +317,7 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
 
   result = rebrick_tcpsocket_init(data, bind_addr, peer_addr, backlog_or_isclient, create_client, callbacks);
   if (result < 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "create socket failed bind at %s port:%s\n", data->peer_ip, data->peer_port);
+    rebrick_log_fatal("create socket failed bind at %s port:%s\n", data->peer_ip, data->peer_port);
     rebrick_free(data);
     return result;
   }
@@ -336,7 +336,7 @@ static void on_close(uv_handle_t *handle) {
       handle->data = NULL;
 
       if (socket->on_close) {
-        rebrick_log_debug(__FILE__, __LINE__, "handle closed\n");
+        rebrick_log_debug("handle closed\n");
         socket->on_close(cast_to_socket(socket), socket->callback_data);
       }
 
@@ -353,7 +353,7 @@ int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket) {
 
     if (!uv_is_closing(handle)) {
 
-      rebrick_log_info(__FILE__, __LINE__, "closing connection %s port:%s\n", socket->peer_ip, socket->peer_port);
+      rebrick_log_info("closing connection %s port:%s\n", socket->peer_ip, socket->peer_port);
       uv_close(handle, on_close);
     }
   }
@@ -368,7 +368,7 @@ int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable) {
     result = uv_tcp_nodelay(&socket->handle.tcp, enable);
     if (result < 0) {
 
-      rebrick_log_fatal(__FILE__, __LINE__, "socket nodelay failed:%s\n", uv_strerror(result));
+      rebrick_log_fatal("socket nodelay failed:%s\n", uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
   }
@@ -383,7 +383,7 @@ int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int
     result = uv_tcp_keepalive(&socket->handle.tcp, enable, delay);
     if (result < 0) {
 
-      rebrick_log_fatal(__FILE__, __LINE__, "socket keepalive failed:%s\n", uv_strerror(result));
+      rebrick_log_fatal("socket keepalive failed:%s\n", uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
   }
@@ -397,7 +397,7 @@ int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int 
     result = uv_tcp_simultaneous_accepts(&socket->handle.tcp, enable);
     if (result < 0) {
 
-      rebrick_log_fatal(__FILE__, __LINE__, "socket simultaneous accepts failed:%s\n", uv_strerror(result));
+      rebrick_log_fatal("socket simultaneous accepts failed:%s\n", uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
   }

@@ -15,5 +15,6 @@
 #include "./http/rebrick_httpsocket.h"
 #include "./http/rebrick_websocket.h"
 #include "./http/rebrick_websocket2.h"
+#include "./netfilter/rebrick_conntrack.h"
 
 #define VERSION "1.0.0"

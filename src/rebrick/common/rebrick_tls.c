@@ -113,7 +113,7 @@ static int tls_servername_cb(SSL *s, int *ad, void *arg) {
   int32_t result;
   rebrick_tls_context_t *context = cast(arg, rebrick_tls_context_t *);
   if (!context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "sni cannot find, context is null\n");
+    rebrick_log_fatal("sni cannot find, context is null\n");
     return SSL_TLSEXT_ERR_ALERT_FATAL;
   }
   rebrick_tls_ssl_t *el, *tmp;
@@ -229,7 +229,7 @@ static void write_keylog(const SSL *ssl, const char *line) {
 
   logfile = fopen(filename, "a");
   if (!logfile) {
-    rebrick_log_error(__FILE__, __LINE__, "tls key log file open error %s:%s\n", filename, strerror(errno));
+    rebrick_log_error("tls key log file open error %s:%s\n", filename, strerror(errno));
     return;
   }
 
@@ -259,7 +259,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
 
   if (!ctx->tls_ctx) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "ssl init failed\n");
+    rebrick_log_fatal("ssl init failed\n");
     rebrick_free(ctx);
     return REBRICK_ERR_TLS_INIT;
   }
@@ -269,7 +269,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
   // we will copy file name but we will not load cert files
   // also private keys
   if (certificate_file && strcmp(certificate_file, REBRICK_TLS_SNI_FAKE_CERT_PRV_FILE) && SSL_CTX_use_certificate_file(ctx->tls_ctx, certificate_file, SSL_FILETYPE_PEM) <= 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "ssl cerfiticate file %s loading failed\n", certificate_file);
+    rebrick_log_fatal("ssl cerfiticate file %s loading failed\n", certificate_file);
     ERR_print_errors_fp(stderr);
     SSL_CTX_free(ctx->tls_ctx);
     rebrick_free(ctx);
@@ -279,7 +279,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
     snprintf(ctx->cert_file, REBRICK_TLS_FILE_MAX_LEN, "%s", certificate_file);
 
   if (private_file && strcmp(private_file, REBRICK_TLS_SNI_FAKE_CERT_PRV_FILE) && SSL_CTX_use_PrivateKey_file(ctx->tls_ctx, private_file, SSL_FILETYPE_PEM) <= 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "ssl private file %s loading failed\n", private_file);
+    rebrick_log_fatal("ssl private file %s loading failed\n", private_file);
     ERR_print_errors_fp(stderr);
     SSL_CTX_free(ctx->tls_ctx);
     rebrick_free(ctx);
@@ -287,7 +287,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
   }
 
   if (private_file && strcmp(private_file, REBRICK_TLS_SNI_FAKE_CERT_PRV_FILE) && !SSL_CTX_check_private_key(ctx->tls_ctx)) {
-    rebrick_log_fatal(__FILE__, __LINE__, "ssl private file %s loading failed\n", private_file);
+    rebrick_log_fatal("ssl private file %s loading failed\n", private_file);
     ERR_print_errors_fp(stderr);
     SSL_CTX_free(ctx->tls_ctx);
     rebrick_free(ctx);
@@ -311,7 +311,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
   strncpy(hash->key, ctx->key, REBRICK_TLS_KEY_LEN - 1);
 
   HASH_ADD_STR(ctx_map, key, hash);
-  rebrick_log_debug(__FILE__, __LINE__, "%s ssl context created\n", key);
+  rebrick_log_debug("%s ssl context created\n", key);
 
   SSL_CTX_set_keylog_callback(ctx->tls_ctx, write_keylog);
 
@@ -330,7 +330,7 @@ int tls_alpn_select_callback(SSL *s, const unsigned char **out, unsigned char *o
 
   rebrick_tls_context_t *context = cast(arg, rebrick_tls_context_t *);
   if (!context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls server alpn cannot find, context is null\n");
+    rebrick_log_fatal("tls server alpn cannot find, context is null\n");
     return SSL_TLSEXT_ERR_ALERT_FATAL;
   }
 
@@ -351,7 +351,7 @@ static int tls_npn_select_callback(SSL *s, unsigned char **out, unsigned char *o
 
   rebrick_tls_context_t *context = cast(arg, rebrick_tls_context_t *);
   if (!context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls server npn cannot find, context is null\n");
+    rebrick_log_fatal("tls server npn cannot find, context is null\n");
     return SSL_TLSEXT_ERR_ALERT_FATAL;
   }
   if (context->npn_select_callback) {
@@ -374,7 +374,7 @@ static int tls_alpn_server_advertise_callback(SSL *ssl, const unsigned char **ou
 
   rebrick_tls_context_t *context = cast(arg, rebrick_tls_context_t *);
   if (!context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls server alpn cannot find, context is null\n");
+    rebrick_log_fatal("tls server alpn cannot find, context is null\n");
     return SSL_TLSEXT_ERR_ALERT_FATAL;
   }
 
@@ -448,10 +448,10 @@ int32_t rebrick_tls_context_get(const char *key, rebrick_tls_context_t **context
   HASH_FIND_STR(ctx_map, key, out);
 
   if (out) {
-    rebrick_log_debug(__FILE__, __LINE__, "%s ssl context found\n", key);
+    rebrick_log_debug("%s ssl context found\n", key);
     *context = out->ctx;
   } else {
-    rebrick_log_debug(__FILE__, __LINE__, "%s ssl context not found\n", key);
+    rebrick_log_debug("%s ssl context not found\n", key);
     *context = NULL;
     return REBRICK_ERR_NOT_FOUND;
   }
@@ -470,10 +470,10 @@ int32_t rebrick_tls_context_search(const char *servername, rebrick_tls_context_t
   HASH_FIND_STR(ctx_map, servername, out);
 
   if (out) {
-    rebrick_log_debug(__FILE__, __LINE__, "%s ssl context found\n", servername);
+    rebrick_log_debug("%s ssl context found\n", servername);
     *context = out->ctx;
   } else {
-    rebrick_log_debug(__FILE__, __LINE__, "%s ssl context not found\n", servername);
+    rebrick_log_debug("%s ssl context not found\n", servername);
     *context = NULL;
     return REBRICK_ERR_NOT_FOUND;
   }
@@ -490,7 +490,7 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
   SSL *tmp = SSL_new(context->tls_ctx);
   if (!ssl) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "new ssl with key %s failed\n", context->key);
+    rebrick_log_fatal("new ssl with key %s failed\n", context->key);
     ERR_print_errors_fp(stderr);
 
     return REBRICK_ERR_TLS_NEW;
@@ -502,7 +502,7 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
   BIO *read = BIO_new(BIO_s_mem());
   if (!read) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "new bio read with key %s failed\n", context->key);
+    rebrick_log_fatal("new bio read with key %s failed\n", context->key);
 
     SSL_free(tmp);
     return REBRICK_ERR_TLS_ERR;
@@ -510,7 +510,7 @@ int32_t rebrick_tls_ssl_new(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_t
 
   BIO *write = BIO_new(BIO_s_mem());
   if (!write) {
-    rebrick_log_fatal(__FILE__, __LINE__, "new bio write with key %s failed\n", context->key);
+    rebrick_log_fatal("new bio write with key %s failed\n", context->key);
     BIO_free(read);
     SSL_free(tmp);
     return REBRICK_ERR_TLS_ERR;
@@ -533,7 +533,7 @@ int32_t rebrick_tls_ssl_new3(rebrick_tls_ssl_t **ssl, const rebrick_tls_context_
   char current_time_str[32] = {0};
   unused(current_time_str);
   if (!servername) {
-    rebrick_log_fatal(__FILE__, __LINE__, "servername is null\n");
+    rebrick_log_fatal("servername is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
   int32_t result = rebrick_tls_ssl_new(ssl, context);
@@ -554,11 +554,11 @@ int32_t rebrick_tls_ssl_new2(rebrick_tls_ssl_t **ssl, const char *server_indicat
   // get context for SNI
   int32_t result = rebrick_tls_context_get(REBRICK_TLS_CONTEXT_SNI, &context);
   if (result < 0) {
-    rebrick_log_fatal(__FILE__, __LINE__, "sni context not found\n");
+    rebrick_log_fatal("sni context not found\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
   if (!context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "sni context not found\n");
+    rebrick_log_fatal("sni context not found\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 

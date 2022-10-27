@@ -18,7 +18,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
   unused(current_time_str);
   int32_t result;
   if (!timer || !callback | !milisecond) {
-    rebrick_log_fatal(__FILE__, __LINE__, "timer, callback or milisecond is null\n");
+    rebrick_log_fatal("timer, callback or milisecond is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -29,7 +29,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
 
   if (result < 0) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "init timer failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("init timer failed:%s\n", uv_strerror(result));
     rebrick_free(tmp);
 
     return REBRICK_ERR_UV + result;
@@ -45,7 +45,7 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
     result = uv_timer_start(&tmp->timer, timer_callback, tmp->milisecond, tmp->milisecond);
     if (result < 0) {
 
-      rebrick_log_fatal(__FILE__, __LINE__, "start timer failed:%s\n", uv_strerror(result));
+      rebrick_log_fatal("start timer failed:%s\n", uv_strerror(result));
       rebrick_free(tmp);
 
       return REBRICK_ERR_UV + result;
@@ -60,7 +60,7 @@ int32_t rebrick_timer_start(rebrick_timer_t *timer) {
   unused(current_time_str);
   int32_t result;
   if (!timer) {
-    rebrick_log_fatal(__FILE__, __LINE__, "timer or private is null\n");
+    rebrick_log_fatal("timer or private is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -70,7 +70,7 @@ int32_t rebrick_timer_start(rebrick_timer_t *timer) {
   result = uv_timer_start(&timer->timer, timer_callback, timer->milisecond, timer->milisecond);
   if (result < 0) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "start timer failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("start timer failed:%s\n", uv_strerror(result));
 
     return REBRICK_ERR_UV + result;
   }
@@ -81,9 +81,9 @@ int32_t rebrick_timer_stop(rebrick_timer_t *timer) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;
-  rebrick_log_debug(__FILE__, __LINE__, "timer is stoping\n");
+  rebrick_log_debug("timer is stoping\n");
   if (!timer) {
-    rebrick_log_fatal(__FILE__, __LINE__, "timer or private is null\n");
+    rebrick_log_fatal("timer or private is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -93,7 +93,7 @@ int32_t rebrick_timer_stop(rebrick_timer_t *timer) {
   result = uv_timer_stop(&timer->timer);
   if (result < 0) {
 
-    rebrick_log_fatal(__FILE__, __LINE__, "start timer failed:%s\n", uv_strerror(result));
+    rebrick_log_fatal("start timer failed:%s\n", uv_strerror(result));
 
     return REBRICK_ERR_UV + result;
   }
@@ -109,7 +109,7 @@ int32_t rebrick_timer_destroy(rebrick_timer_t *timer) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   // int32_t result;
-  rebrick_log_debug(__FILE__, __LINE__, "timer is destroying\n");
+  rebrick_log_debug("timer is destroying\n");
   if (timer) {
 
     if (timer->is_started) {

@@ -404,7 +404,7 @@ int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
                                     &addrlist, &addrlist_len);
       resolved_type = A;
       if (result) {
-        rebrick_log_fatal(__FILE__, __LINE__, "resolve %s failed:%d\n", ptrlist->data, result);
+        rebrick_log_fatal("resolve %s failed:%d\n", ptrlist->data, result);
       }
     }
   }

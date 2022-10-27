@@ -47,7 +47,7 @@ static void on_error_occured_callback(rebrick_socket_t *socket, void *callback, 
   unused(error);
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_log_debug(__FILE__, __LINE__, "error:%d occured\n", error);
+  rebrick_log_debug("error:%d occured\n", error);
 }
 
 static int32_t is_connected = FALSE;

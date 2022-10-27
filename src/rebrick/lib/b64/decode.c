@@ -43,7 +43,7 @@ b64_decode(const char *src, size_t len) {
   olen = count / 4 * 3;
   pos = out = malloc(olen);
   if (out == NULL) {
-    rebrick_log_fatal(__FILE__, __LINE__, "malloc problem\n");
+    rebrick_log_fatal("malloc problem\n");
     exit(1);
   }
 

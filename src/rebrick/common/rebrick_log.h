@@ -14,10 +14,17 @@ typedef enum {
 } log_level_t;
 
 void rebrick_log_level(log_level_t level);
-void rebrick_log_info(const char *file, int32_t line, const char *fmt, ...);
-void rebrick_log_debug(const char *file, int32_t line, const char *fmt, ...);
-void rebrick_log_fatal(const char *file, int32_t line, const char *fmt, ...);
-void rebrick_log_error(const char *file, int32_t line, const char *fmt, ...);
-void rebrick_log_warn(const char *file, int32_t line, const char *fmt, ...);
+
+void rebrick_log_info2(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_debug2(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_fatal2(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_error2(const char *file, int32_t line, const char *fmt, ...);
+void rebrick_log_warn2(const char *file, int32_t line, const char *fmt, ...);
+
+#define rebrick_log_info(fmt, ...) rebrick_log_info2(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define rebrick_log_debug(fmt, ...) rebrick_log_debug2(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define rebrick_log_fatal(fmt, ...) rebrick_log_fatal2(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define rebrick_log_error(fmt, ...) rebrick_log_error2(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define rebrick_log_warn(fmt, ...) rebrick_log_warn2(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #endif

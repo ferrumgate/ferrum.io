@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "(gdb) Attach",
             "type": "cppdbg",
@@ -20,20 +19,31 @@
                 }
             ]
         },
-
         {
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/dns.router",
+            "program": "${workspaceFolder}/src/ferrum.io",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "LISTEN_PORT","value": "9090"},
-                {"name": "LISTEN_FAMILY","value": "IPV4"},
-                {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],
+            "environment": [
+                {
+                    "name": "LISTEN_PORT",
+                    "value": "9090"
+                },
+                {
+                    "name": "LISTEN_FAMILY",
+                    "value": "IPV4"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/external/libs/lib"
+                }
+            ],
             "additionalSOLibSearchPath": "${workspaceFolder}/external/libs/lib",
-            "externalConsole": true,
+            "externalConsole": false,
+            "miDebuggerPath": "${workspaceFolder}/sudo.gdb.sh",
             "MIMode": "gdb",
             "preLaunchTask": "buildprod",
             "setupCommands": [
@@ -48,13 +58,24 @@
             "name": "(gdb) Launch Test",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/test/test",
+            "program": "${workspaceFolder}/test/ferrum.io.test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test",
-            "environment": [{"name": "LISTEN_PORT","value": "9090"},
-                {"name": "LISTEN_FAMILY","value": "IPV4_IPV6"},
-                {"name":"LD_LIBRARY_PATH","value": "${workspaceFolder}/external/libs/lib"}],
+            "environment": [
+                {
+                    "name": "LISTEN_PORT",
+                    "value": "9090"
+                },
+                {
+                    "name": "LISTEN_FAMILY",
+                    "value": "IPV4_IPV6"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/external/libs/lib"
+                }
+            ],
             "externalConsole": false,
             "additionalSOLibSearchPath": "${workspaceFolder}/external/libs/lib",
             "MIMode": "gdb",
@@ -67,8 +88,5 @@
                 }
             ]
         }
-
-
-
     ]
 }

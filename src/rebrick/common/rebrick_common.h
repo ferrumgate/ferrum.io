@@ -93,12 +93,12 @@
 
 #define new1(x) rebrick_malloc(sizeof(x))
 
-#define constructor(x, y)                                      \
-  if (!x) {                                                    \
-    rebrick_log_fatal(__FILE__, __LINE__, "malloc problem\n"); \
-    exit(1);                                                   \
-  }                                                            \
-  fill_zero(x, sizeof(y));                                     \
+#define constructor(x, y)                  \
+  if (!x) {                                \
+    rebrick_log_fatal("malloc problem\n"); \
+    exit(1);                               \
+  }                                        \
+  fill_zero(x, sizeof(y));                 \
   strncpy(x->type_name, #y, REBRICK_STRUCT_NAME_LEN - 1);
 
 #define new2(y, x)          \
@@ -112,10 +112,10 @@
 #define const_cast(x, y) ((y)(x))
 
 #define unused(x) (void)(x)
-#define if_is_null_then_die(x, y)             \
-  if (!x) {                                   \
-    rebrick_log_fatal(__FILE__, __LINE__, y); \
-    exit(1);                                  \
+#define if_is_null_then_die(x, y) \
+  if (!x) {                       \
+    rebrick_log_fatal(y);         \
+    exit(1);                      \
   }
 
 /**

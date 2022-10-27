@@ -77,7 +77,7 @@ static int32_t flush_ssl_buffers(rebrick_tlssocket_t *tlssocket) {
   int32_t result;
   int32_t n;
   if (!tlssocket || !tlssocket->tls) {
-    rebrick_log_fatal(__FILE__, __LINE__, "socket tls is null\n");
+    rebrick_log_fatal("socket tls is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -121,29 +121,29 @@ static int32_t check_ssl_status(rebrick_tlssocket_t *tlssocket, int32_t n) {
   enum sslstatus status;
   // char buftemp[BUF_SIZE] = {0};
   if (!tlssocket || !tlssocket->tls) {
-    rebrick_log_fatal(__FILE__, __LINE__, "socket tls is null\n");
+    rebrick_log_fatal("socket tls is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
   status = get_sslstatus(tlssocket->tls->ssl, n);
 
   if (status == SSLSTATUS_WANT_READ) {
-    rebrick_log_debug(__FILE__, __LINE__, "ssl want read\n");
+    rebrick_log_debug("ssl want read\n");
     n = flush_ssl_buffers(tlssocket);
     if (n < 0)
       return n;
   }
   if (status == SSLSTATUS_WANT_WRITE) {
-    rebrick_log_debug(__FILE__, __LINE__, "ssl want write\n");
+    rebrick_log_debug("ssl want write\n");
     return REBRICK_ERR_TLS_ERR;
   }
   if (status == SSLSTATUS_CLOSED) {
 
-    rebrick_log_error(__FILE__, __LINE__, "ssl closed\n");
+    rebrick_log_error("ssl closed\n");
     return REBRICK_ERR_TLS_CLOSED;
   }
   if (status == SSLSTATUS_FAIL) {
-    rebrick_log_info(__FILE__, __LINE__, "ssl failed\n");
+    rebrick_log_info("ssl failed\n");
     return REBRICK_ERR_TLS_ERR;
   }
 
@@ -162,7 +162,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket) {
 
     int32_t result;
 
-    rebrick_log_debug(__FILE__, __LINE__, "pending read list try to send\n");
+    rebrick_log_debug("pending read list try to send\n");
 
     size_t len = 0;
     int32_t error_occured = 0;
@@ -178,7 +178,7 @@ void flush_buffers(struct rebrick_tlssocket *tlssocket) {
         result = check_ssl_status(tlssocket, n);
 
         if (result == REBRICK_ERR_TLS_ERR || result == REBRICK_ERR_TLS_CLOSED) {
-          rebrick_log_error(__FILE__, __LINE__, "tls failed with %d\n", result);
+          rebrick_log_error("tls failed with %d\n", result);
 
           error_occured = 1;
           rebrick_free(tmpbuffer);
@@ -251,7 +251,7 @@ static int32_t ssl_handshake(rebrick_tlssocket_t *tlssocket) {
   // char buftemp[BUF_SIZE];
 
   if (!tlssocket && !tlssocket->tls) {
-    rebrick_log_fatal(__FILE__, __LINE__, "socket tls is null\n");
+    rebrick_log_fatal("socket tls is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -301,7 +301,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
   rebrick_tlssocket_t *tlsserver = cast_to_tlssocket(serversocket);
 
   if (!tlsserver) {
-    rebrick_log_fatal(__FILE__, __LINE__, "callback_data casting is null\n");
+    rebrick_log_fatal("callback_data casting is null\n");
     return;
   }
 
@@ -325,7 +325,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
     if (tlsserver->is_server)
       rebrick_tlssocket_destroy(tlsclient);
     client_handle = NULL;
-    rebrick_log_fatal(__FILE__, __LINE__, "ssl new failed for %s\n", tlsserver->tls_context->key);
+    rebrick_log_fatal("ssl new failed for %s\n", tlsserver->tls_context->key);
     if (tlsserver->override_on_error)
       tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, result);
     return;
@@ -358,7 +358,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
       if (tlsserver->is_server)
         rebrick_tlssocket_destroy(tlsclient);
       client_handle = NULL;
-      rebrick_log_fatal(__FILE__, __LINE__, "connection accepted failed with error:%d\n", status);
+      rebrick_log_fatal("connection accepted failed with error:%d\n", status);
       if (tlsserver->override_on_error)
         tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
       return;
@@ -374,7 +374,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
         rebrick_tlssocket_destroy(tlsclient);
       client_handle = NULL;
       status = REBRICK_ERR_TLS_INIT;
-      rebrick_log_fatal(__FILE__, __LINE__, "connection accepted failed with error:%d\n", status);
+      rebrick_log_fatal("connection accepted failed with error:%d\n", status);
       if (tlsserver->override_on_error)
         tlsserver->override_on_error(cast_to_socket(tlsserver), tlsserver->override_callback_data, status);
       return;
@@ -394,7 +394,7 @@ static void local_on_connection_close_callback(rebrick_socket_t *socket, void *c
   rebrick_tlssocket_t *tlssocket = cast_to_tlssocket(socket);
 
   if (!tlssocket) {
-    rebrick_log_fatal(__FILE__, __LINE__, "callback_data casting is null\n");
+    rebrick_log_fatal("callback_data casting is null\n");
     return;
   }
   rebrick_after_io_list_remove(tlssocket);
@@ -436,7 +436,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
   char buftemp[4096];
   if (!tlssocket) {
-    rebrick_log_fatal(__FILE__, __LINE__, "callback_data casting is null\n");
+    rebrick_log_fatal("callback_data casting is null\n");
     return;
   }
 
@@ -449,7 +449,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
       if (BIO_should_retry(tlssocket->tls->read)) {
         continue;
       }
-      rebrick_log_error(__FILE__, __LINE__, "ssl bio write failed\n");
+      rebrick_log_error("ssl bio write failed\n");
       rebrick_buffers_destroy(readedbuffer);
       if (tlssocket->override_on_error)
         tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, REBRICK_ERR_TLS_WRITE);
@@ -475,7 +475,7 @@ static void local_after_data_received_callback(rebrick_socket_t *socket, void *c
 
     if (status == REBRICK_ERR_TLS_ERR || status == REBRICK_ERR_TLS_CLOSED) {
       if (status != REBRICK_ERR_TLS_CLOSED)
-        rebrick_log_error(__FILE__, __LINE__, "ssl status failed %d:%d\n", n, status);
+        rebrick_log_error("ssl status failed %d:%d\n", n, status);
       rebrick_buffers_destroy(readedbuffer);
       if (tlssocket->override_on_error)
         tlssocket->override_on_error(cast_to_socket(tlssocket), tlssocket->override_callback_data, status);
@@ -508,7 +508,7 @@ static void local_on_data_sended_callback(rebrick_socket_t *socket, void *callba
 
   rebrick_tlssocket_t *tlssocket = cast_to_tlssocket(socket);
   if (!tlssocket) {
-    rebrick_log_fatal(__FILE__, __LINE__, "callback_data casting is null\n");
+    rebrick_log_fatal("callback_data casting is null\n");
     return;
   }
 
@@ -554,22 +554,22 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
   else {
     result = rebrick_tls_context_get(REBRICK_TLS_CONTEXT_SNI, &sni_context);
     if (result < 0) {
-      rebrick_log_fatal(__FILE__, __LINE__, "sni tls context not found\n");
+      rebrick_log_fatal("sni tls context not found\n");
       return result;
     }
   }
 
   if (!sni_context) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls context is null\n");
+    rebrick_log_fatal("tls context is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
   if (rebrick_tls_context_is_server(sni_context) && !backlog_or_isclient) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls context is server but backlog_or_isclient parameter is 0\n");
+    rebrick_log_fatal("tls context is server but backlog_or_isclient parameter is 0\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
   if (!rebrick_tls_context_is_server(sni_context) && backlog_or_isclient) {
-    rebrick_log_fatal(__FILE__, __LINE__, "tls context is client but backlog_or_isclient parameter is server > 0\n");
+    rebrick_log_fatal("tls context is client but backlog_or_isclient parameter is server > 0\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
@@ -601,7 +601,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
   result = rebrick_tcpsocket_init(cast_to_tcpsocket(tlssocket), bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks);
   if (result) {
     int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
-    rebrick_log_fatal(__FILE__, __LINE__, "tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
+    rebrick_log_fatal("tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
     return result;
   }
 
@@ -626,7 +626,7 @@ int32_t rebrick_tlssocket_new(rebrick_tlssocket_t **socket,
   result = rebrick_tlssocket_init(tlssocket, sni_pattern_or_name, tlscontext, bind_addr, peer_addr, backlog_or_isclient, local_create_client, callbacks);
   if (result < 0) {
     rebrick_free(tlssocket);
-    rebrick_log_error(__FILE__, __LINE__, "tls socket init failed with:%d\n", result);
+    rebrick_log_error("tls socket init failed with:%d\n", result);
     return result;
   }
 
@@ -705,7 +705,7 @@ int32_t rebrick_tlssocket_write(rebrick_tlssocket_t *socket, uint8_t *buffer, si
       DL_APPEND(socket->pending_write_list, data);
       break;
     } else if (result == REBRICK_ERR_TLS_ERR || result == REBRICK_ERR_TLS_CLOSED) {
-      rebrick_log_error(__FILE__, __LINE__, "tls failed\n");
+      rebrick_log_error("tls failed\n");
       rebrick_buffers_destroy(buffertmp);
       return result;
     }
@@ -745,14 +745,14 @@ int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char
   int32_t result;
   unused(result);
   if (!socket || !servername) {
-    rebrick_log_error(__FILE__, __LINE__, "socket or servername is null\n");
+    rebrick_log_error("socket or servername is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }
 
   rebrick_tls_context_t *context;
   result = rebrick_tls_context_search(servername, &context);
   if (result < 0) {
-    rebrick_log_error(__FILE__, __LINE__, "error at finding context for servername:%s\n ", servername);
+    rebrick_log_error("error at finding context for servername:%s\n ", servername);
     context = cast(socket->tls_context, rebrick_tls_context_t *);
     if (!context)
       return result;

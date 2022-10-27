@@ -5,7 +5,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   constructor(tmp, ferrum_config_t);
 
   rebrick_util_gethostname(tmp->hostname);
-  ferrum_log_warn(__FILE__, __LINE__, "hostname is %s\n", tmp->hostname);
+  ferrum_log_warn("hostname is %s\n", tmp->hostname);
 
   /////////////////////// fill redis server   ///////////////////
 
@@ -14,14 +14,14 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   uv_os_getenv("REDIS_HOST", redis_host, &redis_host_size);
 
   if (redis_host[0]) {
-    rebrick_log_warn(__FILE__, __LINE__, "environment variable REDIS_HOST %s\n", redis_host);
+    rebrick_log_warn("environment variable REDIS_HOST %s\n", redis_host);
     strncpy(tmp->redis.host, redis_host, REBRICK_HOST_STR_LEN);
   } else
     strncpy(tmp->redis.host, "localhost", REBRICK_HOST_STR_LEN);
 
   int32_t result = rebrick_util_resolve_sync(tmp->redis.host, &tmp->redis.addr, 6379);
   if (result) {
-    rebrick_log_fatal(__FILE__, __LINE__, "%s resolution failed with error:%d\n", tmp->redis.host, result);
+    rebrick_log_fatal("%s resolution failed with error:%d\n", tmp->redis.host, result);
     rebrick_kill_current_process(result);
   }
   rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
@@ -36,7 +36,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   uv_os_getenv("RAW_DESTINATION_HOST", raw_dest_host, &raw_dest_host_size);
 
   if (raw_dest_host[0]) {
-    rebrick_log_warn(__FILE__, __LINE__, "environment variable RAW_DESTINATION_HOST %s\n", raw_dest_host);
+    rebrick_log_warn("environment variable RAW_DESTINATION_HOST %s\n", raw_dest_host);
     strncpy(tmp->raw.dest_host, raw_dest_host, REBRICK_HOST_STR_LEN);
   } else
     strncpy(tmp->raw.dest_host, "localhost", REBRICK_HOST_STR_LEN);
@@ -51,7 +51,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   // resolve it if needs
   result = rebrick_util_resolve_sync(tmp->raw.dest_host, &tmp->raw.dest_tcp_addr, 1111);
   if (result) {
-    rebrick_log_fatal(__FILE__, __LINE__, "%s resolution failed with error:%d\n", tmp->raw.dest_host, result);
+    rebrick_log_fatal("%s resolution failed with error:%d\n", tmp->raw.dest_host, result);
     rebrick_kill_current_process(result);
   }
 
