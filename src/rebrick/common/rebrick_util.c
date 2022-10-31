@@ -321,6 +321,15 @@ int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock, char bu
   return REBRICK_SUCCESS;
 }
 
+int32_t rebrick_util_addr_to_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_IP_PORT_STR_LEN]) {
+  char ip[REBRICK_IP_STR_LEN];
+  char port[REBRICK_PORT_STR_LEN];
+  rebrick_util_addr_to_ip_string(sock, ip);
+  rebrick_util_addr_to_port_string(sock, port);
+  snprintf(buffer, REBRICK_IP_PORT_STR_LEN - 1, "[%s]:[%s]", ip, port);
+  return REBRICK_SUCCESS;
+}
+
 int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip, const char *port) {
 
   if (uv_ip6_addr(ip, atoi(port), cast(&sock->v6, struct sockaddr_in6 *)) < 0) {

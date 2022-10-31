@@ -8,23 +8,25 @@ typedef struct ferrum_config {
   base_object();
   char hostname[FERRUM_HOSTNAME_LEN];
   struct {
-    char host[REBRICK_HOST_STR_LEN];
     rebrick_sockaddr_t addr;
-    char ip[REBRICK_IP_STR_LEN];
-    int32_t port;
+    char addr_str[REBRICK_IP_STR_LEN];
     int32_t servfail_timeout_ms;
   } redis;
 
   struct {
-
-    char dest_host[REBRICK_HOST_STR_LEN];
-    char dest_ip[REBRICK_IP_STR_LEN];
+    char dest_tcp_addr_str[REBRICK_IP_PORT_STR_LEN];
     rebrick_sockaddr_t dest_tcp_addr;
-    int32_t dest_tcp_port;
+    char dest_udp_addr_str[REBRICK_IP_PORT_STR_LEN];
     rebrick_sockaddr_t dest_udp_addr;
-    int32_t dest_udp_port;
+
+    char listen_tcp_addr_str[REBRICK_IP_PORT_STR_LEN];
+    rebrick_sockaddr_t listen_tcp_addr;
+    char listen_udp_addr_str[REBRICK_IP_PORT_STR_LEN];
+    rebrick_sockaddr_t listen_udp_addr;
 
   } raw;
+
+  char service_id[REBRICK_NAME_STR_LEN];
 
 } ferrum_config_t;
 

@@ -334,7 +334,7 @@ int32_t rebrick_httpsocket_init(rebrick_httpsocket_t *httpsocket,
     }
   } else {
 
-    result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
+    result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks), TRUE);
   }
   if (result < 0) {
     rebrick_log_error("http socket creation failed with eror:%d\n", result);

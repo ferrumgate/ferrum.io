@@ -38,7 +38,11 @@
         "limits.h": "c",
         "rebrick_httpsocket.h": "c",
         "ferrum_redis.h": "c",
-        "rebrick_socket.h": "c"
+        "rebrick_socket.h": "c",
+        "ferrum_policy.h": "c",
+        "*.tcc": "c",
+        "limits": "c",
+        "algorithm": "c"
     },
     "editor.formatOnSave": true
 }

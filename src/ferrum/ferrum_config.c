@@ -7,39 +7,37 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   rebrick_util_gethostname(tmp->hostname);
   ferrum_log_warn("hostname is %s\n", tmp->hostname);
 
+  /////////////////////// service id   ///////////////////
+
+  char service_id[REBRICK_MAX_ENV_LEN] = {0};
+  size_t service_id_size = sizeof(service_id);
+  uv_os_getenv("SERVICE_ID", service_id, &service_id_size);
+
   /////////////////////// fill redis server   ///////////////////
 
   char redis_host[REBRICK_MAX_ENV_LEN] = {0};
   size_t redis_host_size = sizeof(redis_host);
   uv_os_getenv("REDIS_HOST", redis_host, &redis_host_size);
 
-  if (redis_host[0]) {
-    rebrick_log_warn("environment variable REDIS_HOST %s\n", redis_host);
-    strncpy(tmp->redis.host, redis_host, REBRICK_HOST_STR_LEN);
-  } else
-    strncpy(tmp->redis.host, "localhost", REBRICK_HOST_STR_LEN);
+  if (!redis_host[0])
+    strncpy(redis_host, "localhost", REBRICK_HOST_STR_LEN);
 
-  int32_t result = rebrick_util_resolve_sync(tmp->redis.host, &tmp->redis.addr, 6379);
+  int32_t result = rebrick_util_resolve_sync(redis_host, &tmp->redis.addr, 6379);
   if (result) {
-    rebrick_log_fatal("%s resolution failed with error:%d\n", tmp->redis.host, result);
+    rebrick_log_fatal("%s resolution failed with error:%d\n", redis_host, result);
     rebrick_kill_current_process(result);
   }
-  rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
-  char rport[REBRICK_PORT_STR_LEN] = {0};
-  rebrick_util_addr_to_port_string(&tmp->redis.addr, rport);
-  tmp->redis.port = atoi(rport);
+
+  rebrick_util_addr_to_string(&tmp->redis.addr, tmp->redis.addr_str);
+  rebrick_log_warn("redis host:port is %s\n", tmp->redis.addr_str);
 
   /////////////////////// listen raw   ///////////////////
-
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};
   size_t raw_dest_host_size = sizeof(raw_dest_host);
   uv_os_getenv("RAW_DESTINATION_HOST", raw_dest_host, &raw_dest_host_size);
 
-  if (raw_dest_host[0]) {
-    rebrick_log_warn("environment variable RAW_DESTINATION_HOST %s\n", raw_dest_host);
-    strncpy(tmp->raw.dest_host, raw_dest_host, REBRICK_HOST_STR_LEN);
-  } else
-    strncpy(tmp->raw.dest_host, "localhost", REBRICK_HOST_STR_LEN);
+  if (!raw_dest_host[0])
+    strncpy(raw_dest_host, "localhost", REBRICK_HOST_STR_LEN);
 
   char raw_dest_tcp_port[REBRICK_MAX_ENV_LEN] = {0};
   size_t raw_dest_tcp_port_size = sizeof(raw_dest_tcp_port);
@@ -49,20 +47,43 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t raw_dest_udp_port_size = sizeof(raw_dest_udp_port);
   uv_os_getenv("RAW_DESTINATION_UDP_PORT", raw_dest_udp_port, &raw_dest_udp_port_size);
   // resolve it if needs
-  result = rebrick_util_resolve_sync(tmp->raw.dest_host, &tmp->raw.dest_tcp_addr, 1111);
-  if (result) {
-    rebrick_log_fatal("%s resolution failed with error:%d\n", tmp->raw.dest_host, result);
-    rebrick_kill_current_process(result);
+  if (raw_dest_tcp_port[0]) {
+    result = rebrick_util_resolve_sync(raw_dest_host, &tmp->raw.dest_tcp_addr, atoi(raw_dest_tcp_port));
+    if (result) {
+      rebrick_log_fatal("%s resolution failed with error:%d\n", raw_dest_host, result);
+      rebrick_kill_current_process(result);
+    }
+    rebrick_util_addr_to_string(&tmp->raw.dest_tcp_addr, tmp->raw.dest_tcp_addr_str);
   }
 
-  rebrick_util_addr_to_ip_string(&tmp->raw.dest_tcp_addr, tmp->raw.dest_ip);
-  if (raw_dest_tcp_port[0]) {
-    tmp->raw.dest_tcp_port = atoi(raw_dest_tcp_port);
-    rebrick_util_ip_port_to_addr(tmp->raw.dest_ip, raw_dest_tcp_port, &tmp->raw.dest_tcp_addr);
-  }
   if (raw_dest_udp_port[0]) {
-    tmp->raw.dest_udp_port = atoi(raw_dest_udp_port);
-    rebrick_util_ip_port_to_addr(tmp->raw.dest_ip, raw_dest_udp_port, &tmp->raw.dest_udp_addr);
+    result = rebrick_util_resolve_sync(raw_dest_host, &tmp->raw.dest_udp_addr, atoi(raw_dest_udp_port));
+    if (result) {
+      rebrick_log_fatal("%s resolution failed with error:%d\n", raw_dest_host, result);
+      rebrick_kill_current_process(result);
+    }
+    rebrick_util_addr_to_string(&tmp->raw.dest_udp_addr, tmp->raw.dest_udp_addr_str);
+  }
+
+  ///
+  char raw_listen_ip[REBRICK_MAX_ENV_LEN] = {0};
+  size_t raw_listen_ip_size = sizeof(raw_listen_ip);
+  uv_os_getenv("RAW_LISTEN_IP", raw_listen_ip, &raw_listen_ip_size);
+
+  if (raw_dest_tcp_port[0]) {
+    char raw_listen_tcp_port[REBRICK_MAX_ENV_LEN] = {0};
+    size_t raw_listen_tcp_port_size = sizeof(raw_listen_tcp_port);
+    uv_os_getenv("RAW_LISTEN_TCP_PORT", raw_listen_tcp_port, &raw_listen_tcp_port_size);
+    rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_tcp_port[0] ? raw_listen_tcp_port : raw_dest_tcp_port, &tmp->raw.listen_tcp_addr);
+    rebrick_util_addr_to_string(&tmp->raw.listen_tcp_addr, tmp->raw.listen_tcp_addr_str);
+  }
+
+  if (raw_dest_udp_port[0]) {
+    char raw_listen_udp_port[REBRICK_MAX_ENV_LEN] = {0};
+    size_t raw_listen_udp_port_size = sizeof(raw_listen_udp_port);
+    uv_os_getenv("RAW_LISTEN_UDP_PORT", raw_listen_udp_port, &raw_listen_udp_port_size);
+    rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_udp_port[0] ? raw_listen_udp_port : raw_dest_udp_port, &tmp->raw.listen_udp_addr);
+    rebrick_util_addr_to_string(&tmp->raw.listen_udp_addr, tmp->raw.listen_udp_addr_str);
   }
 
   *config = tmp;

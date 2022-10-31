@@ -119,6 +119,16 @@ int32_t rebrick_util_addr_to_ip_string(const rebrick_sockaddr_t *sock, char buff
 int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_PORT_STR_LEN]);
 
 /**
+ * @brief converts @see rebrick_sockaddr_t to string
+ *
+ * @param sock
+ * @param buffer
+ * @param len
+ * @return int32_t
+ */
+int32_t rebrick_util_addr_to_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_IP_PORT_STR_LEN]);
+
+/**
  * @brief convert a ip stirng and port to @rebrick_sockaddr_t
  *
  * @param sock

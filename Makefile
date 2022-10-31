@@ -20,7 +20,7 @@ OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_log.o ./
 		 ./rebrick/lib/b64/encode.o ./rebrick/lib/picohttpparser.o   \
 		  ./rebrick/file/rebrick_filestream.o ./rebrick/netfilter/rebrick_conntrack.o
 
-OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o 
+OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o  ./ferrum/ferrum_policy.o
 
 
 OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o ./rebrick/test_rebrick_util.o ./rebrick/test_rebrick_resolve.o \

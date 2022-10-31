@@ -9,4 +9,7 @@ hping3 -I lo -c 3 -S 127.0.0.1 -p 9595
 nc -v localhost 9191
 #nc echo server
 ncat -v -l -p 5555 -c 'while true; do read i && echo [echo] $i; done'
-echo hamza | nc -v localhost 9191
+echo ferrum | nc -v localhost 9191
+
+### compiler unused problem short fix
+__attribute__((unused)) 

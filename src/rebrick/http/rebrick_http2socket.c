@@ -691,7 +691,7 @@ int32_t rebrick_http2socket_init(rebrick_http2socket_t *httpsocket, const char *
       // result|=rebrick_tls_context_set_npn_protos(tls,REBRICK_HTTP2_ALPN_PROTO,REBRIKC_HTTP2_ALPN_PROTO_LEN,rebrick_tls_alpn_select_callback);
     }
   } else {
-    result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks));
+    result = rebrick_tcpsocket_init(cast_to_tcpsocket(httpsocket), bind_addr, peer_addr, backlog_or_isclient, create_client, cast_to_tcpsocket_callbacks(&local_callbacks), TRUE);
   }
   if (result < 0) {
     rebrick_log_error("http2 socket creation failed with error:%d\n", result);

@@ -1,6 +1,7 @@
 #include "ferrum/ferrum.h"
 #include "ferrum/ferrum_redis.h"
 #include "ferrum/ferrum_config.h"
+#include "ferrum/ferrum_raw.h"
 
 // compiler unused function problem
 static const void *nouse = redisLibuvAttach;
@@ -9,14 +10,6 @@ void close_cb(uv_handle_t *handle) {
   unused(handle);
   unused(nouse);
   uv_stop(uv_default_loop());
-}
-
-static void on_data_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len) {
-  unused(addr);
-  unused(socket);
-  new2(rebrick_conntrack_t, track);
-
-  rebrick_conntrack_get(addr, &socket->bind_addr.base, 0, &track);
 }
 
 void signal_cb(uv_signal_t *handle, int signum) {
@@ -30,8 +23,31 @@ void signal_cb(uv_signal_t *handle, int signum) {
   ferrum_log_warn("ctrl+break detected, shutting down\n");
   uv_close(cast(handle, uv_handle_t *), close_cb);
 }
+static void set_log_level() {
+  char log_level[REBRICK_MAX_ENV_LEN] = {0};
+  size_t log_level_size = sizeof(log_level);
+  uv_os_getenv("LOG_LEVEL", log_level, &log_level_size);
+  log_level_t level = REBRICK_LOG_ERROR;
+  if (!strcmp(log_level, "OFF"))
+    level = REBRICK_LOG_OFF;
+  if (!strcmp(log_level, "FATAL"))
+    level = REBRICK_LOG_FATAL;
+  if (!strcmp(log_level, "ERROR"))
+    level = REBRICK_LOG_ERROR;
+  if (!strcmp(log_level, "WARN"))
+    level = REBRICK_LOG_WARN;
+  if (!strcmp(log_level, "INFO"))
+    level = REBRICK_LOG_INFO;
+  if (!strcmp(log_level, "DEBUG"))
+    level = REBRICK_LOG_DEBUG;
+  if (!strcmp(log_level, "ALL"))
+    level = REBRICK_LOG_ALL;
+  // set log level
+  rebrick_log_level(level);
+}
 
 int main() {
+  set_log_level();
   ferrum_log_warn("current version: %s\n", FERRUM_VERSION);
   int32_t result;
 
@@ -41,15 +57,15 @@ int main() {
     ferrum_log_fatal("config create failed:%d\n", result);
     rebrick_kill_current_process(result);
   }
-  if (config->raw.dest_tcp_port || config->raw.dest_udp_port) {
-  }
 
-  rebrick_udpsocket_t *udp = NULL;
-  rebrick_sockaddr_t addr;
-  rebrick_util_ip_port_to_addr("192.168.88.10", "9090", &addr);
-  new2(rebrick_udpsocket_callbacks_t, callbacks);
-  callbacks.on_read = on_data_received;
-  result = rebrick_udpsocket_new(&udp, &addr, &callbacks);
+  if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
+    ferrum_raw_t *raw;
+    result = ferrum_raw_new(&raw, config);
+    if (result) {
+      ferrum_log_fatal("raw create failed:%d\n", result);
+      rebrick_kill_current_process(result);
+    }
+  }
 
   // capture ctrl+c
   uv_signal_t ctrl_c;

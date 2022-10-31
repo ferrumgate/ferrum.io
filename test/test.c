@@ -26,9 +26,6 @@ extern int test_ferrum_config();
 int main() {
   fprintf(stdout, "starting test\n");
 
-  if (test_rebrick_conntrack()) {
-    exit(1);
-  }
   /*    if (test_rebrick_filestream())
       exit(1);
 
@@ -76,9 +73,12 @@ int main() {
     getchar(); */
 
   // ferrum tests
-
-  if (test_ferrum_redis())
-    exit(1);
+  /*   if (test_rebrick_udpsocket())
+      exit(1);
+    if (test_rebrick_tcpsocket())
+      exit(1);
+    if (test_ferrum_redis())
+      exit(1); */
   if (test_ferrum_config())
     exit(1);
 

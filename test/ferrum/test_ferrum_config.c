@@ -49,9 +49,20 @@ static void ferrum_config_object_redis_ip_port() {
   assert_true(result >= 0);
   assert_non_null(config);
 
-  assert_true(strcmp(config->redis.ip, "127.0.0.1") || strcmp(config->redis.ip, "::1"));
-  assert_int_equal(config->redis.port, 1234);
+  assert_true(strcmp(config->redis.addr_str, "[127.0.0.1]:[1234]") == 0 || strcmp(config->redis.addr_str, "[::1]:[1234]") == 0);
 
+  ferrum_config_destroy(config);
+}
+
+static void ferrum_config_object_service_id() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("SERVICE_ID", "1231as", 1);
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_true(strcmp(config->service_id, "1231as"));
   ferrum_config_destroy(config);
 }
 
@@ -61,15 +72,24 @@ static void ferrum_config_object_raw() {
   setenv("RAW_DESTINATION_HOST", "localhost", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "9090", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "8080", 1);
+  setenv("RAW_LISTEN_IP", "192.168.91.91", 1);
+  setenv("RAW_LISTEN_TCP_PORT", "9191", 1);
+  setenv("RAW_LISTEN_UDP_PORT", "9292", 1);
+
   result = ferrum_config_new(&config);
   assert_true(result >= 0);
   assert_non_null(config);
 
-  assert_true(strcmp(config->raw.dest_ip, "127.0.0.1") || strcmp(config->raw.dest_ip, "::1"));
-  assert_int_equal(config->raw.dest_tcp_port, 9090);
-  assert_int_equal(config->raw.dest_udp_port, 8080);
-  assert_int_equal(config->raw.dest_tcp_addr.v4.sin_port, ntohs(9090));
-  assert_int_equal(config->raw.dest_udp_addr.v4.sin_port, ntohs(8080));
+  assert_true(strcmp(config->raw.dest_tcp_addr_str, "[127.0.0.1]:[9090]") == 0 || strcmp(config->raw.dest_tcp_addr_str, "[::1]:[9090]") == 0);
+
+  assert_int_equal(config->raw.dest_tcp_addr.v4.sin_port, htons(9090));
+  assert_int_equal(config->raw.dest_udp_addr.v4.sin_port, htons(8080));
+
+  assert_string_equal(config->raw.listen_tcp_addr_str, "[192.168.91.91]:[9191]");
+  assert_string_equal(config->raw.listen_udp_addr_str, "[192.168.91.91]:[9292]");
+  assert_int_equal(config->raw.listen_tcp_addr.v4.sin_port, htons(9191));
+  assert_int_equal(config->raw.listen_udp_addr.v4.sin_port, htons(9292));
+
   ferrum_config_destroy(config);
 }
 

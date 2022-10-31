@@ -598,7 +598,7 @@ int32_t rebrick_tlssocket_init(rebrick_tlssocket_t *tlssocket,
 
   // this is OOP inheritance with c
   // base class init function call.
-  result = rebrick_tcpsocket_init(cast_to_tcpsocket(tlssocket), bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks);
+  result = rebrick_tcpsocket_init(cast_to_tcpsocket(tlssocket), bind_addr, peer_addr, backlog_or_isclient, create_client, &local_callbacks, TRUE);
   if (result) {
     int32_t uv_err = HAS_UV_ERR(result) ? UV_ERR(result) : 0;
     rebrick_log_fatal("tcpsocket create failed with result:%d %s\n", result, uv_strerror(uv_err));
