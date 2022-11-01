@@ -43,6 +43,7 @@ typedef struct ferrum_raw {
 
   private_ int32_t socket_count;
   private_ int32_t is_destroy_started;
+  private_ rebrick_timer_t *udp_tracker;
   struct {
     private_ rebrick_tcpsocket_t *tcp;
     private_ rebrick_sockaddr_t tcp_listening_addr;

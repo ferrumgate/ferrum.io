@@ -179,7 +179,7 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket) {
     uv_handle_t *handle = cast(&socket->handle.udp, uv_handle_t *);
     if (!uv_is_closing(handle)) {
 
-      rebrick_log_info("closing connection %s port:%s\n", socket->peer_ip, socket->peer_port);
+      rebrick_log_info("closing connection %s port:%s\n", socket->bind_ip, socket->bind_port);
       uv_close(handle, on_close);
     }
   }

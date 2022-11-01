@@ -460,6 +460,23 @@ static void on_udp_server_close(rebrick_socket_t *socket, void *callbackdata) {
     rebrick_free(raw);
 }
 
+int32_t udp_tracker_callback_t(void *callbackdata) {
+  rebrick_log_debug("udp tracking called\n");
+  ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
+  ferrum_raw_udpsocket_pair_t *el, *tmp;
+  int64_t now = rebrick_util_micro_time();
+  HASH_ITER(hh, raw->udp_socket_pairs, el, tmp) {
+    // TODO make this fastest last used first
+    if (now - el->last_used >= 10000) {
+      rebrick_log_debug("destroying udp socket\n");
+      HASH_DEL(raw->udp_socket_pairs, el);
+      rebrick_udpsocket_destroy(el->udp_socket);
+      rebrick_free(el);
+    }
+  }
+  return FERRUM_SUCCESS;
+}
+
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
                        const ferrum_policy_t *policy, rebrick_conntrack_get_func_t conntrack) {
 
@@ -510,6 +527,12 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   tmp->config = config;
   tmp->conntrack_get = conntrack;
   tmp->policy = policy;
+  result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 10 * 1000, TRUE);
+  if (result) {
+    ferrum_log_fatal("creating udp tracker timer failed with error:%d\n", result);
+    ferrum_raw_destroy(tmp);
+    return result;
+  }
 
   *raw = tmp;
 
@@ -517,6 +540,8 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
 }
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw) {
   if (raw) {
+
+    rebrick_timer_destroy(raw->udp_tracker);
     raw->is_destroy_started = TRUE;
     if (!raw->listen.tcp && !raw->listen.udp) {
       rebrick_free(raw);
