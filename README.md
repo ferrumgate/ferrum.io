@@ -45,4 +45,4 @@ conntrack table list
 > conntrack -L|grep 8080
 
 setting mark on conntrack
->iptables -t mangle -A INPUT -p udp --dport 8181 -j CONNMARK --set-mark 4000000000
+>iptables -t mangle -A INPUT -p udp -i enp3s0 -j CONNMARK --set-mark 4000000000

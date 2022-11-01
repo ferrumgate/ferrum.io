@@ -42,7 +42,10 @@
         "ferrum_policy.h": "c",
         "*.tcc": "c",
         "limits": "c",
-        "algorithm": "c"
+        "algorithm": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
     },
     "editor.formatOnSave": true
 }

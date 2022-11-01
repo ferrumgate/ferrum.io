@@ -49,6 +49,10 @@
                     "value": "80"
                 },
                 {
+                    "name": "RAW_DESTINATION_UDP_PORT",
+                    "value": "5555"
+                },
+                {
                     "name": "RAW_LISTEN_IP",
                     "value": "192.168.88.10"
                 },
@@ -58,7 +62,7 @@
                 },
                 {
                     "name": "RAW_LISTEN_UDP_PORT",
-                    "value": "82828"
+                    "value": "8888"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",

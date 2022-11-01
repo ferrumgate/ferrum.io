@@ -1,5 +1,6 @@
 #include "./ferrum/ferrum_raw.h"
 #include "../rebrick/server_client/tcpecho.h"
+#include "../rebrick/server_client/udpecho.h"
 #include "cmocka.h"
 #include <unistd.h>
 
@@ -267,12 +268,193 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   loop(counter, 200, TRUE);
 }
 
+static int32_t received_dns_count = 0;
+static void on_dnsclient_received(rebrick_socket_t *socket, void *data, const struct sockaddr *addr, const uint8_t *buffer, ssize_t len) {
+  unused(addr);
+  unused(socket);
+  unused(data);
+  unused(buffer);
+  unused(len);
+
+  received_dns_count++;
+}
+
+static void ferrum_raw_udp(void **start) {
+  unused(start);
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  int32_t counter;
+  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
+  setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
+  setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  ferrum_policy_t *policy;
+  result = ferrum_policy_new(&policy);
+
+  ferrum_raw_t *raw;
+  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  loop(counter, 100, TRUE);
+
+  // read a sample dns packet
+  char *testdata;
+  size_t datalen;
+
+  rebrick_udpsocket_t *client;
+  rebrick_sockaddr_t dest;
+  rebrick_util_ip_port_to_addr("127.0.0.1", "8888", &dest);
+  new2(rebrick_udpsocket_callbacks_t, callback);
+  callback.on_read = on_dnsclient_received;
+  received_dns_count = 0;
+  rebrick_sockaddr_t bindaddr;
+  rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
+  rebrick_udpsocket_new(&client, &bindaddr, &callback);
+  loop(counter, 1000, TRUE);
+
+  result = rebrick_util_file_read_allbytes("../test/rebrick/testdata/testpacket1.packet", &testdata, &datalen);
+  if (result)
+    result = rebrick_util_file_read_allbytes("../rebrick/testdata/testpacket1.packet", &testdata, &datalen);
+  assert_int_equal(datalen, 37);
+  new2(rebrick_clean_func_t, clean_func);
+
+  rebrick_udpsocket_write(client, &dest, (uint8_t *)testdata, datalen, clean_func);
+  loop(counter, 10000, !received_dns_count);
+  assert_int_equal(received_dns_count, 1);
+  rebrick_udpsocket_destroy(client);
+  loop(counter, 100, TRUE);
+  ferrum_raw_destroy(raw);
+  loop(counter, 100, TRUE);
+  ferrum_config_destroy(config);
+  loop(counter, 100, TRUE);
+  ferrum_policy_destroy(policy);
+  rebrick_free(testdata);
+}
+
+static void ferrum_raw_udp_disconnected_client(void **start) {
+  unused(start);
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  int32_t counter;
+  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
+  setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
+  setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  ferrum_policy_t *policy;
+  result = ferrum_policy_new(&policy);
+
+  ferrum_raw_t *raw;
+  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  loop(counter, 100, TRUE);
+
+  // read a sample dns packet
+  char *testdata;
+  size_t datalen;
+
+  rebrick_udpsocket_t *client;
+  rebrick_sockaddr_t dest;
+  rebrick_util_ip_port_to_addr("127.0.0.1", "8888", &dest);
+  new2(rebrick_udpsocket_callbacks_t, callback);
+  callback.on_read = on_dnsclient_received;
+  received_dns_count = 0;
+  rebrick_sockaddr_t bindaddr;
+  rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
+  rebrick_udpsocket_new(&client, &bindaddr, &callback);
+  loop(counter, 1000, TRUE);
+
+  result = rebrick_util_file_read_allbytes("../test/rebrick/testdata/testpacket1.packet", &testdata, &datalen);
+  if (result)
+    result = rebrick_util_file_read_allbytes("../rebrick/testdata/testpacket1.packet", &testdata, &datalen);
+  assert_int_equal(datalen, 37);
+  new2(rebrick_clean_func_t, clean_func);
+
+  rebrick_udpsocket_write(client, &dest, (uint8_t *)testdata, datalen, clean_func);
+  loop(counter, 1, TRUE); // dont wait
+
+  rebrick_udpsocket_destroy(client);
+  loop(counter, 100, TRUE);
+  ferrum_raw_destroy(raw);
+  loop(counter, 100, TRUE);
+  ferrum_config_destroy(config);
+  loop(counter, 100, TRUE);
+  ferrum_policy_destroy(policy);
+  rebrick_free(testdata);
+}
+
+int udp_error_occured = 0;
+static void on_udp_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {
+  unused(socket);
+  unused(callbackdata);
+  unused(error);
+  udp_error_occured = 1;
+}
+
+static void ferrum_raw_udp_closed_destination(void **start) {
+  unused(start);
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  int32_t counter;
+  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_UDP_PORT", "9192", 1);
+  setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
+  setenv("RAW_LISTEN_UDP_PORT", "19191", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  ferrum_policy_t *policy;
+  result = ferrum_policy_new(&policy);
+
+  ferrum_raw_t *raw;
+  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  loop(counter, 100, TRUE);
+
+  rebrick_udpsocket_t *client;
+  rebrick_sockaddr_t dest;
+  rebrick_util_ip_port_to_addr("127.0.0.1", "19191", &dest);
+  new2(rebrick_udpsocket_callbacks_t, callback);
+  callback.on_read = on_dnsclient_received;
+  callback.on_error = on_udp_error;
+  rebrick_sockaddr_t bind;
+  rebrick_util_ip_port_to_addr("127.0.0.1", "0", &bind);
+  rebrick_udpsocket_new(&client, &bind, &callback);
+  loop(counter, 1000, TRUE);
+  char *hello = "hello";
+  new2(rebrick_clean_func_t, clean_func);
+  received_dns_count = 0;
+  udp_error_occured = 0;
+  rebrick_udpsocket_write(client, &dest, (uint8_t *)hello, strlen(hello), clean_func);
+  loop(counter, 200, TRUE);
+  assert_true(received_dns_count == 0);
+  assert_int_equal(udp_error_occured, FALSE);
+
+  rebrick_udpsocket_destroy(client);
+  loop(counter, 100, TRUE);
+  ferrum_raw_destroy(raw);
+  loop(counter, 100, TRUE);
+  ferrum_config_destroy(config);
+  loop(counter, 100, TRUE);
+  ferrum_policy_destroy(policy);
+}
+
 int test_ferrum_raw(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(ferrum_raw_tcp),
       cmocka_unit_test(ferrum_raw_tcp_destination_unreachable),
       cmocka_unit_test(ferrum_raw_tcp_destination_closed),
       cmocka_unit_test(ferrum_raw_tcp_client_closed),
+      cmocka_unit_test(ferrum_raw_udp),
+      cmocka_unit_test(ferrum_raw_udp_disconnected_client),
+      cmocka_unit_test(ferrum_raw_udp_closed_destination),
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

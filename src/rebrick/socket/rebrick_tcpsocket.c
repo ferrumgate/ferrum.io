@@ -63,17 +63,17 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf) 
 
   const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
 
-  if (nread <= 0) {
+  if (nread < 0) {
     if (socket->on_error) {
       rebrick_log_debug("socket error occured %zd\n", nread);
       socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
     }
-  } else if (socket->on_read) {
+  } else if (socket->on_read && nread) {
     rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
     socket->on_read(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
   }
-
-  rebrick_free(rcvbuf->base);
+  if (rcvbuf->base)
+    rebrick_free(rcvbuf->base);
 }
 
 static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf) {
