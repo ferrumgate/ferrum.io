@@ -58,9 +58,16 @@ int main() {
     rebrick_kill_current_process(result);
   }
 
+  ferrum_policy_t *policy;
+  result = ferrum_policy_new(&policy);
+  if (result) {
+    ferrum_log_fatal("policy create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
   if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
     ferrum_raw_t *raw;
-    result = ferrum_raw_new(&raw, config);
+    result = ferrum_raw_new(&raw, config, policy, rebrick_conntrack_get);
     if (result) {
       ferrum_log_fatal("raw create failed:%d\n", result);
       rebrick_kill_current_process(result);

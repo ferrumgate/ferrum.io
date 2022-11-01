@@ -19,11 +19,15 @@ typedef struct ferrum_raw_socket_pair {
 
   UT_hash_handle hh;
 } ferrum_raw_socket_pair_t;
+
+typedef int32_t (*rebrick_conntrack_get_func_t)(const struct sockaddr *peer, const struct sockaddr *local_addr,
+                                                int istcp, rebrick_conntrack_t *track);
 typedef struct ferrum_raw {
   base_object();
 
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
+  private_ rebrick_conntrack_get_func_t conntrack_get;
 
   struct {
     private_ rebrick_tcpsocket_t *tcp;
@@ -45,7 +49,9 @@ typedef struct ferrum_raw {
 
 } ferrum_raw_t;
 
-int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config);
+int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
+                       const ferrum_policy_t *policy,
+                       rebrick_conntrack_get_func_t conntrack_get);
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw);
 
 #endif

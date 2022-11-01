@@ -23,6 +23,7 @@ extern int test_rebrick_conntrack();
 // ferrum tests
 extern int test_ferrum_redis();
 extern int test_ferrum_config();
+extern int test_ferrum_raw();
 int main() {
   fprintf(stdout, "starting test\n");
 
@@ -78,8 +79,10 @@ int main() {
     if (test_rebrick_tcpsocket())
       exit(1);
     if (test_ferrum_redis())
+      exit(1);
+    if (test_ferrum_config())
       exit(1); */
-  if (test_ferrum_config())
+  if (test_ferrum_raw())
     exit(1);
 
   return 0;

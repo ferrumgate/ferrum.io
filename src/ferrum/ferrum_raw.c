@@ -32,20 +32,21 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
   unused(error);
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
+
+  // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
   ferrum_raw_socket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
-
-  if (error == REBRICK_ERR_UV + UV_EOF) { // client connection closed
-    rebrick_log_info("destination tcp socket closed\n");
-    if (pair) {
-      HASH_DEL(raw->socket_pairs, pair);
-      rebrick_tcpsocket_destroy(pair->source.tcp);
-      rebrick_free(pair);
-    }
-    rebrick_tcpsocket_destroy(tcp);
-  } else {
-    rebrick_log_error("destination socket error occured on socket %d\n", error);
+  rebrick_log_info("destination tcp socket closed\n");
+  if (pair) {
+    HASH_DEL(raw->socket_pairs, pair);
+    rebrick_tcpsocket_destroy(pair->source.tcp);
+    rebrick_free(pair);
   }
+  rebrick_tcpsocket_destroy(tcp);
+  /* } else {
+    int32_t uv_err = HAS_UV_ERR(error) ? UV_ERR(error) : 0;
+    rebrick_log_error("destination socket error occured on socket %s\n", uv_strerror(uv_err));
+  } */
 }
 
 void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
@@ -110,7 +111,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
 
   new2(rebrick_conntrack_t, conntrack);
-  result = rebrick_conntrack_get(addr, &server_socket->bind_addr.base, TRUE, &conntrack);
+  result = raw->conntrack_get(addr, &server_socket->bind_addr.base, TRUE, &conntrack);
   if (result) {
     rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
     // TODO event log
@@ -170,20 +171,22 @@ static void on_tcp_error(rebrick_socket_t *socket, void *callbackdata, int32_t e
   if (tcp->is_server) {
     rebrick_log_error("server socket error occured on socket %d\n", error);
   } else {
+    rebrick_log_error("client socket error %d\n", error);
+    // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
     ferrum_raw_socket_pair_t *pair = NULL;
     HASH_FIND(hh, raw->socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
-
-    if (error == REBRICK_ERR_UV + UV_EOF) { // client connection closed
-      rebrick_log_info("client tcp socket closed\n");
-      if (pair) {
-        HASH_DEL(raw->socket_pairs, pair);
-        rebrick_tcpsocket_destroy(pair->destination.tcp);
-        rebrick_free(pair);
-      }
-      rebrick_tcpsocket_destroy(tcp);
-    } else {
-      rebrick_log_error("client socket error occured on socket %d\n", error);
+    rebrick_log_info("client tcp socket closed\n");
+    if (pair) {
+      rebrick_log_info("delete tcp socket pair\n");
+      HASH_DEL(raw->socket_pairs, pair);
+      rebrick_tcpsocket_destroy(pair->destination.tcp);
+      rebrick_free(pair);
     }
+    rebrick_tcpsocket_destroy(tcp);
+    /*  } else {
+       int32_t uv_err = HAS_UV_ERR(error) ? UV_ERR(error) : 0;
+       rebrick_log_error("client socket error occured on socket %s\n", uv_strerror(uv_err));
+     } */
   }
 }
 static void on_tcp_server_close(rebrick_socket_t *socket, void *callbackdata) {
@@ -197,6 +200,7 @@ static void on_tcp_server_close(rebrick_socket_t *socket, void *callbackdata) {
     rebrick_tcpsocket_destroy(el->destination.tcp);
     rebrick_free(el);
   }
+  rebrick_free(raw);
 }
 
 void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
@@ -236,7 +240,8 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   raw->metrics.connected_clients--;
 }
 
-int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config) {
+int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
+                       const ferrum_policy_t *policy, rebrick_conntrack_get_func_t conntrack) {
 
   ferrum_raw_t *tmp = new1(ferrum_raw_t);
   constructor(tmp, ferrum_raw_t);
@@ -262,6 +267,9 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config) {
     }
     rebrick_log_info("tcp server started at %s\n", config->raw.listen_tcp_addr_str);
   }
+  tmp->config = config;
+  tmp->conntrack_get = conntrack;
+  tmp->policy = policy;
 
   *raw = tmp;
 
@@ -269,8 +277,10 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config) {
 }
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw) {
   if (raw) {
-
-    rebrick_free(raw);
+    if (raw->listen.tcp)
+      rebrick_tcpsocket_destroy(raw->listen.tcp);
+    if (raw->listen.udp)
+      rebrick_udpsocket_destroy(raw->listen.udp);
   }
   return FERRUM_SUCCESS;
 }
