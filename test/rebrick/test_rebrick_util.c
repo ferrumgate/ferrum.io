@@ -137,6 +137,84 @@ static void test_rebrick_resolve_sync() {
   assert_int_equal(ntohs(addr.v4.sin_port), 514);
   assert_int_not_equal(addr.v4.sin_addr.s_addr, 0);
 }
+static void test_rebrick_util_to_int64_t() {
+  int result;
+  int64_t val;
+
+  result = rebrick_util_to_int64_t("0", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 0);
+
+  result = rebrick_util_to_int64_t("-1", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, -1);
+
+  result = rebrick_util_to_int64_t("9223372036854775807", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 9223372036854775807);
+
+  result = rebrick_util_to_int64_t("92233720368547758071", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+
+  result = rebrick_util_to_int64_t("-9223372036854775808", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  // assert_int_equal(val, -9223372036854775808);
+
+  result = rebrick_util_to_int64_t("-92233720368547758081", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+
+  result = rebrick_util_to_int64_t("abc", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+}
+
+static void test_rebrick_util_to_int32_t() {
+  int result;
+  int32_t val;
+
+  result = rebrick_util_to_int32_t("0", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 0);
+
+  result = rebrick_util_to_int32_t("-1", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, -1);
+
+  result = rebrick_util_to_int32_t("2147483647", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 2147483647);
+
+  result = rebrick_util_to_int32_t("9147483647", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+
+  result = rebrick_util_to_int32_t("-2147483648", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, -2147483648);
+
+  result = rebrick_util_to_int32_t("-21474836481", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+}
+
+static void test_rebrick_util_to_uint32_t() {
+  int result;
+  uint32_t val;
+
+  result = rebrick_util_to_uint32_t("0", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 0);
+
+  result = rebrick_util_to_uint32_t("-1", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+
+  result = rebrick_util_to_uint32_t("4294967295", &val);
+  assert_int_equal(result, REBRICK_SUCCESS);
+  assert_int_equal(val, 4294967295);
+
+  result = rebrick_util_to_uint32_t("42949672951", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+
+  result = rebrick_util_to_uint32_t("-21474836481", &val);
+  assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
+}
 
 int test_rebrick_util(void) {
 
@@ -146,6 +224,9 @@ int test_rebrick_util(void) {
       cmocka_unit_test(linked_items_success),
       cmocka_unit_test(test_string_to_rebrick_socket_success),
       cmocka_unit_test(test_rebrick_resolve_sync),
+      cmocka_unit_test(test_rebrick_util_to_int64_t),
+      cmocka_unit_test(test_rebrick_util_to_int32_t),
+      cmocka_unit_test(test_rebrick_util_to_uint32_t),
   };
 
   return cmocka_run_group_tests(tests, setup, teardown);

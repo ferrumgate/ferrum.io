@@ -24,6 +24,7 @@ extern int test_rebrick_conntrack();
 extern int test_ferrum_redis();
 extern int test_ferrum_config();
 extern int test_ferrum_raw();
+extern int test_ferrum_policy();
 int main() {
   fprintf(stdout, "starting test\n");
 
@@ -82,7 +83,10 @@ int main() {
     exit(1);
   if (test_ferrum_config())
     exit(1); */
-  if (test_ferrum_raw())
+  // if (test_ferrum_raw())
+  //   exit(1);
+
+  if (test_ferrum_policy())
     exit(1);
 
   return 0;

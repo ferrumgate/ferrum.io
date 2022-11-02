@@ -190,3 +190,7 @@ int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
  * @brief get current hostname
  */
 int32_t rebrick_util_gethostname(char hostname[REBRICK_HOSTNAME_LEN]);
+
+int32_t rebrick_util_to_int64_t(char *val, int64_t *to);
+int32_t rebrick_util_to_int32_t(char *val, int32_t *to);
+int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to);

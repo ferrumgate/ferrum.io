@@ -9,9 +9,18 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   /////////////////////// service id   ///////////////////
 
-  char service_id[REBRICK_MAX_ENV_LEN] = {0};
-  size_t service_id_size = sizeof(service_id);
-  uv_os_getenv("SERVICE_ID", service_id, &service_id_size);
+  size_t service_id_size = sizeof(tmp->service_id);
+  uv_os_getenv("SERVICE_ID", tmp->service_id, &service_id_size);
+
+  /////////////////////// host id   ///////////////////
+
+  size_t host_id_size = sizeof(tmp->host_id);
+  uv_os_getenv("HOST_ID", tmp->host_id, &host_id_size);
+
+  /////////////////////// instance id   ///////////////////
+
+  size_t instance_id_size = sizeof(tmp->instance_id);
+  uv_os_getenv("INSTANCE_ID", tmp->instance_id, &instance_id_size);
 
   /////////////////////// fill redis server   ///////////////////
 
@@ -30,6 +39,9 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_string(&tmp->redis.addr, tmp->redis.addr_str);
   rebrick_log_warn("redis host:port is %s\n", tmp->redis.addr_str);
+
+  rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
+  rebrick_util_addr_to_port_string(&tmp->redis.addr, tmp->redis.port);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};

@@ -306,7 +306,7 @@ static void redis_object_cmd_sub(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new_sub(&redis, "localhost", 6379, 1000, 1200, debugSub, "ferrum");
+  int32_t result = ferrum_redis_new_sub(&redis, "localhost", 6379, 1000, 1200, debugSub, NULL, "ferrum");
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 1000, TRUE);
 

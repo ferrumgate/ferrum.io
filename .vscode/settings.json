@@ -45,7 +45,10 @@
         "algorithm": "c",
         "array": "c",
         "string": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "atomic": "c",
+        "cstdint": "c",
+        "random": "c"
     },
     "editor.formatOnSave": true
 }

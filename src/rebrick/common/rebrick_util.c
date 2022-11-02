@@ -437,3 +437,40 @@ int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
   rebrick_util_linked_item_destroy(ptrlist);
   return REBRICK_SUCCESS;
 }
+
+int32_t rebrick_util_to_int64_t(char *val, int64_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0LL) || val == endptr) {
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_util_to_int32_t(char *val, int32_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > INT32_MAX || val_int < INT32_MIN)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to) {
+  errno = 0;
+  char *endptr;
+  uint64_t val_int = strtoull(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > UINT32_MAX)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}

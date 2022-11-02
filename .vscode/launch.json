@@ -65,6 +65,18 @@
                     "value": "8888"
                 },
                 {
+                    "name": "HOST_ID",
+                    "value": "gateway1"
+                },
+                {
+                    "name": "SERVICE_ID",
+                    "value": "mysqlservice"
+                },
+                {
+                    "name": "INSTANCE_ID",
+                    "value": "randominstance"
+                },
+                {
                     "name": "LD_LIBRARY_PATH",
                     "value": "${workspaceFolder}/external/libs/lib"
                 }

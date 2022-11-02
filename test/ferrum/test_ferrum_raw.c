@@ -65,7 +65,7 @@ static void ferrum_raw_tcp(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -122,7 +122,7 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -169,7 +169,7 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -228,7 +228,7 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -294,7 +294,7 @@ static void ferrum_raw_udp(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -349,7 +349,7 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
@@ -412,7 +412,7 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   assert_non_null(config);
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
 
   ferrum_raw_t *raw;
   result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);

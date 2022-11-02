@@ -133,7 +133,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     rebrick_tcpsocket_destroy2(cast_to_tcpsocket(client_handle));
     return;
   }
-  if (presult.isBlocked) {
+  if (presult.is_dropped) {
     rebrick_log_debug("tcp connection blocked %s:%s\n", ip_str, port_str);
     // TODO event log
     rebrick_tcpsocket_destroy2(cast_to_tcpsocket(client_handle));
@@ -370,7 +370,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
 
       return;
     }
-    if (presult.isBlocked) {
+    if (presult.is_dropped) {
       rebrick_log_debug("udp connection blocked %s:%s\n", ip_str, port_str);
       // TODO event log
       return;
@@ -418,7 +418,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
 
       return;
     }
-    if (presult.isBlocked) {
+    if (presult.is_dropped) {
       rebrick_log_debug("udp connection blocked %s:%s\n", ip_str, port_str);
       // TODO event log
       return;

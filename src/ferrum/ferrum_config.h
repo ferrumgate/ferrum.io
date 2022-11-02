@@ -7,9 +7,12 @@
 typedef struct ferrum_config {
   base_object();
   char hostname[FERRUM_HOSTNAME_LEN];
+
   struct {
     rebrick_sockaddr_t addr;
     char addr_str[REBRICK_IP_STR_LEN];
+    char ip[REBRICK_IP_STR_LEN];
+    char port[REBRICK_PORT_STR_LEN];
     int32_t servfail_timeout_ms;
   } redis;
 
@@ -25,8 +28,12 @@ typedef struct ferrum_config {
     rebrick_sockaddr_t listen_udp_addr;
 
   } raw;
-
+  // service id
   char service_id[REBRICK_NAME_STR_LEN];
+  // host id or gateway id
+  char host_id[REBRICK_NAME_STR_LEN];
+  // every instance will have diffent instance id when started
+  char instance_id[REBRICK_NAME_STR_LEN];
 
 } ferrum_config_t;
 

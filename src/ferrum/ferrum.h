@@ -14,4 +14,6 @@
 
 #define FERRUM_ERR_REDIS -5000
 
+#define FERRUM_ID_STR_LEN 32
+
 #endif

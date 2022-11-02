@@ -59,7 +59,7 @@ int main() {
   }
 
   ferrum_policy_t *policy;
-  result = ferrum_policy_new(&policy);
+  result = ferrum_policy_new(&policy, config);
   if (result) {
     ferrum_log_fatal("policy create failed:%d\n", result);
     rebrick_kill_current_process(result);

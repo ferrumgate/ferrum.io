@@ -135,13 +135,13 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
 
 int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
                              int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms,
-                             ferrum_redis_callback_t *callback, const char *channel) {
+                             ferrum_redis_callback_t *callback, void *callbackdata, const char *channel) {
   int32_t result = ferrum_redis_new(redis, host, port, check_elapsed_ms, query_timeout_ms);
   if (result)
     return result;
   ferrum_redis_t *tmp = *redis;
   tmp->subscribe.cmd.callback.func = callback;
-  tmp->subscribe.cmd.callback.arg1 = tmp;
+  tmp->subscribe.cmd.callback.arg1 = callbackdata;
   tmp->subscribe.cmd.id = 1;
   tmp->subscribe.cmd.type = 1;
   strncpy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);

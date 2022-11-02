@@ -39,7 +39,7 @@ OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcp
 OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis.o \
 					./ferrum/test_ferrum_config.o ../src/ferrum/ferrum_config.o \
 					./ferrum/test_ferrum_raw.o ../src/ferrum/ferrum_raw.o \
-					../src/ferrum/ferrum_policy.o
+					./ferrum/test_ferrum_policy.o ../src/ferrum/ferrum_policy.o
 
 
 
