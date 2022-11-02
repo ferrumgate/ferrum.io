@@ -33,10 +33,6 @@
                     "value": "ALL"
                 },
                 {
-                    "name": "SERVICE_ID",
-                    "value": "Acseise"
-                },
-                {
                     "name": "REDIS_HOST",
                     "value": "localhost:6379"
                 },
@@ -104,12 +100,48 @@
             "cwd": "${workspaceFolder}/test",
             "environment": [
                 {
-                    "name": "LISTEN_PORT",
-                    "value": "9090"
+                    "name": "LOG_LEVEL",
+                    "value": "ALL"
                 },
                 {
-                    "name": "LISTEN_FAMILY",
-                    "value": "IPV4_IPV6"
+                    "name": "REDIS_HOST",
+                    "value": "localhost:6379"
+                },
+                {
+                    "name": "RAW_DESTINATION_HOST",
+                    "value": "192.168.88.10"
+                },
+                {
+                    "name": "RAW_DESTINATION_TCP_PORT",
+                    "value": "80"
+                },
+                {
+                    "name": "RAW_DESTINATION_UDP_PORT",
+                    "value": "5555"
+                },
+                {
+                    "name": "RAW_LISTEN_IP",
+                    "value": "192.168.88.10"
+                },
+                {
+                    "name": "RAW_LISTEN_TCP_PORT",
+                    "value": "8181"
+                },
+                {
+                    "name": "RAW_LISTEN_UDP_PORT",
+                    "value": "8888"
+                },
+                {
+                    "name": "HOST_ID",
+                    "value": "gateway1"
+                },
+                {
+                    "name": "SERVICE_ID",
+                    "value": "mysqlservice"
+                },
+                {
+                    "name": "INSTANCE_ID",
+                    "value": "randominstance"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",

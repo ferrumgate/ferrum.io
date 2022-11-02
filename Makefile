@@ -75,9 +75,9 @@ buildtest:
 test : $(OBJSTEST_REBRICK) $(OBJSTEST_FERRUM)
 	$(CC) -o ferrum.io.test  $(OBJSTEST_REBRICK) $(OBJSTEST_FERRUM) $(LDFLAGSTEST)
 testrun: test
-	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6 SSLKEYLOGFILE=/home/hframed/ssl-key.log  ./ferrum.io.test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib  SSLKEYLOGFILE=/home/hframed/ssl-key.log  ./ferrum.io.test
 testrunvalgrind: test
-	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib LISTEN_PORT=9090 LISTEN_FAMILY=IPV4_IPV6 valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all   --gen-suppressions=all --suppressions=$(shell pwd)/valgrind.options  ./ferrum.io.test
+	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib  valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all   --gen-suppressions=all --suppressions=$(shell pwd)/valgrind.options  ./ferrum.io.test
 
 
 

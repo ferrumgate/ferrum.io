@@ -9,12 +9,12 @@ static void clear_policy_table(ferrum_policy_t *policy) {
     HASH_DEL(policy->table.rows, el);
     rebrick_free(el);
   }
-  policy->last_command_id = -1; // important
+  policy->last_command_id = 0; // important
 }
 
 int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
                                                   ferrum_policy_replication_message_t *msg) {
-  policy->last_command_id = msg->command_id;
+
   int32_t result;
   if (!strcmp(msg->command, "ok")) {
     // nothing todo this is only alive command
@@ -25,10 +25,13 @@ int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
     ferrum_log_debug("replication reset received\n");
   }
   if (!strcmp(msg->command, "update")) {
+    if (policy->last_command_id + 1 != msg->command_id)
+      return REBRICK_ERR_BAD_ARGUMENT;
     if (!msg->arg1 || !msg->arg2 || !msg->arg3 || !msg->arg4 || !msg->arg5) {
       rebrick_log_error("replication update invalid args\n");
       return REBRICK_ERR_BAD_ARGUMENT;
     }
+
     uint32_t client_id = 0;
     result = rebrick_util_to_uint32_t(msg->arg1, &client_id);
     if (result) {
@@ -69,9 +72,12 @@ int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
     strncpy(el->policy_id, msg->arg5, sizeof(el->policy_id) - 1);
     el->why = why;
     ferrum_log_debug("updated rule %u\n", el->client_id);
+    policy->last_command_id = msg->command_id;
   }
 
   if (!strcmp(msg->command, "delete")) {
+    if (policy->last_command_id + 1 != msg->command_id)
+      return REBRICK_ERR_BAD_ARGUMENT;
     if (!msg->arg1) {
       rebrick_log_error("replication update invalid args\n");
       return REBRICK_ERR_BAD_ARGUMENT;
@@ -88,7 +94,8 @@ int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
       HASH_DEL(policy->table.rows, el);
       rebrick_free(el);
     }
-    ferrum_log_debug("deleted rule %u\n", el->client_id);
+    ferrum_log_debug("deleted rule %u\n", client_id);
+    policy->last_command_id = msg->command_id;
   }
 
   return FERRUM_SUCCESS;
@@ -175,17 +182,20 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
     if (result) { // parse errror
       return;
     }
-    if (msg.command_id <= policy->last_command_id) {
-      rebrick_log_fatal("last command is lower %lld:%lld\n", policy->last_command_id, msg.command_id);
-      redis_send_reset_replication_command(policy);
-      return;
-    }
+
+    // wait reset command if triggered
     if (policy->is_reset_triggered && strcmp(msg.command, "reset")) {
       rebrick_log_fatal("system wait for reset command\n");
       redis_send_reset_replication_command(policy);
 
-    } else
+    } else {
+
       result = ferrum_policy_replication_message_execute(policy, &msg);
+      if (result) {
+        rebrick_log_fatal("msg execute failed %s\n", reply->element[2]->str);
+        redis_send_reset_replication_command(policy);
+      }
+    }
   }
 }
 
@@ -256,6 +266,7 @@ int32_t ferrum_policy_new(ferrum_policy_t **policy, const ferrum_config_t *confi
     ferrum_policy_destroy(tmp);
     return result;
   }
+  ferrum_log_info("connected to redis sub %s\n", tmp->redis_table_channel);
 
   result = rebrick_timer_new(&tmp->table_checker, table_update_check, tmp, 5000, TRUE);
   if (result) {
@@ -275,6 +286,7 @@ int32_t ferrum_policy_destroy(ferrum_policy_t *policy) {
       ferrum_redis_destroy(policy->redis_table);
     if (policy->table_checker)
       rebrick_timer_destroy(policy->table_checker);
+    clear_policy_table(policy);
     rebrick_free(policy);
   }
   return FERRUM_SUCCESS;

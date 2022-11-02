@@ -27,6 +27,7 @@ extern int test_ferrum_raw();
 extern int test_ferrum_policy();
 int main() {
   fprintf(stdout, "starting test\n");
+  rebrick_log_level(REBRICK_LOG_ALL);
 
   /*    if (test_rebrick_filestream())
       exit(1);
