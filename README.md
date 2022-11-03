@@ -46,3 +46,9 @@ conntrack table list
 
 setting mark on conntrack
 >iptables -t mangle -A INPUT -p udp -i enp3s0 -j CONNMARK --set-mark 4000000000
+
+## core dump prepare
+
+echo '/var/lib/ferrum/core.%e.%p' | sudo tee /proc/sys/kernel/core_pattern
+/etc/sysctl.d/50-coredump.conf
+kernel.core_pattern=/dev/null

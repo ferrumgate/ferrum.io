@@ -1,4 +1,4 @@
-###  part 1 #######################
+#  part 1 #######################
 FROM debian:11-slim as builder
 
 RUN locale
@@ -17,7 +17,7 @@ RUN ./prepare.libs.sh
 WORKDIR /ferrum.io
 RUN make clean && make
 
-#FROM hamza:latest as builder
+#FROM ferrum.io:latest as builder
 
 FROM debian:11-slim
 RUN locale
@@ -32,6 +32,8 @@ COPY ferrum.io.sh /ferrum.io/
 RUN chmod +x /ferrum.io/ferrum.io.sh
 RUN ls /ferrum.io/external/libs/lib
 CMD [ "/ferrum.io/ferrum.io.sh" ]
+
+
 
 
 

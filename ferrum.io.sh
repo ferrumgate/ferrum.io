@@ -2,8 +2,9 @@
 ulimit -c unlimited
 
 echo "starting server"
-cat /proc/sys/kernel/core_pattern
-mkdir -p /tmp/fast.server/archive
+mkdir -p core
+CORE_FOLDER=$(dirname $(cat /proc/sys/kernel/core_pattern))
+echo $CORE_FOLDER
 
 echo "***************ip address**************"
 ip a
@@ -98,10 +99,11 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     INSTANCE_ID=$OPT_INSTANCE_ID \
     ./src/ferrum.io
 
-if ls /ferrum.io/src/core* 1>/dev/null 2>&1; then
+if ls $CORE_FOLDER/*core* 1>/dev/null 2>&1; then
     folder=$(((RANDOM % 1000000) + 1))
     mkdir -p /var/lib/ferrum/ferrum.io/$folder
     cp -r /ferrum.io/* /var/lib/ferrum/ferrum.io/$folder
+    cp $CORE_FOLDER/*core* /var/lib/ferrum/ferrum.io/$folder
 fi
 
 echo "finished server"
