@@ -60,3 +60,5 @@ bind_data
 core-test-*
 node_modules/
 package-lock.json
+ferrum.io
+ferrum.io.test

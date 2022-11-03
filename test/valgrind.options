@@ -380,3 +380,22 @@
    fun:local_after_data_received_callback
    ...
 }
+{
+   conntrack proble-13
+   Memcheck:Cond
+   fun:rebrick_conntrack_get
+   fun:test_rebrick_conntrack_get
+   ...
+}
+{
+   conntrack proble-14
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:sendto
+   fun:nfnl_send
+   fun:nfnl_query
+   fun:nfct_query
+   fun:rebrick_conntrack_get
+   ...
+}
+

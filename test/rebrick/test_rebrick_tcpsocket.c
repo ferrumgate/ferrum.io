@@ -312,7 +312,7 @@ static void rebrick_tcpsocket_asclient_memory(void **start) {
 
   char *head = "GET / HTTP/1.0\r\n\
 Host: nodejs.org\r\n\
-User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36\r\n\
+User-Agent: ferrum\r\n\
 Accept: text/html\r\n\
 \r\n";
 #define COUNTER 10

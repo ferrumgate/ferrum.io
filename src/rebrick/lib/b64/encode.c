@@ -32,7 +32,7 @@ b64_encode(const unsigned char *src, size_t len) {
     return NULL; /* integer overflow */
   out = malloc(olen);
   if (out == NULL) {
-    rebrick_log_fatal(__FILE__, __LINE__, "malloc problem\n");
+    rebrick_log_fatal("malloc problem\n");
     exit(1);
   }
 

@@ -29,7 +29,7 @@ typedef void (*rebrick_tcpsocket_on_client_close_callback_t)(struct rebrick_sock
 typedef void (*rebrick_tcpsocket_on_connect_callback_t)(struct rebrick_socket *socket, void *callback_data);
 
 /**
- * @brief inheritance yapan sınıflar için kullanılacak child connection create method
+ * @brief for inheritance, child connection create method
  *
  */
 typedef struct rebrick_tcpsocket *(*rebrick_tcpsocket_create_client_t)();
@@ -40,7 +40,8 @@ typedef struct rebrick_tcpsocket *(*rebrick_tcpsocket_create_client_t)();
   private_ rebrick_tcpsocket_on_client_close_callback_t on_client_close;     \
   private_ rebrick_tcpsocket_on_connect_callback_t on_connect;               \
   public_ readonly_ int32_t is_server;                                       \
-  private_ rebrick_tcpsocket_create_client_t create_client;
+  private_ rebrick_tcpsocket_create_client_t create_client;                  \
+  private_ int32_t start_reading_immediately;
 
 public_ typedef struct rebrick_tcpsocket {
   base_tcp_socket();
@@ -77,6 +78,12 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
                               const rebrick_sockaddr_t *peer_addr,
                               int32_t backlog_or_isclient,
                               const rebrick_tcpsocket_callbacks_t *callbacks);
+int32_t rebrick_tcpsocket_new2(rebrick_tcpsocket_t **socket,
+                               const rebrick_sockaddr_t *bind_addr,
+                               const rebrick_sockaddr_t *peer_addr,
+                               int32_t backlog_or_isclient,
+                               const rebrick_tcpsocket_callbacks_t *callbacks,
+                               int32_t start_reading_immediately);
 
 /**
  * @brief
@@ -96,12 +103,17 @@ int32_t rebrick_tcpsocket_new(rebrick_tcpsocket_t **socket,
 
 int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket, const rebrick_sockaddr_t *bind_addr, const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t create_client,
-                               const rebrick_tcpsocket_callbacks_t *callbacks);
+                               const rebrick_tcpsocket_callbacks_t *callbacks, int32_t start_reading_immediately);
 int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable);
 int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int delay);
 int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int enable);
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
+/**
+ * @brief destroy with tcp reset sending
+ */
+int32_t rebrick_tcpsocket_destroy2(rebrick_tcpsocket_t *socket);
 int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
+int32_t rebrick_tcpsocket_start_reading(rebrick_tcpsocket_t *socket);
 
 #endif

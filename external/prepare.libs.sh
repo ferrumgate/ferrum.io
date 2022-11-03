@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+PROD="FALSE"
+while getopts p flag; do
+    case "${flag}" in
+    p) PROD="TRUE" ;;
+    esac
+done
 
 set -e
 TMPFOLDER=/tmp/uv
@@ -6,15 +12,18 @@ CURRENTFOLDER=$(pwd)
 rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
 
+DESTFOLDER=$(pwd)/libs
+
 ######## install libuv ###############
 cp libuv-v1.44.2.tar.gz $TMPFOLDER
-DESTFOLDER=$(pwd)/libs
+
 echo $DESTFOLDER
 cd $TMPFOLDER
 tar zxvf libuv-v1.44.2.tar.gz
 cd libuv-v1.44.2
 sh autogen.sh
 ./configure --prefix=$DESTFOLDER
+
 make
 #make check
 make install
@@ -59,15 +68,15 @@ make install
 
 ######### install hiredis ############
 cd $CURRENTFOLDER
+DESTFOLDER=$(pwd)/libs
 cp hiredis-1.0.2.zip $TMPFOLDER
 cd $TMPFOLDER
 unzip hiredis-1.0.2.zip
 cd hiredis-1.0.2
-DESTFOLDER=$(pwd)/libs
 export PREFIX=$DESTFOLDER
 make
 make install
 
 ############ make ready ##############
-cd $CURRENTFOLDER
-chown -R hframed:hframed libs
+#cd $CURRENTFOLDER
+##chown -R hframed:hframed libs

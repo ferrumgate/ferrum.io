@@ -1,0 +1,10 @@
+prefix=/work/projects/ferrum/ferrum.io/external/libs
+exec_prefix=${prefix}
+libdir=/work/projects/ferrum/ferrum.io/external/libs/lib
+includedir=/work/projects/ferrum/ferrum.io/external/libs/include/hiredis
+
+Name: hiredis
+Description: Minimalistic C client library for Redis.
+Version: 1.0.2
+Libs: -L${libdir} -lhiredis
+Cflags: -I${includedir} -D_FILE_OFFSET_BITS=64

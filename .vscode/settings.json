@@ -35,7 +35,20 @@
         "unistd.h": "c",
         "cmocka.h": "c",
         "rebrick_http2socket.h": "c",
-        "limits.h": "c"
+        "limits.h": "c",
+        "rebrick_httpsocket.h": "c",
+        "ferrum_redis.h": "c",
+        "rebrick_socket.h": "c",
+        "ferrum_policy.h": "c",
+        "*.tcc": "c",
+        "limits": "c",
+        "algorithm": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "atomic": "c",
+        "cstdint": "c",
+        "random": "c"
     },
     "editor.formatOnSave": true
 }

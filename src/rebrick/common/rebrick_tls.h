@@ -33,8 +33,8 @@ typedef struct rebrick_tls_checkitem_list {
  * singleton pattern
  *
  */
-rebrick_tls_checkitem_list_t *tls_after_io_checklist;
-rebrick_tls_checkitem_list_t *tls_before_io_checklist;
+extern rebrick_tls_checkitem_list_t *tls_after_io_checklist;
+extern rebrick_tls_checkitem_list_t *tls_before_io_checklist;
 
 int32_t rebrick_after_io_list_add(rebrick_tls_checkitem_func func, struct rebrick_tlssocket *socket);
 int32_t rebrick_after_io_list_remove(struct rebrick_tlssocket *socket);

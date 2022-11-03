@@ -321,6 +321,15 @@ int32_t rebrick_util_addr_to_port_string(const rebrick_sockaddr_t *sock, char bu
   return REBRICK_SUCCESS;
 }
 
+int32_t rebrick_util_addr_to_string(const rebrick_sockaddr_t *sock, char buffer[REBRICK_IP_PORT_STR_LEN]) {
+  char ip[REBRICK_IP_STR_LEN];
+  char port[REBRICK_PORT_STR_LEN];
+  rebrick_util_addr_to_ip_string(sock, ip);
+  rebrick_util_addr_to_port_string(sock, port);
+  snprintf(buffer, REBRICK_IP_PORT_STR_LEN - 1, "[%s]:[%s]", ip, port);
+  return REBRICK_SUCCESS;
+}
+
 int32_t rebrick_util_to_rebrick_sockaddr(rebrick_sockaddr_t *sock, const char *ip, const char *port) {
 
   if (uv_ip6_addr(ip, atoi(port), cast(&sock->v6, struct sockaddr_in6 *)) < 0) {
@@ -374,4 +383,94 @@ int32_t rebrick_util_ip_equal(const rebrick_sockaddr_t *src, const rebrick_socka
   if (src->base.sa_family == AF_INET)
     return memcmp(&src->v4.sin_addr, &dst->v4.sin_addr, sizeof(struct in_addr)) == 0 ? 1 : 0;
   return memcmp(&src->v6.sin6_addr, &dst->v6.sin6_addr, sizeof(struct in6_addr)) == 0 ? 1 : 0;
+}
+
+int32_t rebrick_util_gethostname(char hostname[REBRICK_HOSTNAME_LEN]) {
+  size_t len = REBRICK_HOSTNAME_LEN - 1;
+  int32_t result = uv_os_gethostname(hostname, &len);
+  if (result < 0)
+    return result;
+  return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
+                                  int32_t defaultport) {
+  char current_time_str[32] = {0};
+  unused(current_time_str);
+  if (!url || !addr)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  rebrick_sockaddr_t *addrlist;
+  size_t addrlist_len;
+  fill_zero(addr, sizeof(rebrick_sockaddr_t));
+  rebrick_linked_item_t *ptrlist = rebrick_util_create_linked_items(url, ":");
+  size_t ptrlistcount = rebrick_util_linked_item_count(ptrlist);
+  int32_t resolved_type = AAAA;
+  if (ptrlistcount) {
+    int32_t result = rebrick_resolve_sync(cast_to_const_charptr(ptrlist->data),
+                                          AAAA, &addrlist, &addrlist_len);
+    if (result) { // not resolved
+      result = rebrick_resolve_sync(cast_to_const_charptr(ptrlist->data), A,
+                                    &addrlist, &addrlist_len);
+      resolved_type = A;
+      if (result) {
+        rebrick_log_fatal("resolve %s failed:%d\n", ptrlist->data, result);
+      }
+    }
+  }
+
+  if (!addrlist_len) {
+    rebrick_util_linked_item_destroy(ptrlist);
+    return REBRICK_ERR_RESOLV;
+  }
+  memcpy(addr, addrlist, sizeof(rebrick_sockaddr_t));
+  rebrick_free(addrlist);
+
+  int32_t port = ptrlistcount > 1
+                     ? atoi(cast_to_const_charptr(
+                           rebrick_util_linked_item_next(ptrlist, 1)->data))
+                     : defaultport;
+  if (resolved_type == AAAA) {
+    addr->v6.sin6_port = htons(port);
+  } else
+    addr->v4.sin_port = htons(port);
+
+  rebrick_util_linked_item_destroy(ptrlist);
+  return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_util_to_int64_t(char *val, int64_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0LL) || val == endptr) {
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_util_to_int32_t(char *val, int32_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > INT32_MAX || val_int < INT32_MIN)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to) {
+  errno = 0;
+  char *endptr;
+  uint64_t val_int = strtoull(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > UINT32_MAX)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
 }
