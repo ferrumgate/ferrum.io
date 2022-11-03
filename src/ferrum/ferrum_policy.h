@@ -5,15 +5,20 @@
 #include "ferrum_config.h"
 #include "ferrum_redis.h"
 
+#define FERRUM_POLICY_RESULT_CLIENT_NOT_FOUND 10000
+#define FERRUM_POLICY_RESULT_SYNC_PROBLEM 10001
+
 /**
  * @brief result of an search on policy
  *
  */
 typedef struct ferrum_policy_result {
   base_object();
+  uint32_t client_id;
   int32_t is_dropped;
   int32_t why;
   int32_t policy_number;
+  char policy_id[FERRUM_ID_STR_LEN];
 } ferrum_policy_result_t;
 
 /**

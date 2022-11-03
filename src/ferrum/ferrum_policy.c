@@ -295,6 +295,33 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   unused(policy);
   unused(client_id);
   unused(presult);
-  presult->is_dropped = 0;
+  presult->client_id = client_id;
+  presult->is_dropped = 1;
+  int64_t now = rebrick_util_micro_time();
+  if (now - policy->last_message_time >= FERRUM_POLICY_TABLE_OUT_OF_DATE_MS * 1000) { // update time is out of date
+    // table is out of date
+
+    presult->is_dropped = 1;
+    presult->policy_number = 0;
+    presult->why = FERRUM_POLICY_RESULT_SYNC_PROBLEM;
+    return FERRUM_SUCCESS;
+  }
+
+  ferrum_policy_row_t *el = NULL;
+  HASH_FIND(hh, policy->table.rows, &client_id, sizeof(client_id), el);
+  if (!el) {
+    presult->is_dropped = 1;
+    presult->policy_number = 0;
+    presult->why = FERRUM_POLICY_RESULT_CLIENT_NOT_FOUND;
+    return FERRUM_SUCCESS;
+
+  } else {
+    presult->is_dropped = el->is_drop;
+    presult->policy_number = el->policy_number;
+    strncpy(presult->policy_id, el->policy_id, sizeof(presult->policy_id) - 1);
+    presult->why = el->why;
+    return FERRUM_SUCCESS;
+  }
+
   return FERRUM_SUCCESS;
 }
