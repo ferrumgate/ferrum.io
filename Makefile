@@ -1,9 +1,9 @@
-CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG
+CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../external/libs/include
 #LDFLAGS = -shared  -o librebrick.so.1.0.0 -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2
 LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2 -lhiredis -lnetfilter_conntrack -lnfnetlink
 
 
-CFLAGSTEST =  -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include -DREBRICK_DEBUG2
+CFLAGSTEST =  -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include
 LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl -lcrypto -lnghttp2 -lhiredis -lnetfilter_conntrack -lnfnetlink
 
 

@@ -297,7 +297,15 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   unused(presult);
   presult->client_id = client_id;
   presult->is_dropped = 1;
+
+  if (policy->config->is_policy_disabled) { // for testing expecially
+    presult->is_dropped = 0;
+    presult->policy_number = 0;
+    presult->why = FERRUM_POLICY_RESULT_DISABLED_POLICY;
+    return FERRUM_SUCCESS;
+  }
   int64_t now = rebrick_util_micro_time();
+
   if (now - policy->last_message_time >= FERRUM_POLICY_TABLE_OUT_OF_DATE_MS * 1000) { // update time is out of date
     // table is out of date
 

@@ -98,6 +98,13 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     rebrick_util_addr_to_string(&tmp->raw.listen_udp_addr, tmp->raw.listen_udp_addr_str);
   }
 
+  /////////////////////// policy disabled ///////////////////
+  char disable_policy[REBRICK_MAX_ENV_LEN] = {0};
+  size_t disable_policy_size = sizeof(disable_policy);
+  uv_os_getenv("DISABLE_POLICY", disable_policy, &disable_policy_size);
+  if (!(strcmp(disable_policy, "true") || !strcmp(disable_policy, "TRUE")))
+    tmp->is_policy_disabled = TRUE;
+
   *config = tmp;
   return FERRUM_SUCCESS;
 }

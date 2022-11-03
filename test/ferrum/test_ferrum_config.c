@@ -71,6 +71,19 @@ static void ferrum_config_object_service_id() {
   ferrum_config_destroy(config);
 }
 
+static void ferrum_config_object_disable_policy() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("DISABLE_POLICY", "true", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_int_equal(config->is_policy_disabled, TRUE);
+  ferrum_config_destroy(config);
+}
+
 static void ferrum_config_object_raw() {
   ferrum_config_t *config = NULL;
   int32_t result;
@@ -103,6 +116,7 @@ int test_ferrum_config(void) {
       cmocka_unit_test(ferrum_config_object_create_destroy),
       cmocka_unit_test(ferrum_config_object_redis_ip_port),
       cmocka_unit_test(ferrum_config_object_raw),
+      cmocka_unit_test(ferrum_config_object_disable_policy),
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

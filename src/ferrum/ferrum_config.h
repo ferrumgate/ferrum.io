@@ -35,6 +35,8 @@ typedef struct ferrum_config {
   // every instance will have diffent instance id when started
   char instance_id[REBRICK_NAME_STR_LEN];
 
+  int32_t is_policy_disabled;
+
 } ferrum_config_t;
 
 int32_t ferrum_config_new(ferrum_config_t **config);

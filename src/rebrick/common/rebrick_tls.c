@@ -1,5 +1,7 @@
 #include "rebrick_tls.h"
 
+rebrick_tls_checkitem_list_t *tls_after_io_checklist;
+rebrick_tls_checkitem_list_t *tls_before_io_checklist;
 // struct rebrick_tls_checkitem_list_t *tls_after_io_checklist = NULL;
 // struct rebrick_tls_checkitem_list_t *tls_before_io_checklist = NULL;
 // multi init protector
