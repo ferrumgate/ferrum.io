@@ -22,3 +22,6 @@ bash run.sh
 
 docker stop redis
 docker run --name redis --rm -d -ti -p 6379:6379 redis
+
+docker stop redis_local
+docker run --name redis_local --rm -d -ti -p 6380:6379 redis

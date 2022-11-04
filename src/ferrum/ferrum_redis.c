@@ -57,6 +57,23 @@ static int32_t reconnect(ferrum_redis_t *redis) {
   rcontext->data = redis;
   return FERRUM_SUCCESS;
 }
+static void stream_callback(redisAsyncContext *context, void *_reply, void *_privdata) {
+
+  ferrum_redis_t *redis = cast(context->data, ferrum_redis_t *);
+  if (redis->stream.cmd.callback.func) {
+    redis->stream.cmd.callback.func(context, _reply, _privdata);
+    if (redis->is_destroying) {
+      return;
+    }
+    int32_t result = ferrum_redis_send(redis, &redis->stream.cmd_internal,
+                                       "xread count %d block %d streams %s %s",
+                                       redis->stream.count, redis->stream.timeout, redis->stream.channel, redis->stream.pos);
+    if (result) {
+      ferrum_log_fatal("redis stream failed %s\n", context->c.errstr);
+      redis->stream.isConnected = FALSE;
+    }
+  }
+}
 
 void connectCallback(const redisAsyncContext *c, int status) {
 
@@ -67,21 +84,32 @@ void connectCallback(const redisAsyncContext *c, int status) {
     return;
   }
   redis->is_connected = TRUE;
-  if (redis->subscribe.isSubActived) {
+  if (redis->subscribe.isActived) {
     int32_t result = ferrum_redis_send(redis, &redis->subscribe.cmd,
                                        "subscribe %s",
                                        redis->subscribe.channel);
     if (result) {
       ferrum_log_fatal("redis subscribe failed %s\n", c->errstr);
     } else
-      redis->subscribe.isSubConnected = TRUE;
+      redis->subscribe.isConnected = TRUE;
+  }
+  if (redis->stream.isActived) {
+
+    int32_t result = ferrum_redis_send(redis, &redis->stream.cmd_internal,
+                                       "xread count %d block %d streams %s %s",
+                                       redis->stream.count, redis->stream.timeout,
+                                       redis->stream.channel, redis->stream.pos);
+    if (result) {
+      ferrum_log_fatal("redis stream failed %s\n", c->errstr);
+    } else
+      redis->stream.isConnected = TRUE;
   }
 
   ferrum_log_debug("redis connected\n");
 }
 
 void disconnectCallback(const redisAsyncContext *c, int status) {
-
+  ferrum_log_debug("redis disconnect callback status %d\n", status);
   if (status != REDIS_OK) {
     ferrum_log_error("redis disconnect because of error: %s\n", c->errstr);
     //  return;
@@ -93,7 +121,6 @@ void disconnectCallback(const redisAsyncContext *c, int status) {
     ferrum_redis_destroy(redis);
     ferrum_log_debug("redis disconnected by user\n");
   } else {
-    // redisAsyncFree(const_cast(c, redisAsyncContext *));
     rebrick_timer_start(redis->connection_checker);
   }
 }
@@ -141,25 +168,49 @@ int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
     return result;
   ferrum_redis_t *tmp = *redis;
   tmp->subscribe.cmd.callback.func = callback;
-  tmp->subscribe.cmd.callback.arg1 = callbackdata;
+  tmp->subscribe.cmd.callback.arg1 = callbackdata ? callbackdata : tmp;
   tmp->subscribe.cmd.id = 1;
   tmp->subscribe.cmd.type = 1;
   strncpy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
-  tmp->subscribe.isSubActived = TRUE;
+  tmp->subscribe.isActived = TRUE;
+  return FERRUM_SUCCESS;
+}
+
+int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host,
+                                int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms,
+                                int32_t stream_count, int32_t stream_timeout, ferrum_redis_callback_t *callback, void *callbackdata,
+                                const char *channel) {
+  int32_t result = ferrum_redis_new(redis, host, port, check_elapsed_ms, query_timeout_ms);
+  if (result)
+    return result;
+  ferrum_redis_t *tmp = *redis;
+  tmp->stream.cmd.callback.func = callback;
+  tmp->stream.cmd.callback.arg1 = callbackdata ? callbackdata : tmp;
+  tmp->stream.cmd.id = 1;
+  tmp->stream.cmd.type = 1;
+  tmp->stream.count = stream_count;
+  tmp->stream.timeout = stream_timeout;
+  tmp->stream.cmd_internal.callback.func = stream_callback;
+  tmp->stream.cmd_internal.callback.arg1 = callbackdata ? callbackdata : tmp;
+  tmp->stream.cmd_internal.id = 1;
+  tmp->stream.cmd_internal.type = 1;
+  strncpy(tmp->stream.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
+  strncpy(tmp->stream.pos, "0", sizeof(tmp->stream.pos) - 1);
+  tmp->stream.isActived = TRUE;
   return FERRUM_SUCCESS;
 }
 
 int32_t ferrum_redis_destroy(ferrum_redis_t *redis) {
 
-  ferrum_log_debug("destroying redis connection\n");
   if (redis) {
+    redis->is_destroying = TRUE;
     if (redis->connection_checker) {
       rebrick_timer_destroy(redis->connection_checker);
       redis->connection_checker = NULL;
     }
 
     if (redis->is_connected) {
-
+      ferrum_log_debug("destroying redis connection context\n");
       redisAsyncDisconnect(redis->rcontext);
       return FERRUM_SUCCESS;
     }

@@ -17,6 +17,14 @@ typedef struct ferrum_config {
   } redis;
 
   struct {
+    rebrick_sockaddr_t addr;
+    char addr_str[REBRICK_IP_STR_LEN];
+    char ip[REBRICK_IP_STR_LEN];
+    char port[REBRICK_PORT_STR_LEN];
+    int32_t servfail_timeout_ms;
+  } redis_local;
+
+  struct {
     char dest_tcp_addr_str[REBRICK_IP_PORT_STR_LEN];
     rebrick_sockaddr_t dest_tcp_addr;
     char dest_udp_addr_str[REBRICK_IP_PORT_STR_LEN];

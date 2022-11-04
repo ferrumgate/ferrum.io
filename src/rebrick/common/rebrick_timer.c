@@ -106,9 +106,7 @@ static void on_timer_close(uv_handle_t *handle) {
     rebrick_free(timer->data);
 }
 int32_t rebrick_timer_destroy(rebrick_timer_t *timer) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
-  // int32_t result;
+
   rebrick_log_debug("timer is destroying\n");
   if (timer) {
 

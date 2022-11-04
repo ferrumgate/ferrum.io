@@ -12,6 +12,7 @@
  */
 
 #define FERRUM_REDIS_CHANNEL_NAME_LEN 256
+#define FERRUM_STREAM_POS 128
 
 typedef redisCallbackFn ferrum_redis_callback_t;
 typedef redisReply ferrum_redis_reply_t;
@@ -42,9 +43,20 @@ typedef struct ferrum_redis {
   private_ struct {
     char channel[FERRUM_REDIS_CHANNEL_NAME_LEN];
     ferrum_redis_cmd_t cmd;
-    int32_t isSubActived;
-    int32_t isSubConnected;
+    int32_t isActived;
+    int32_t isConnected;
   } subscribe;
+  private_ struct {
+    char channel[FERRUM_REDIS_CHANNEL_NAME_LEN];
+    ferrum_redis_cmd_t cmd;
+    ferrum_redis_cmd_t cmd_internal;
+    int32_t isActived;
+    int32_t isConnected;
+    int32_t count;
+    int32_t timeout;
+    char pos[FERRUM_STREAM_POS];
+  } stream;
+  int32_t is_destroying;
 } ferrum_redis_t;
 
 /**
@@ -70,8 +82,10 @@ int32_t ferrum_redis_cmd_destroy(ferrum_redis_cmd_t *cmd);
  */
 int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms);
 int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, const char *fmt, ...);
-int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host, int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms,
+int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms,
                              ferrum_redis_callback_t *callback, void *callback_data, const char *channel);
+int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms,
+                                int32_t stream_count, int32_t stream_timeout, ferrum_redis_callback_t *callback, void *callback_data, const char *channel);
 int32_t ferrum_redis_destroy(ferrum_redis_t *redis);
 
 #endif

@@ -22,7 +22,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t instance_id_size = sizeof(tmp->instance_id);
   uv_os_getenv("INSTANCE_ID", tmp->instance_id, &instance_id_size);
 
-  /////////////////////// fill redis server   ///////////////////
+  /////////////////////// fill redis global server   ///////////////////
 
   char redis_host[REBRICK_MAX_ENV_LEN] = {0};
   size_t redis_host_size = sizeof(redis_host);
@@ -42,6 +42,27 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
   rebrick_util_addr_to_port_string(&tmp->redis.addr, tmp->redis.port);
+
+  /////////////////////// fill redis local server   ///////////////////
+
+  char redis_local_host[REBRICK_MAX_ENV_LEN] = {0};
+  size_t redis_local_host_size = sizeof(redis_local_host);
+  uv_os_getenv("REDIS_LOCAL_HOST", redis_local_host, &redis_local_host_size);
+
+  if (!redis_local_host[0])
+    strncpy(redis_local_host, "localhost", REBRICK_HOST_STR_LEN);
+
+  result = rebrick_util_resolve_sync(redis_local_host, &tmp->redis_local.addr, 6379);
+  if (result) {
+    rebrick_log_fatal("%s resolution failed with error:%d\n", redis_local_host, result);
+    rebrick_kill_current_process(result);
+  }
+
+  rebrick_util_addr_to_string(&tmp->redis_local.addr, tmp->redis_local.addr_str);
+  rebrick_log_warn("redis local host:port is %s\n", tmp->redis_local.addr_str);
+
+  rebrick_util_addr_to_ip_string(&tmp->redis_local.addr, tmp->redis_local.ip);
+  rebrick_util_addr_to_port_string(&tmp->redis_local.addr, tmp->redis_local.port);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};
