@@ -63,8 +63,8 @@ int main() {
     if (test_ferrum_policy())
       exit(1);
    */
-  if (test_ferrum_redis())
-    exit(1);
+  /*   if (test_ferrum_redis())
+      exit(1); */
   /*  if (test_ferrum_config())
      exit(1); */
   if (test_ferrum_policy())

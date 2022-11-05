@@ -52,7 +52,7 @@ int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
     ferrum_log_debug("replication reset received\n");
   }
   if (!strcmp(msg->command, "update")) {
-    if (policy->last_command_id + 1 != msg->command_id)
+    if (policy->last_command_id >= msg->command_id)
       return REBRICK_ERR_BAD_ARGUMENT;
     if (!msg->arg1 || !msg->arg2 || !msg->arg3 || !msg->arg4 || !msg->arg5) {
       rebrick_log_error("replication update invalid args\n");
@@ -102,7 +102,7 @@ int32_t ferrum_policy_replication_message_execute(ferrum_policy_t *policy,
   }
 
   if (!strcmp(msg->command, "delete")) {
-    if (policy->last_command_id + 1 != msg->command_id)
+    if (policy->last_command_id >= msg->command_id)
       return REBRICK_ERR_BAD_ARGUMENT;
     if (!msg->arg1) {
       rebrick_log_error("replication update invalid args\n");
@@ -223,10 +223,10 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
             }
             if (row->elements > 1 && row->element[1]->type == REDIS_REPLY_ARRAY && row->element[1]->elements > 1) {
               if (row->element[1]->element[0]->type == REDIS_REPLY_STRING) {
-                strncpy(command, row->element[1]->element[0]->str, sizeof(command) - 1);
+                // strncpy(command, row->element[1]->element[0]->str, sizeof(command) - 1);
               }
               if (row->element[1]->element[1]->type == REDIS_REPLY_STRING) {
-                // strncpy(stream_value, row->element[1]->element[1]->str, sizeof(stream_value) - 1);
+                strncpy(command, row->element[1]->element[1]->str, sizeof(command) - 1);
               }
             }
           }

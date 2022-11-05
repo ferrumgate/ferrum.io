@@ -121,20 +121,20 @@ static void test_ferrum_policy_replication_message_execute(void **start) {
   result = ferrum_policy_replication_message_parse(memory, &msg);
   result = ferrum_policy_replication_message_execute(policy, &msg);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_int_equal(policy->last_command_id, 1);
+
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
   assert_int_equal(policy->table.rows->client_id, 1003);
   assert_int_equal(policy->table.rows->is_drop, 0);
   assert_int_equal(policy->table.rows->policy_number, 10);
   assert_int_equal(policy->table.rows->why, 100);
   assert_string_equal(policy->table.rows->policy_id, "kowlaksdo");
+  policy->last_command_id = 1;
 
   // check delete command
   strcpy(memory, "2/delete/1003");
   result = ferrum_policy_replication_message_parse(memory, &msg);
   result = ferrum_policy_replication_message_execute(policy, &msg);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_int_equal(policy->last_command_id, 2);
   assert_int_equal(HASH_COUNT(policy->table.rows), 0);
 
   ferrum_config_destroy(config);
@@ -183,14 +183,14 @@ static void test_ferrum_policy_start(void **start) {
 
   ferrum_redis_cmd_t *cmd1;
   ferrum_redis_cmd_new(&cmd1, 1, 1, test_redis_cmd_callback, policy);
-  ferrum_redis_send(redis, cmd1, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-1 1/update/1/2/3/4/5/6/7 empty");
+  ferrum_redis_send(redis, cmd1, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-1 cmd 1/update/1/2/3/4/5/6/7");
   loop(counter, 100, TRUE);
 
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
 
   ferrum_redis_cmd_t *cmd2;
   ferrum_redis_cmd_new(&cmd2, 1, 1, test_redis_cmd_callback, policy);
-  ferrum_redis_send(redis, cmd2, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-2 1/update/1/2/3/4/5/6/7 empty");
+  ferrum_redis_send(redis, cmd2, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-2 cmd 2/update/1/2/3/4/5/6/7");
   loop(counter, 100, TRUE);
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
 
