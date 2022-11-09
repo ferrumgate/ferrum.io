@@ -51,7 +51,7 @@ static void redis_object_create_destroy_success(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 10, 1, debug1, redis);
@@ -69,7 +69,7 @@ static void redis_object_create_destroy_success_not_connected(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6375, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6375, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 1, 1, debug1, redis);
@@ -107,7 +107,7 @@ static void redis_object_create_destroy_success_cmd_type(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new2(&cmd, 5, 10, debug2, redis, (void *)0x50);
@@ -141,7 +141,7 @@ static void redis_object_create_destroy_success_set_get(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 5, 10, debug3, redis);
@@ -183,7 +183,7 @@ static void redis_object_create_destroy_redis_down_and_up(void **start) {
   printf("execute docker run --name redistemp --rm -d -ti -p 6830:6379 redis:7.0-rc2\n");
   int32_t sleeper = 10000000;
   usleep(sleeper);
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6830, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6830, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   redis->connection_checker_elapsed_ms = 100;
   ferrum_redis_cmd_t *cmd;
@@ -244,7 +244,7 @@ static void redis_object_create_destroy_success_execute_get_set(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, 1000, 1200);
+  int32_t result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1200);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 1000, TRUE);
 
@@ -306,7 +306,7 @@ static void redis_object_cmd_sub(void **start) {
   int32_t counter;
   ferrum_redis_t *redis;
 
-  int32_t result = ferrum_redis_new_sub(&redis, "localhost", 6379, 1000, 1200, debugSub, NULL, "ferrum");
+  int32_t result = ferrum_redis_new_sub(&redis, "localhost", 6379, NULL, 1000, 1200, debugSub, NULL, "ferrum");
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 1000, TRUE);
 
@@ -370,12 +370,12 @@ static void redis_object_cmd_stream(void **start) {
   sprintf(channel, "%d%d%d", rebrick_util_rand(), rebrick_util_rand(), rebrick_util_rand());
   rebrick_log_debug("channel name is %s\n", channel);
   ferrum_redis_t *redisstream = NULL;
-  int32_t result = ferrum_redis_new_stream(&redisstream, "localhost", 6379, 1000, 1000, 10, 1000, debug_stream, NULL, channel);
+  int32_t result = ferrum_redis_new_stream(&redisstream, "localhost", 6379, NULL, 1000, 1000, 10, 1000, debug_stream, NULL, channel);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 1000, TRUE);
 
   ferrum_redis_t *redis;
-  result = ferrum_redis_new(&redis, "localhost", 6379, 1000, 1200);
+  result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1200);
   ferrum_redis_cmd_t *cmd;
   loop(counter, 100, TRUE);
   result = ferrum_redis_cmd_new(&cmd, 1, 2, empty_callback, redis);

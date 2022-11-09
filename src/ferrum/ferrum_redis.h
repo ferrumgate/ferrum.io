@@ -34,12 +34,18 @@ typedef struct ferrum_redis_cmd {
 typedef struct ferrum_redis {
   base_object();
   char host[REBRICK_HOST_STR_LEN];
+  char pass[REBRICK_PASS_STR_LEN];
   int32_t port;
   int32_t is_connected;
   redisAsyncContext *rcontext;
   rebrick_timer_t *connection_checker;
   int32_t connection_checker_elapsed_ms;
   int32_t query_timeout_ms;
+  private_ struct {
+    int32_t is_required;
+    int32_t is_authenticated;
+    ferrum_redis_cmd_t cmd;
+  } auth;
   private_ struct {
     char channel[FERRUM_REDIS_CHANNEL_NAME_LEN];
     ferrum_redis_cmd_t cmd;
@@ -80,11 +86,11 @@ int32_t ferrum_redis_cmd_destroy(ferrum_redis_cmd_t *cmd);
  * @brief connect to a redis
  * @param connection_check_ms check if connection is active in milisecond
  */
-int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms);
+int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port, const char *pass, int32_t connection_check_ms, int32_t query_timeout_ms);
 int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, const char *fmt, ...);
-int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms,
+int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host, int32_t port, const char *pass, int32_t connection_check_ms, int32_t query_timeout_ms,
                              ferrum_redis_callback_t *callback, void *callback_data, const char *channel);
-int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host, int32_t port, int32_t connection_check_ms, int32_t query_timeout_ms,
+int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host, int32_t port, const char *pass, int32_t connection_check_ms, int32_t query_timeout_ms,
                                 int32_t stream_count, int32_t stream_timeout, ferrum_redis_callback_t *callback, void *callback_data, const char *channel);
 int32_t ferrum_redis_destroy(ferrum_redis_t *redis);
 

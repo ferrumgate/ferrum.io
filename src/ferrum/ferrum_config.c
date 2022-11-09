@@ -43,6 +43,9 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
   rebrick_util_addr_to_port_string(&tmp->redis.addr, tmp->redis.port);
 
+  size_t redis_pass_size = sizeof(tmp->redis.pass);
+  uv_os_getenv("REDIS_PASS", tmp->redis.pass, &redis_pass_size);
+
   /////////////////////// fill redis local server   ///////////////////
 
   char redis_local_host[REBRICK_MAX_ENV_LEN] = {0};
@@ -63,6 +66,9 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis_local.addr, tmp->redis_local.ip);
   rebrick_util_addr_to_port_string(&tmp->redis_local.addr, tmp->redis_local.port);
+
+  size_t redis_local_pass_size = sizeof(tmp->redis_local.pass);
+  uv_os_getenv("REDIS_LOCAL_PASS", tmp->redis_local.pass, &redis_local_pass_size);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};

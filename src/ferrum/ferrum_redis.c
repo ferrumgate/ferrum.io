@@ -75,15 +75,7 @@ static void stream_callback(redisAsyncContext *context, void *_reply, void *_pri
   }
 }
 
-void connectCallback(const redisAsyncContext *c, int status) {
-
-  ferrum_redis_t *redis = cast(c->data, ferrum_redis_t *);
-  if (status != REDIS_OK) {
-    ferrum_log_error("redis connect error: %s\n", c->errstr);
-    rebrick_timer_start(redis->connection_checker);
-    return;
-  }
-  redis->is_connected = TRUE;
+static void start_subscribe_or_read_stream(const redisAsyncContext *c, ferrum_redis_t *redis) {
   if (redis->subscribe.isActived) {
     int32_t result = ferrum_redis_send(redis, &redis->subscribe.cmd,
                                        "subscribe %s",
@@ -103,6 +95,49 @@ void connectCallback(const redisAsyncContext *c, int status) {
       ferrum_log_fatal("redis stream failed %s\n", c->errstr);
     } else
       redis->stream.isConnected = TRUE;
+  }
+}
+
+static void authenticate_callback(redisAsyncContext *context, void *_reply, void *_privdata) {
+  ferrum_redis_t *redis = cast(context->data, ferrum_redis_t *);
+  ferrum_redis_cmd_t *cmd = cast(_privdata, ferrum_redis_cmd_t *); // we dont need to delete
+  unused(cmd);
+  ferrum_redis_reply_t *reply = cast(_reply, ferrum_redis_reply_t *);
+
+  if (reply == NULL) { // timeout
+    rebrick_log_fatal("redis authenticate timedout\n");
+    return;
+  }
+  if (reply->type == REDIS_REPLY_ERROR) {
+    rebrick_log_fatal("redis authenticate failed\n");
+    return;
+  }
+  rebrick_log_info("redis authenticated successfully\n");
+  redis->auth.is_authenticated = TRUE;
+  start_subscribe_or_read_stream(context, redis);
+}
+
+void connectCallback(const redisAsyncContext *c, int status) {
+
+  ferrum_redis_t *redis = cast(c->data, ferrum_redis_t *);
+  if (status != REDIS_OK) {
+    ferrum_log_error("redis connect error: %s %s:%d\n", c->errstr, redis->host, redis->port);
+    rebrick_timer_start(redis->connection_checker);
+    return;
+  }
+  ferrum_log_info("redis connected to %s:%d\n", redis->host, redis->port);
+  redis->is_connected = TRUE;
+
+  if (redis->pass[0]) {
+    redis->auth.cmd.callback.func = authenticate_callback;
+    redis->auth.cmd.callback.arg1 = redis;
+    redis->auth.is_required = TRUE;
+    int32_t result = ferrum_redis_send(redis, &redis->auth.cmd, "auth %s", redis->pass);
+    if (result) {
+      ferrum_log_fatal("redis authenticate cmd failed %s\n", c->errstr);
+    }
+  } else {
+    start_subscribe_or_read_stream(c, redis);
   }
 
   ferrum_log_debug("redis connected\n");
@@ -135,7 +170,7 @@ int32_t connection_check(void *data) {
   return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms) {
+int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port, const char *pass, int32_t check_elapsed_ms, int32_t query_timeout_ms) {
 
   ferrum_redis_t *tmp = new1(ferrum_redis_t);
   if (!tmp) {
@@ -145,6 +180,9 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
   constructor(tmp, ferrum_redis_t);
   strncpy(tmp->host, host, REBRICK_HOST_STR_LEN - 1);
   tmp->port = port;
+  if (pass && pass[0])
+    strncpy(tmp->pass, pass, REBRICK_PASS_STR_LEN);
+
   redisAsyncContext *rcontext = createContext(host, port, query_timeout_ms);
   if (!rcontext) {
     rebrick_free(tmp);
@@ -161,9 +199,9 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
 }
 
 int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
-                             int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms,
+                             int32_t port, const char *pass, int32_t check_elapsed_ms, int32_t query_timeout_ms,
                              ferrum_redis_callback_t *callback, void *callbackdata, const char *channel) {
-  int32_t result = ferrum_redis_new(redis, host, port, check_elapsed_ms, query_timeout_ms);
+  int32_t result = ferrum_redis_new(redis, host, port, pass, check_elapsed_ms, query_timeout_ms);
   if (result)
     return result;
   ferrum_redis_t *tmp = *redis;
@@ -177,10 +215,10 @@ int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
 }
 
 int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host,
-                                int32_t port, int32_t check_elapsed_ms, int32_t query_timeout_ms,
+                                int32_t port, const char *pass, int32_t check_elapsed_ms, int32_t query_timeout_ms,
                                 int32_t stream_count, int32_t stream_timeout, ferrum_redis_callback_t *callback, void *callbackdata,
                                 const char *channel) {
-  int32_t result = ferrum_redis_new(redis, host, port, check_elapsed_ms, query_timeout_ms);
+  int32_t result = ferrum_redis_new(redis, host, port, pass, check_elapsed_ms, query_timeout_ms);
   if (result)
     return result;
   ferrum_redis_t *tmp = *redis;

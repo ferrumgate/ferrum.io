@@ -172,7 +172,7 @@ static void test_ferrum_policy_start(void **start) {
   loop(counter, 5000, TRUE);
 
   ferrum_redis_t *redis;
-  result = ferrum_redis_new(&redis, "127.0.0.1", 6379, 5000, 5000);
+  result = ferrum_redis_new(&redis, "127.0.0.1", 6379, NULL, 5000, 5000);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 

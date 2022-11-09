@@ -48,7 +48,8 @@
         "string_view": "c",
         "atomic": "c",
         "cstdint": "c",
-        "random": "c"
+        "random": "c",
+        "functional": "c"
     },
     "editor.formatOnSave": true
 }

@@ -23,3 +23,16 @@ docker build -f ./dockerfile -t $IMAGE_NAME .
 echo "$IMAGE_NAME:$version builded"
 docker tag $IMAGE_NAME registry.ferrumgate.local/ferrumgate/$IMAGE_NAME:$version
 docker tag $IMAGE_NAME registry.ferrumgate.local/ferrumgate/$IMAGE_NAME:latest
+
+while true; do
+    read -p "do you want to push to local registry y/n " yn
+    case $yn in
+    [Yy]*)
+        docker push registry.ferrumgate.local/ferrumgate/$IMAGE_NAME:$version
+        docker push registry.ferrumgate.local/ferrumgate/$IMAGE_NAME:latest
+        break
+        ;;
+    [Nn]*) exit ;;
+    *) echo "please answer yes or no." ;;
+    esac
+done

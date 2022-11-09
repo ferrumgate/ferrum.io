@@ -288,10 +288,10 @@ static void redis_send_reset_replication_command(ferrum_policy_t *policy) {
 }
 static void redis_send_alive_command(ferrum_policy_t *policy) {
 
-  // send I am alive
+  // send I am alive to global
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 15, 110, redis_cmd_callback, policy);
-  int result = ferrum_redis_send(policy->redis_global, cmd, "publish /service  alive/%s/%s/%s", policy->config->host_id, policy->config->service_id, policy->config->instance_id);
+  int result = ferrum_redis_send(policy->redis_local, cmd, "publish /policy/service  alive/%s/%s/%s", policy->config->host_id, policy->config->service_id, policy->config->instance_id);
   if (result) {
     ferrum_log_error("redis send cmd failed with error:%d\n", result);
     ferrum_redis_cmd_destroy(cmd);
@@ -333,15 +333,15 @@ int32_t ferrum_policy_new(ferrum_policy_t **policy, const ferrum_config_t *confi
   tmp->config = config;
 
   int32_t result = ferrum_redis_new(&tmp->redis_global, config->redis.ip,
-                                    atoi(config->redis.port), 10000, 5000);
+                                    atoi(config->redis.port), config->redis.pass, 10000, 5000);
   if (result) {
     ferrum_log_error("connecting redis global failed to %s:%s with error:%d\n", config->redis.ip, config->redis.port, result);
     ferrum_policy_destroy(tmp);
     return result;
   }
 
-  result = ferrum_redis_new(&tmp->redis_local, config->redis.ip,
-                            atoi(config->redis_local.port), 10000, 5000);
+  result = ferrum_redis_new(&tmp->redis_local, config->redis_local.ip,
+                            atoi(config->redis_local.port), config->redis_local.pass, 10000, 5000);
   if (result) {
     ferrum_log_error("connecting redis local failed to %s:%s with error:%d\n", config->redis_local.ip, config->redis_local.port, result);
     ferrum_policy_destroy(tmp);
@@ -349,7 +349,7 @@ int32_t ferrum_policy_new(ferrum_policy_t **policy, const ferrum_config_t *confi
   }
 
   snprintf(tmp->redis_table_channel, sizeof(tmp->redis_table_channel) - 1, "/policy/service/%s/%s/%s", config->host_id, config->service_id, config->instance_id);
-  result = ferrum_redis_new_stream(&tmp->redis_local_table, config->redis_local.ip, atoi(config->redis_local.port),
+  result = ferrum_redis_new_stream(&tmp->redis_local_table, config->redis_local.ip, atoi(config->redis_local.port), config->redis_local.pass,
                                    10000, 5000, 1000, 10000, replication_messages, tmp, tmp->redis_table_channel);
   if (result) {
     ferrum_log_error("connecting redis local failed to %s:%s with error:%d\n", config->redis_local.ip, config->redis_local.port, result);
