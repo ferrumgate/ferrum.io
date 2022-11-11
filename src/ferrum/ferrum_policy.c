@@ -237,7 +237,7 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
     return;
   }
 
-  ferrum_log_info("update message received %s\n", command);
+  ferrum_log_info("message received %s\n", command);
   new2(ferrum_policy_replication_message_t, msg);
   result = ferrum_policy_replication_message_parse(command, &msg);
   if (result) { // parse errror
@@ -247,17 +247,20 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
   // wait reset command if triggered
   if (policy->is_reset_triggered && strcmp(msg.command, "reset")) {
     rebrick_log_fatal("system wait for reset command\n");
-    redis_send_reset_replication_command(policy);
+    // reset the stream
+    // redis_send_reset_replication_command(policy);
     return;
   }
   result = ferrum_policy_replication_message_execute(policy, &msg);
   if (result) {
     rebrick_log_fatal("msg execute failed %s\n", command);
+    // reset the position
     redis_send_reset_replication_command(policy);
     return;
   }
+  rebrick_log_debug("msg executed id:%lld time:%lld\n", id, time);
   policy->last_command_id = id;
-  policy->last_message_time = time;
+  policy->last_message_time = time * 1000;
 }
 
 void redis_cmd_callback(redisAsyncContext *context, void *_reply, void *_privdata) {
@@ -281,9 +284,10 @@ static void redis_send_reset_replication_command(ferrum_policy_t *policy) {
   }
   policy->is_reset_triggered = TRUE;
   policy->reset_trigger_time = rebrick_util_micro_time();
-  policy->last_command_id = 0;
-  policy->last_message_time = 0;
+  // policy->last_command_id = 0;
+  // policy->last_message_time = 0;
   clear_policy_table(policy);
+
   ferrum_log_debug("sended reset replication command to %s\n", policy->redis_table_channel);
 }
 static void redis_send_alive_command(ferrum_policy_t *policy) {
@@ -318,9 +322,9 @@ static int32_t table_update_check(void *callback) {
     // table is out of date
     // check if reset sended and wait 30 seconds for receiving a reset command in stream
     if (reset_wait_timeout) {
-      ferrum_log_fatal("reset wait timeout occured\n");
+      ferrum_log_fatal("reset wait timeout occured %lld\n", now - policy->reset_trigger_time);
     } else if (replication_timeout) {
-      ferrum_log_fatal("replication timeout occured\n");
+      ferrum_log_fatal("replication timeout occured ms %lld\n", now - policy->last_message_time);
     }
     redis_send_reset_replication_command(policy);
   }
