@@ -39,13 +39,15 @@ typedef struct ferrum_policy_row {
 typedef struct ferrum_policy {
   base_object();
   private_ const ferrum_config_t *config;
-  private_ ferrum_redis_t *redis_main;
-  private_ ferrum_redis_t *redis_table;
+  private_ ferrum_redis_t *redis_global;
+  private_ ferrum_redis_t *redis_local_table;
+  private_ ferrum_redis_t *redis_local;
   private_ char redis_table_channel[FERRUM_REDIS_CHANNEL_NAME_LEN];
   private_ rebrick_timer_t *table_checker;
   private_ int64_t last_message_time;
   private_ int64_t last_command_id;
   private_ int32_t is_reset_triggered;
+  private_ int64_t reset_trigger_time;
   private_ struct {
     ferrum_policy_row_t *rows;
   } table;

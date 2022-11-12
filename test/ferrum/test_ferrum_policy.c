@@ -121,20 +121,20 @@ static void test_ferrum_policy_replication_message_execute(void **start) {
   result = ferrum_policy_replication_message_parse(memory, &msg);
   result = ferrum_policy_replication_message_execute(policy, &msg);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_int_equal(policy->last_command_id, 1);
+
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
   assert_int_equal(policy->table.rows->client_id, 1003);
   assert_int_equal(policy->table.rows->is_drop, 0);
   assert_int_equal(policy->table.rows->policy_number, 10);
   assert_int_equal(policy->table.rows->why, 100);
   assert_string_equal(policy->table.rows->policy_id, "kowlaksdo");
+  policy->last_command_id = 1;
 
   // check delete command
   strcpy(memory, "2/delete/1003");
   result = ferrum_policy_replication_message_parse(memory, &msg);
   result = ferrum_policy_replication_message_execute(policy, &msg);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_int_equal(policy->last_command_id, 2);
   assert_int_equal(HASH_COUNT(policy->table.rows), 0);
 
   ferrum_config_destroy(config);
@@ -172,20 +172,25 @@ static void test_ferrum_policy_start(void **start) {
   loop(counter, 5000, TRUE);
 
   ferrum_redis_t *redis;
-  result = ferrum_redis_new(&redis, "127.0.0.1", 6379, 5000, 5000);
+  result = ferrum_redis_new(&redis, "127.0.0.1", 6379, NULL, 5000, 5000);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 1, 1, test_redis_cmd_callback, policy);
-  ferrum_redis_send(redis, cmd, "publish /policy/service/gateway1/mysqlservice/randominstance 1/update/1/2/3/4/5/6/7");
+  ferrum_redis_send(redis, cmd, "del /policy/service/gateway1/mysqlservice/randominstance");
+  loop(counter, 100, TRUE);
+
+  ferrum_redis_cmd_t *cmd1;
+  ferrum_redis_cmd_new(&cmd1, 1, 1, test_redis_cmd_callback, policy);
+  ferrum_redis_send(redis, cmd1, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-1 cmd 1/update/1/2/3/4/5/6/7");
   loop(counter, 100, TRUE);
 
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
 
   ferrum_redis_cmd_t *cmd2;
   ferrum_redis_cmd_new(&cmd2, 1, 1, test_redis_cmd_callback, policy);
-  ferrum_redis_send(redis, cmd2, "publish /policy/service/gateway1/mysqlservice/randominstance 1/update/1/2/3/4/5/6/7");
+  ferrum_redis_send(redis, cmd2, "xadd /policy/service/gateway1/mysqlservice/randominstance 1-2 cmd 2/update/1/2/3/4/5/6/7");
   loop(counter, 100, TRUE);
   assert_int_equal(HASH_COUNT(policy->table.rows), 1);
 
@@ -202,6 +207,7 @@ static void test_ferrum_policy_execute(void **start) {
   setenv("HOST_ID", "gateway1", 1);
   setenv("SERVICE_ID", "mysqlservice", 1);
   setenv("INSTANCE_ID", "randominstance", 1);
+
   ferrum_config_t *config = NULL;
   result = ferrum_config_new(&config);
 
@@ -244,7 +250,7 @@ static void test_ferrum_policy_execute(void **start) {
 
   ferrum_config_destroy(config);
   ferrum_policy_destroy(policy);
-  loop(counter, 1000, TRUE);
+  loop(counter, 50000, TRUE);
 }
 
 int test_ferrum_policy(void) {

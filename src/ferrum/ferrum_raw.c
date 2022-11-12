@@ -461,7 +461,7 @@ static void on_udp_server_close(rebrick_socket_t *socket, void *callbackdata) {
 }
 
 int32_t udp_tracker_callback_t(void *callbackdata) {
-  rebrick_log_debug("udp tracking called\n");
+  rebrick_log_debug("udp connection tracking called\n");
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_udpsocket_pair_t *el, *tmp;
   int64_t now = rebrick_util_micro_time();

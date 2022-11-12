@@ -72,6 +72,7 @@
  * @brief ip max string len
  */
 #define REBRICK_IP_STR_LEN 64
+#define REBRICK_PASS_STR_LEN 128
 
 #define REBRICK_DOMAIN_LEN 2048
 #define REBRICK_HOSTNAME_LEN 64

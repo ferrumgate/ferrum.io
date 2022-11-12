@@ -13,8 +13,18 @@ typedef struct ferrum_config {
     char addr_str[REBRICK_IP_STR_LEN];
     char ip[REBRICK_IP_STR_LEN];
     char port[REBRICK_PORT_STR_LEN];
+    char pass[REBRICK_PASS_STR_LEN];
     int32_t servfail_timeout_ms;
   } redis;
+
+  struct {
+    rebrick_sockaddr_t addr;
+    char addr_str[REBRICK_IP_STR_LEN];
+    char ip[REBRICK_IP_STR_LEN];
+    char port[REBRICK_PORT_STR_LEN];
+    char pass[REBRICK_PASS_STR_LEN];
+    int32_t servfail_timeout_ms;
+  } redis_local;
 
   struct {
     char dest_tcp_addr_str[REBRICK_IP_PORT_STR_LEN];
