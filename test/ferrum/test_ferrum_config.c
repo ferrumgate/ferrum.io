@@ -68,14 +68,14 @@ static void ferrum_config_object_service_id() {
   ferrum_config_t *config = NULL;
   int32_t result;
   setenv("SERVICE_ID", "1231as", 1);
-  setenv("HOST_ID", "a1231as", 1);
+  setenv("GATEWAY_ID", "a1231as", 1);
   setenv("INSTANCE_ID", "b1231as", 1);
   result = ferrum_config_new(&config);
   assert_true(result >= 0);
   assert_non_null(config);
 
   assert_true(strcmp(config->service_id, "1231as"));
-  assert_true(strcmp(config->host_id, "a1231as"));
+  assert_true(strcmp(config->gateway_id, "a1231as"));
   assert_true(strcmp(config->instance_id, "b1231as"));
   ferrum_config_destroy(config);
 }

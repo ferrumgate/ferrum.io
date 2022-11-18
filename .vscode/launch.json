@@ -65,7 +65,7 @@
                     "value": "8888"
                 },
                 {
-                    "name": "HOST_ID",
+                    "name": "GATEWAY_ID",
                     "value": "gateway1"
                 },
                 {
@@ -136,7 +136,7 @@
                     "value": "8888"
                 },
                 {
-                    "name": "HOST_ID",
+                    "name": "GATEWAY_ID",
                     "value": "gateway1"
                 },
                 {
