@@ -40,8 +40,8 @@ typedef struct ferrum_config {
   } raw;
   // service id
   char service_id[REBRICK_NAME_STR_LEN];
-  // host id or gateway id
-  char host_id[REBRICK_NAME_STR_LEN];
+  // gateway id
+  char gateway_id[REBRICK_NAME_STR_LEN];
   // every instance will have diffent instance id when started
   char instance_id[REBRICK_NAME_STR_LEN];
 

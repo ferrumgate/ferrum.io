@@ -59,11 +59,11 @@ if [ ! -z "$RAW_LISTEN_UDP_PORT" ]; then
 fi
 echo "raw listen udp port $OPT_RAW_LISTEN_UDP_PORT"
 
-OPT_HOST_ID=""
-if [ ! -z "$HOST_ID" ]; then
-    OPT_HOST_ID=$HOST_ID
+OPT_GATEWAY_ID=""
+if [ ! -z "$GATEWAY_ID" ]; then
+    OPT_GATEWAY_ID=$GATEWAY_ID
 fi
-echo "host id $OPT_HOST_ID"
+echo "gateway id $OPT_GATEWAY_ID"
 
 OPT_SERVICE_ID=""
 if [ ! -z "$SERVICE_ID" ]; then
@@ -94,7 +94,7 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     RAW_LISTEN_IP=$OPT_RAW_LISTEN_IP \
     RAW_LISTEN_TCP_PORT=$OPT_RAW_LISTEN_TCP_PORT \
     RAW_LISTEN_UDP_PORT=$OPT_RAW_LISTEN_UDP_PORT \
-    HOST_ID=$OPT_HOST_ID \
+    GATEWAY_ID=$OPT_GATEWAY_ID \
     SERVICE_ID=$OPT_SERVICE_ID \
     INSTANCE_ID=$OPT_INSTANCE_ID \
     ./src/ferrum.io

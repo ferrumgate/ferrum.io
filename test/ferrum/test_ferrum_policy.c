@@ -160,7 +160,7 @@ static void test_ferrum_policy_start(void **start) {
   unused(start);
 
   int32_t result;
-  setenv("HOST_ID", "gateway1", 1);
+  setenv("GATEWAY_ID", "gateway1", 1);
   setenv("SERVICE_ID", "mysqlservice", 1);
   setenv("INSTANCE_ID", "randominstance", 1);
   ferrum_config_t *config = NULL;
@@ -204,7 +204,7 @@ static void test_ferrum_policy_execute(void **start) {
   unused(start);
 
   int32_t result;
-  setenv("HOST_ID", "gateway1", 1);
+  setenv("GATEWAY_ID", "gateway1", 1);
   setenv("SERVICE_ID", "mysqlservice", 1);
   setenv("INSTANCE_ID", "randominstance", 1);
 

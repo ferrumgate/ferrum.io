@@ -12,10 +12,10 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t service_id_size = sizeof(tmp->service_id);
   uv_os_getenv("SERVICE_ID", tmp->service_id, &service_id_size);
 
-  /////////////////////// host id   ///////////////////
+  /////////////////////// gateway id   ///////////////////
 
-  size_t host_id_size = sizeof(tmp->host_id);
-  uv_os_getenv("HOST_ID", tmp->host_id, &host_id_size);
+  size_t gateway_id_size = sizeof(tmp->gateway_id);
+  uv_os_getenv("GATEWAY_ID", tmp->gateway_id, &gateway_id_size);
 
   /////////////////////// instance id   ///////////////////
 

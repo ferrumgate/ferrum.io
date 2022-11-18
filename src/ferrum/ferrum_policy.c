@@ -234,6 +234,7 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
       }
 
   if (!time || !id || !command[0]) { // not valid data
+    rebrick_log_error("time id or command is null\n");
     return;
   }
 
@@ -276,7 +277,7 @@ static void redis_send_reset_replication_command(ferrum_policy_t *policy) {
 
   ferrum_redis_cmd_t *cmd2;
   ferrum_redis_cmd_new(&cmd2, 5, 10, redis_cmd_callback, policy);
-  int32_t result = ferrum_redis_send(policy->redis_local, cmd2, "publish /policy/service replicate/%s/%s/%s", policy->config->host_id, policy->config->service_id, policy->config->instance_id);
+  int32_t result = ferrum_redis_send(policy->redis_local, cmd2, "publish /policy/service replicate/%s/%s/%s", policy->config->gateway_id, policy->config->service_id, policy->config->instance_id);
   if (result) {
     ferrum_log_error("redis send cmd failed with error:%d\n", result);
     ferrum_redis_cmd_destroy(cmd2);
@@ -295,7 +296,7 @@ static void redis_send_alive_command(ferrum_policy_t *policy) {
   // send I am alive to global
   ferrum_redis_cmd_t *cmd;
   ferrum_redis_cmd_new(&cmd, 15, 110, redis_cmd_callback, policy);
-  int result = ferrum_redis_send(policy->redis_local, cmd, "publish /policy/service  alive/%s/%s/%s", policy->config->host_id, policy->config->service_id, policy->config->instance_id);
+  int result = ferrum_redis_send(policy->redis_local, cmd, "publish /policy/service  alive/%s/%s/%s", policy->config->gateway_id, policy->config->service_id, policy->config->instance_id);
   if (result) {
     ferrum_log_error("redis send cmd failed with error:%d\n", result);
     ferrum_redis_cmd_destroy(cmd);
@@ -352,7 +353,7 @@ int32_t ferrum_policy_new(ferrum_policy_t **policy, const ferrum_config_t *confi
     return result;
   }
 
-  snprintf(tmp->redis_table_channel, sizeof(tmp->redis_table_channel) - 1, "/policy/service/%s/%s/%s", config->host_id, config->service_id, config->instance_id);
+  snprintf(tmp->redis_table_channel, sizeof(tmp->redis_table_channel) - 1, "/policy/service/%s/%s/%s", config->gateway_id, config->service_id, config->instance_id);
   result = ferrum_redis_new_stream(&tmp->redis_local_table, config->redis_local.ip, atoi(config->redis_local.port), config->redis_local.pass,
                                    10000, 5000, 1000, 10000, replication_messages, tmp, tmp->redis_table_channel);
   if (result) {
