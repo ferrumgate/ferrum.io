@@ -50,7 +50,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   char redis_local_host[REBRICK_MAX_ENV_LEN] = {0};
   size_t redis_local_host_size = sizeof(redis_local_host);
-  uv_os_getenv("REDIS_LOCAL_HOST", redis_local_host, &redis_local_host_size);
+  uv_os_getenv("REDIS_HOST", redis_local_host, &redis_local_host_size);
 
   if (!redis_local_host[0])
     strncpy(redis_local_host, "localhost", REBRICK_HOST_STR_LEN);
@@ -68,7 +68,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   rebrick_util_addr_to_port_string(&tmp->redis_local.addr, tmp->redis_local.port);
 
   size_t redis_local_pass_size = sizeof(tmp->redis_local.pass);
-  uv_os_getenv("REDIS_LOCAL_PASS", tmp->redis_local.pass, &redis_local_pass_size);
+  uv_os_getenv("REDIS_PASS", tmp->redis_local.pass, &redis_local_pass_size);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};

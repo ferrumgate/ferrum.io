@@ -37,10 +37,6 @@
                     "value": "localhost:6379"
                 },
                 {
-                    "name": "REDIS_LOCAL_HOST",
-                    "value": "localhost:6380"
-                },
-                {
                     "name": "RAW_DESTINATION_HOST",
                     "value": "192.168.88.10"
                 },
