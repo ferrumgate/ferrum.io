@@ -46,8 +46,6 @@ static void ferrum_config_object_redis_ip_port() {
   int32_t result;
   setenv("REDIS_HOST", "localhost:1234", 1);
   setenv("REDIS_PASS", "pass1", 1);
-  setenv("REDIS_LOCAL_HOST", "localhost:1244", 1);
-  setenv("REDIS_LOCAL_PASS", "pass2", 1);
   result = ferrum_config_new(&config);
   assert_true(result >= 0);
   assert_non_null(config);
@@ -59,8 +57,8 @@ static void ferrum_config_object_redis_ip_port() {
 
   assert_true(strcmp(config->redis_local.addr_str, "[127.0.0.1]:[1244]") == 0 || strcmp(config->redis_local.addr_str, "[::1]:[1244]") == 0);
   assert_true(strcmp(config->redis_local.ip, "127.0.0.1") == 0 || strcmp(config->redis_local.ip, "::1") == 0);
-  assert_true(strcmp(config->redis_local.port, "1244") == 0);
-  assert_string_equal(config->redis_local.pass, "pass2");
+  assert_true(strcmp(config->redis_local.port, "1234") == 0);
+  assert_string_equal(config->redis_local.pass, "pass1");
   ferrum_config_destroy(config);
 }
 

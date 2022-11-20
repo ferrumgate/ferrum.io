@@ -191,50 +191,10 @@ ferrum_policy_replication_message_parse(char *str, ferrum_policy_replication_mes
   return FERRUM_SUCCESS;
 }
 
-static void replication_messages(redisAsyncContext *context, void *_reply, void *_privdata) {
-  unused(context);
-  ferrum_redis_t *redis = cast(context->data, ferrum_redis_t *);
-  ferrum_redis_cmd_t *cmd = cast(_privdata, ferrum_redis_cmd_t *);
-  ferrum_redis_reply_t *reply = cast(_reply, ferrum_redis_reply_t *);
-  ferrum_policy_t *policy = cast(cmd->callback.arg1, ferrum_policy_t *);
-
+static void execute_message(ferrum_policy_t *policy, int64_t time, int64_t id, char command[256]) {
   int32_t result;
-  int64_t time = 0;
-  int64_t id = 0;
-  char command[256] = {0};
-  if (reply && reply->type == REDIS_REPLY_ARRAY && reply->elements == 1)
-    if (reply->element[0]->type == REDIS_REPLY_ARRAY && reply->element[0]->elements > 1)
-      if (reply->element[0]->element[1]->type == REDIS_REPLY_ARRAY && reply->element[0]->element[1]->elements) {
-        for (size_t i = 0; i < reply->element[0]->element[1]->elements; ++i) {
-          ferrum_redis_reply_t *row = reply->element[0]->element[1]->element[i];
-          if (row->type == REDIS_REPLY_ARRAY && row->elements) {
-            if (row->element[0]->type == REDIS_REPLY_STRING) {
-              char tmp[128] = {0};
-              strncpy(tmp, row->element[0]->str, sizeof(tmp) - 1);
-              strncpy(redis->stream.pos, row->element[0]->str, sizeof(redis->stream.pos) - 1);
-              char *val = strtok(tmp, "-");
-              if (val) {
-                result = rebrick_util_to_int64_t(val, &time); // no need to check result
-                val = strtok(NULL, "-");
-                if (val) {
-                  result = rebrick_util_to_int64_t(val, &id); // no need to check result
-                }
-              }
-            }
-            if (row->elements > 1 && row->element[1]->type == REDIS_REPLY_ARRAY && row->element[1]->elements > 1) {
-              if (row->element[1]->element[0]->type == REDIS_REPLY_STRING) {
-                // strncpy(command, row->element[1]->element[0]->str, sizeof(command) - 1);
-              }
-              if (row->element[1]->element[1]->type == REDIS_REPLY_STRING) {
-                strncpy(command, row->element[1]->element[1]->str, sizeof(command) - 1);
-              }
-            }
-          }
-        }
-      }
-
   if (!time || !id || !command[0]) { // not valid data
-    rebrick_log_error("time id or command is null\n");
+    // rebrick_log_error("time id or command is null\n");
     return;
   }
 
@@ -262,6 +222,51 @@ static void replication_messages(redisAsyncContext *context, void *_reply, void 
   rebrick_log_debug("msg executed id:%lld time:%lld\n", id, time);
   policy->last_command_id = id;
   policy->last_message_time = time * 1000;
+}
+
+static void replication_messages(redisAsyncContext *context, void *_reply, void *_privdata) {
+  unused(context);
+  ferrum_redis_t *redis = cast(context->data, ferrum_redis_t *);
+  ferrum_redis_cmd_t *cmd = cast(_privdata, ferrum_redis_cmd_t *);
+  ferrum_redis_reply_t *reply = cast(_reply, ferrum_redis_reply_t *);
+  ferrum_policy_t *policy = cast(cmd->callback.arg1, ferrum_policy_t *);
+
+  int32_t result;
+
+  if (reply && reply->type == REDIS_REPLY_ARRAY && reply->elements == 1)
+    if (reply->element[0]->type == REDIS_REPLY_ARRAY && reply->element[0]->elements > 1)
+      if (reply->element[0]->element[1]->type == REDIS_REPLY_ARRAY && reply->element[0]->element[1]->elements) {
+        for (size_t i = 0; i < reply->element[0]->element[1]->elements; ++i) {
+          int64_t time = 0;
+          int64_t id = 0;
+          char command[256] = {0};
+          ferrum_redis_reply_t *row = reply->element[0]->element[1]->element[i];
+          if (row->type == REDIS_REPLY_ARRAY && row->elements) {
+            if (row->element[0]->type == REDIS_REPLY_STRING) {
+              char tmp[128] = {0};
+              strncpy(tmp, row->element[0]->str, sizeof(tmp) - 1);
+              strncpy(redis->stream.pos, row->element[0]->str, sizeof(redis->stream.pos) - 1);
+              char *val = strtok(tmp, "-");
+              if (val) {
+                result = rebrick_util_to_int64_t(val, &time); // no need to check result
+                val = strtok(NULL, "-");
+                if (val) {
+                  result = rebrick_util_to_int64_t(val, &id); // no need to check result
+                }
+              }
+            }
+            if (row->elements > 1 && row->element[1]->type == REDIS_REPLY_ARRAY && row->element[1]->elements > 1) {
+              if (row->element[1]->element[0]->type == REDIS_REPLY_STRING) {
+                // strncpy(command, row->element[1]->element[0]->str, sizeof(command) - 1);
+              }
+              if (row->element[1]->element[1]->type == REDIS_REPLY_STRING) {
+                strncpy(command, row->element[1]->element[1]->str, sizeof(command) - 1);
+              }
+            }
+          }
+          execute_message(policy, time, id, command);
+        }
+      }
 }
 
 void redis_cmd_callback(redisAsyncContext *context, void *_reply, void *_privdata) {
