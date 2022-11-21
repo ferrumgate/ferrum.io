@@ -2,7 +2,7 @@
 IP=192.168.88.10
 docker run --net=host \
     -ti \
-    -e LOG_LEVEL=ALL \
+    -e LOG_LEVEL=all \
     -e REDIS_HOST=$IP \
     -e RAW_DESTINATION_HOST=$IP \
     -e RAW_DESTINATION_UDP_PORT=5555 \

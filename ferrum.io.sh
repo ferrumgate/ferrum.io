@@ -17,7 +17,7 @@ if [ ! -z "$REDIS_HOST" ]; then
 fi
 echo "redis host $OPT_REDIS_HOST"
 
-OPT_LOG_LEVEL="INFO"
+OPT_LOG_LEVEL="info"
 if [ ! -z "$LOG_LEVEL" ]; then
     OPT_LOG_LEVEL=$LOG_LEVEL
 fi

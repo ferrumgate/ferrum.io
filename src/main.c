@@ -28,19 +28,19 @@ static void set_log_level() {
   size_t log_level_size = sizeof(log_level);
   uv_os_getenv("LOG_LEVEL", log_level, &log_level_size);
   log_level_t level = REBRICK_LOG_ERROR;
-  if (!strcmp(log_level, "OFF"))
+  if (!strcmp(log_level, "off"))
     level = REBRICK_LOG_OFF;
-  if (!strcmp(log_level, "FATAL"))
+  if (!strcmp(log_level, "fatal"))
     level = REBRICK_LOG_FATAL;
-  if (!strcmp(log_level, "ERROR"))
+  if (!strcmp(log_level, "error"))
     level = REBRICK_LOG_ERROR;
-  if (!strcmp(log_level, "WARN"))
+  if (!strcmp(log_level, "warn"))
     level = REBRICK_LOG_WARN;
-  if (!strcmp(log_level, "INFO"))
+  if (!strcmp(log_level, "info"))
     level = REBRICK_LOG_INFO;
-  if (!strcmp(log_level, "DEBUG"))
+  if (!strcmp(log_level, "debug"))
     level = REBRICK_LOG_DEBUG;
-  if (!strcmp(log_level, "ALL"))
+  if (!strcmp(log_level, "all"))
     level = REBRICK_LOG_ALL;
   // set log level
   rebrick_log_level(level);

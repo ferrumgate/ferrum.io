@@ -30,7 +30,7 @@
             "environment": [
                 {
                     "name": "LOG_LEVEL",
-                    "value": "ALL"
+                    "value": "all"
                 },
                 {
                     "name": "REDIS_HOST",
