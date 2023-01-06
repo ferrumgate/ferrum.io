@@ -25,6 +25,7 @@ extern int test_ferrum_redis();
 extern int test_ferrum_config();
 extern int test_ferrum_raw();
 extern int test_ferrum_policy();
+extern int test_ferrum_lmdb();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
@@ -68,7 +69,9 @@ int main() {
   // if (test_ferrum_config())
   //  exit(1);
 
-  if (test_ferrum_policy())
+  // if (test_ferrum_policy())
+  //   exit(1);
+  if (test_ferrum_lmdb())
     exit(1);
 
   // these below tests are not validated yet
