@@ -58,8 +58,46 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   //`/${isDrop}/${result.error}/${result.rule?.id || ''}/${tun.id || ''}/${tun.userId || ''}/`
   // FERRUM_ID_STR_LEN-1 is here
   // result = sscanf(lmdb->value.val, "/%d/%d/%FERRUM_ID_STR_LEN[^/]/%FERRUM_ID_STR_LEN[^/]/%FERRUM_ID_STR_LEN[^/]/", &presult->is_dropped, &presult->why, presult->policy_id, presult->tun_id, presult->user_id);
-  result = sscanf(lmdb->value.val, "/%d/%d/%31[^/]/%31[^/]/%31[^/]/", &presult->is_dropped, &presult->why, presult->policy_id, presult->tun_id, presult->user_id);
-  if (result < 4) {
+  /* result = sscanf(lmdb->value.val, "/%d/%d/%31[^/]/%31[^/]/%31[^/]/", &presult->is_dropped, &presult->why, presult->policy_id, presult->tun_id, presult->user_id);
+  if (result < 2) {
+    presult->is_dropped = TRUE;
+    presult->why = FERRUM_POLICY_INVALID_DATA;
+    return FERRUM_ERR_POLICY;
+  } */
+  result = 0;
+  int32_t counter = 0;
+  char *tmp = lmdb->value.val;
+  char *token = strsep(&tmp, ",");
+  while (token) {
+    switch (counter) {
+    case 0:
+      result = rebrick_util_to_int32_t(token, &presult->is_dropped);
+      break;
+    case 1:
+      result = rebrick_util_to_int32_t(token, &presult->why);
+      break;
+    case 2:
+      if (*token)
+        strncpy(presult->policy_id, token, sizeof(presult->policy_id) - 1);
+      break;
+    case 3:
+      if (*token)
+        strncpy(presult->tun_id, token, sizeof(presult->tun_id) - 1);
+      break;
+    case 4:
+      if (*token)
+        strncpy(presult->user_id, token, sizeof(presult->user_id) - 1);
+      break;
+    default:
+      break;
+    }
+    if (result)
+      break;
+    token = strsep(&tmp, ",");
+    counter++;
+  }
+
+  if (counter < 2) {
     presult->is_dropped = TRUE;
     presult->why = FERRUM_POLICY_INVALID_DATA;
     return FERRUM_ERR_POLICY;

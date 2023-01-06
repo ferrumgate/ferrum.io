@@ -98,7 +98,7 @@ int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lm
   }
   value->size = vval.mv_size;
   memcpy(value->val, vval.mv_data, vval.mv_size > sizeof(value->val) ? sizeof(value->val) - 1 : vval.mv_size);
-  value->val[value->size + 1] = 0; // if string than put c style string
+  value->val[value->size] = 0; // if string than put c style string
   mdb_txn_abort(lmdb->trx);
   return FERRUM_SUCCESS;
 }

@@ -115,7 +115,7 @@ static void ferrum_policy_execute_policy_row_invalid(void **start) {
   result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 2, 160000);
   assert_int_equal(result, FERRUM_SUCCESS);
   lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/12/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "/1/2/");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,");
   result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_lmdb_destroy(lmdb);
@@ -153,9 +153,30 @@ static void ferrum_policy_execute_policy_row_ok(void **start) {
   result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 2, 160000);
   assert_int_equal(result, FERRUM_SUCCESS);
   lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/12/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "/1/2/abc/def/ghi");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,2,abc,def,ghi");
   result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
   assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/13/service/id/10");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, ",1,2,,,ghi");
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/14/service/id/10");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,2,,,ghi");
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/15/service/id/10");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "ab,2,,,ghi,");
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/16/service/id/10");
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "0,2,,ghi,,");
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
   ferrum_lmdb_destroy(lmdb);
 
   ferrum_policy_t *policy;
@@ -170,6 +191,42 @@ static void ferrum_policy_execute_policy_row_ok(void **start) {
   assert_string_equal(presult.policy_id, "abc");
   assert_string_equal(presult.tun_id, "def");
   assert_string_equal(presult.user_id, "ghi");
+
+  new2(ferrum_policy_result_t, presult2);
+  result = ferrum_policy_execute(policy, 13, &presult2);
+  assert_int_equal(result, FERRUM_ERR_POLICY);
+  assert_int_equal(presult2.is_dropped, TRUE);
+  assert_int_equal(presult2.why, FERRUM_POLICY_INVALID_DATA);
+  assert_string_equal(presult2.policy_id, "");
+  assert_string_equal(presult2.tun_id, "");
+  assert_string_equal(presult2.user_id, "");
+
+  new2(ferrum_policy_result_t, presult3);
+  result = ferrum_policy_execute(policy, 14, &presult3);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_int_equal(presult3.is_dropped, TRUE);
+  assert_int_equal(presult3.why, 2);
+  assert_string_equal(presult3.policy_id, "");
+  assert_string_equal(presult3.tun_id, "");
+  assert_string_equal(presult3.user_id, "ghi");
+
+  new2(ferrum_policy_result_t, presult4);
+  result = ferrum_policy_execute(policy, 15, &presult4);
+  assert_int_equal(result, FERRUM_ERR_POLICY);
+  assert_int_equal(presult4.is_dropped, TRUE);
+  assert_int_equal(presult4.why, FERRUM_POLICY_INVALID_DATA);
+  assert_string_equal(presult4.policy_id, "");
+  assert_string_equal(presult4.tun_id, "");
+  assert_string_equal(presult4.user_id, "");
+
+  new2(ferrum_policy_result_t, presult5);
+  result = ferrum_policy_execute(policy, 16, &presult5);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_int_equal(presult5.is_dropped, FALSE);
+  assert_int_equal(presult5.why, 2);
+  assert_string_equal(presult5.policy_id, "");
+  assert_string_equal(presult5.tun_id, "ghi");
+  assert_string_equal(presult5.user_id, "");
 
   ferrum_policy_destroy(policy);
   ferrum_config_destroy(config);
