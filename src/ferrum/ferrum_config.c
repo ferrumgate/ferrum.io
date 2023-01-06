@@ -132,6 +132,14 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   if (!(strcmp(disable_policy, "true") || !strcmp(disable_policy, "TRUE")))
     tmp->is_policy_disabled = TRUE;
 
+  /////////////////////// lmdb folder ///////////////////
+  strncpy(tmp->lmdb_folder, "/var/lib/ferrumgate", sizeof(tmp->lmdb_folder));
+  char lmdb_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t lmdb_folder_size = sizeof(lmdb_folder);
+  uv_os_getenv("LMDB_FOLDER", lmdb_folder, &lmdb_folder_size);
+  if (lmdb_folder[0])
+    strncpy(tmp->lmdb_folder, lmdb_folder, sizeof(tmp->lmdb_folder) - 1);
+
   *config = tmp;
   return FERRUM_SUCCESS;
 }

@@ -68,10 +68,9 @@ int main() {
   //   exit(1);
   // if (test_ferrum_config())
   //  exit(1);
-
-  // if (test_ferrum_policy())
-  //   exit(1);
   if (test_ferrum_lmdb())
+    exit(1);
+  if (test_ferrum_policy())
     exit(1);
 
   // these below tests are not validated yet

@@ -117,15 +117,19 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   }
 
   new2(rebrick_conntrack_t, conntrack);
+  new2(ferrum_policy_result_t, presult);
+  strncpy(presult.ip, ip_str, sizeof(presult.ip) - 1);
   result = raw->conntrack_get(addr, &server_socket->bind_addr.base, TRUE, &conntrack);
   if (result) {
     rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
+    presult.is_dropped = TRUE;
+    presult.why = FERRUM_POLICY_CLIENT_NOT_FOUND;
     // TODO event log
     rebrick_tcpsocket_destroy2(cast_to_tcpsocket(client_handle));
     return;
   }
   // execute policy, if fails close socket
-  new2(ferrum_policy_result_t, presult);
+
   result = ferrum_policy_execute(raw->policy, conntrack.mark, &presult);
   if (result) {
     rebrick_log_error("policy execute failed with error:%d\n", result);
@@ -355,14 +359,17 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
   HASH_FIND(hh, raw->udp_socket_pairs, &client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (!pair) { // not found, query conntrack
     new2(rebrick_conntrack_t, conntrack);
+    new2(ferrum_policy_result_t, presult);
+
     result = raw->conntrack_get(addr, &socket->bind_addr.base, FALSE, &conntrack);
     if (result) {
       rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
+      presult.is_dropped = TRUE;
+      presult.why = FERRUM_POLICY_CLIENT_NOT_FOUND;
       // TODO event log
       return;
     }
     // execute policy, if fails close socket
-    new2(ferrum_policy_result_t, presult);
     result = ferrum_policy_execute(raw->policy, conntrack.mark, &presult);
     if (result) {
       rebrick_log_error("policy execute failed with error:%d\n", result);
@@ -375,6 +382,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       // TODO event log
       return;
     }
+    // TODO event log and continue
 
     ferrum_raw_udpsocket2_t *udp2 = new1(ferrum_raw_udpsocket2_t);
     constructor(udp2, ferrum_raw_udpsocket2_t);

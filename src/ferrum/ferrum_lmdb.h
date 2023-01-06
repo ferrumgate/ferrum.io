@@ -1,5 +1,5 @@
-#ifndef __FERRUM_REDIS_H__
-#define __FERRUM_REDIS_H__
+#ifndef __FERRUM_LMDB_H__
+#define __FERRUM_LMDB_H__
 
 #include "ferrum.h"
 #include "lmdb.h"
@@ -21,13 +21,12 @@ typedef struct ferrum_lmdb {
   MDB_dbi dbi;
   MDB_txn *parent_trx;
   MDB_txn *trx;
-  int32_t is_readonly;
   struct ferrum_lmdb_entry key;
   struct ferrum_lmdb_entry value;
 
 } ferrum_lmdb_t;
 
-int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbname, int32_t readonly, size_t maxdb, size_t maxsize);
+int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbname, size_t maxdb, size_t maxsize);
 int32_t ferrum_lmdb_put(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lmdb_entry_t *value);
 int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lmdb_entry_t *value);
 int32_t ferrum_lmdb_del(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key);

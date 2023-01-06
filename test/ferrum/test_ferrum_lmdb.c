@@ -33,7 +33,7 @@ static void ferrum_object_create_destroy_success(void **start) {
   const char *folder = "/tmp/test4";
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0, 0);
+  int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_lmdb_destroy(lmdb);
 }
@@ -49,7 +49,7 @@ static void ferrum_object_check_open_file(void **start) {
 
   fprintf(stdout, "WORKING DIR %s\n", working_dir);
   strncat(working_dir, "/data", 10);
-  int32_t result = ferrum_lmdb_new(&lmdb, working_dir, "ferrumgate", 0, 0, 0);
+  int32_t result = ferrum_lmdb_new(&lmdb, working_dir, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
   size_t len = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
   lmdb->key.size = len;
@@ -68,12 +68,12 @@ static void ferrum_object_put_get_del_get(void **start) {
   const char *folder = "/tmp/test5";
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0, 0);
+  int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
   // save data
   lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum", 1);
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum");
 
   result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
   assert_int_equal(result, FERRUM_SUCCESS);

@@ -3,6 +3,7 @@
 #include "ferrum.h"
 
 #define FERRUM_HOSTNAME_LEN 64
+#define FERRUM_PATH_LEN 512
 
 typedef struct ferrum_config {
   base_object();
@@ -46,6 +47,7 @@ typedef struct ferrum_config {
   char instance_id[REBRICK_NAME_STR_LEN];
 
   int32_t is_policy_disabled;
+  char lmdb_folder[FERRUM_PATH_LEN];
 
 } ferrum_config_t;
 
