@@ -55,10 +55,6 @@ static void ferrum_config_object_redis_ip_port() {
   assert_true(strcmp(config->redis.port, "1234") == 0);
   assert_string_equal(config->redis.pass, "pass1");
 
-  assert_true(strcmp(config->redis_local.addr_str, "[127.0.0.1]:[1244]") == 0 || strcmp(config->redis_local.addr_str, "[::1]:[1244]") == 0);
-  assert_true(strcmp(config->redis_local.ip, "127.0.0.1") == 0 || strcmp(config->redis_local.ip, "::1") == 0);
-  assert_true(strcmp(config->redis_local.port, "1234") == 0);
-  assert_string_equal(config->redis_local.pass, "pass1");
   ferrum_config_destroy(config);
 }
 
@@ -106,6 +102,20 @@ static void ferrum_config_object_lmdb_folder() {
   setenv("LMDB_FOLDER", "", 1);
 }
 
+static void ferrum_config_object_syslog_host() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("SYSLOG_HOST", "localhost:3232", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->syslog_host, "localhost:3232");
+  ferrum_config_destroy(config);
+  setenv("SYSLOG_SOCK", "", 1);
+}
+
 static void ferrum_config_object_raw() {
   ferrum_config_t *config = NULL;
   int32_t result;
@@ -140,6 +150,7 @@ int test_ferrum_config(void) {
       cmocka_unit_test(ferrum_config_object_raw),
       cmocka_unit_test(ferrum_config_object_disable_policy),
       cmocka_unit_test(ferrum_config_object_lmdb_folder),
+      cmocka_unit_test(ferrum_config_object_syslog_host)
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

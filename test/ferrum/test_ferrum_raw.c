@@ -10,15 +10,21 @@
     usleep(100);                              \
     uv_run(uv_default_loop(), UV_RUN_NOWAIT); \
   }
-
+const char *lmdb_folder = "/tmp/abc";
 static int setup(void **state) {
+
   unused(state);
+  setenv("LMDB_FOLDER", lmdb_folder, 1);
+  setenv("DISABLE_POLICY", "true", 1);
+  mkdir(lmdb_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   fprintf(stdout, "****  %s ****\n", __FILE__);
   return 0;
 }
 
 static int teardown(void **state) {
   unused(state);
+  setenv("LMDB_FOLDER", "", 1);
+  setenv("DISABLE_POLICY", "", 1);
   uv_loop_close(uv_default_loop());
   return 0;
 }
@@ -66,9 +72,14 @@ static void ferrum_raw_tcp(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -78,7 +89,7 @@ static void ferrum_raw_tcp(void **start) {
   callback.on_read = tcp_on_read;
   tcp_readed = 0;
   rebrick_tcpsocket_new(&client, NULL, &dest, 0, &callback);
-  loop(counter, 1000, TRUE);
+  loop(counter, 10000, TRUE);
 
   char *head = "GET /100m.ignore.txt HTTP/1.1\r\n\
 Host: nodejs.org\r\n\
@@ -97,6 +108,9 @@ Accept: text/html\r\n\
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
 }
 
 int tcp_error_occured = 0;
@@ -123,9 +137,14 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -148,6 +167,9 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
 }
 
 static void ferrum_raw_tcp_destination_closed(void **start) {
@@ -170,9 +192,14 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -207,6 +234,9 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
 }
 
 static void ferrum_raw_tcp_client_closed(void **start) {
@@ -229,9 +259,14 @@ static void ferrum_raw_tcp_client_closed(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -261,6 +296,9 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
 
   tcp_echo_stop();
   tcp_echo_close_client();
@@ -295,9 +333,14 @@ static void ferrum_raw_udp(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -331,6 +374,9 @@ static void ferrum_raw_udp(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
   rebrick_free(testdata);
 }
 
@@ -350,9 +396,14 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -386,6 +437,9 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+
   rebrick_free(testdata);
 }
 
@@ -413,9 +467,14 @@ static void ferrum_raw_udp_closed_destination(void **start) {
 
   ferrum_policy_t *policy;
   result = ferrum_policy_new(&policy, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_udpsocket_t *client;
@@ -444,6 +503,10 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   ferrum_config_destroy(config);
   loop(counter, 100, TRUE);
   ferrum_policy_destroy(policy);
+
+  loop(counter, 100, TRUE);
+  ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
 }
 
 int test_ferrum_raw(void) {

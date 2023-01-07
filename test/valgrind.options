@@ -399,3 +399,18 @@
    ...
 }
 
+{
+   syslog-write proble-15
+   Memcheck:Param
+   sendmsg(mmsg[0].msg_hdr.msg_name)
+   fun:syscall
+   fun:uv__sendmmsg
+   fun:uv__udp_sendmmsg
+   fun:uv__udp_sendmsg
+   fun:uv__udp_send
+   fun:uv_udp_send
+   fun:rebrick_udpsocket_write
+   fun:ferrum_syslog_write
+   ...
+}
+

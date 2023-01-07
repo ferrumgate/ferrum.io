@@ -21,7 +21,7 @@ OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_log.o ./
 		  ./rebrick/file/rebrick_filestream.o ./rebrick/netfilter/rebrick_conntrack.o
 
 OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_lmdb.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
- ./ferrum/ferrum_policy.o
+ ./ferrum/ferrum_policy.o ./ferrum/ferrum_syslog.o
 
 
 OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o ./rebrick/test_rebrick_util.o ./rebrick/test_rebrick_resolve.o \
@@ -40,7 +40,8 @@ OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis
 					./ferrum/test_ferrum_config.o ../src/ferrum/ferrum_config.o \
 					./ferrum/test_ferrum_raw.o ../src/ferrum/ferrum_raw.o \
 					./ferrum/test_ferrum_policy.o ../src/ferrum/ferrum_policy.o \
-					./ferrum/test_ferrum_lmdb.o ../src/ferrum/ferrum_lmdb.o
+					./ferrum/test_ferrum_lmdb.o ../src/ferrum/ferrum_lmdb.o \
+					./ferrum/test_ferrum_syslog.o ../src/ferrum/ferrum_syslog.o \
 
 
 
@@ -66,9 +67,9 @@ ferrum.io : $(OBJS_REBRICK) $(OBJS_FERRUM)
 	
 
 
-check:clean
+check:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrun
-checkvalgrind:clean
+checkvalgrind:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrunvalgrind
 buildtest:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile test

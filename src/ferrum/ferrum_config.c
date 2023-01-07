@@ -140,6 +140,14 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   if (lmdb_folder[0])
     strncpy(tmp->lmdb_folder, lmdb_folder, sizeof(tmp->lmdb_folder) - 1);
 
+  /////////////////////// syslog host port ///////////////////
+  strncpy(tmp->syslog_host, "localhost:9191", sizeof(tmp->syslog_host));
+  char syslog_host[REBRICK_MAX_ENV_LEN] = {0};
+  size_t syslog_host_size = sizeof(syslog_host);
+  uv_os_getenv("SYSLOG_HOST", syslog_host, &syslog_host_size);
+  if (syslog_host[0])
+    strncpy(tmp->syslog_host, syslog_host, sizeof(tmp->syslog_host) - 1);
+
   *config = tmp;
   return FERRUM_SUCCESS;
 }

@@ -19,6 +19,7 @@ typedef struct rebrick_timer {
 
 int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t callback, void *data, uint32_t milisecond, int32_t start_immediatly);
 int32_t rebrick_timer_start(rebrick_timer_t *timer);
+int32_t rebrick_timer_start_after(rebrick_timer_t *timer, int32_t elapsed);
 int32_t rebrick_timer_stop(rebrick_timer_t *timer);
 int32_t rebrick_timer_destroy(rebrick_timer_t *timer);
 

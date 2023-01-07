@@ -48,6 +48,7 @@ typedef struct ferrum_config {
 
   int32_t is_policy_disabled;
   char lmdb_folder[FERRUM_PATH_LEN];
+  char syslog_host[REBRICK_IP_PORT_STR_LEN];
 
 } ferrum_config_t;
 
