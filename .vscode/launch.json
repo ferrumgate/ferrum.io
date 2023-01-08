@@ -30,7 +30,7 @@
             "environment": [
                 {
                     "name": "LOG_LEVEL",
-                    "value": "all"
+                    "value": "warn"
                 },
                 {
                     "name": "REDIS_HOST",
@@ -38,7 +38,7 @@
                 },
                 {
                     "name": "RAW_DESTINATION_HOST",
-                    "value": "192.168.88.10"
+                    "value": "192.168.88.250"
                 },
                 {
                     "name": "RAW_DESTINATION_TCP_PORT",
@@ -71,6 +71,18 @@
                 {
                     "name": "INSTANCE_ID",
                     "value": "randominstance"
+                },
+                {
+                    "name": "LMDB_FOLDER",
+                    "value": "/tmp/test4"
+                },
+                {
+                    "name": "SYSLOG_HOST",
+                    "value": "localhost:9292"
+                },
+                {
+                    "name": "DISABLE_POLICY",
+                    "value": "true"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",
