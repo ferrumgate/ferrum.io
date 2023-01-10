@@ -105,10 +105,7 @@ static void free_memory(void *data) {
 int32_t ferrum_syslog_write(const ferrum_syslog_t *syslog, uint8_t *buffer, size_t len) {
 
   uint8_t *data = rebrick_malloc(len);
-  if (!data) {
-    rebrick_log_fatal("malloc problem\n");
-    rebrick_kill_current_process(REBRICK_ERR_MALLOC);
-  }
+  if_is_null_then_die(data, "malloc problem\n");
   fill_zero(data, len);
   memcpy(data, buffer, len);
 
