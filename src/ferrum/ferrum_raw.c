@@ -85,8 +85,8 @@ static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_polic
 
   unused(client_addr);
   char log[1024] = {0};
-  size_t len = snprintf(log, 1023, "/%d/%d/%d/%s/%s/%s/%s/%s", result->client_id, result->is_dropped, result->why,
-                        result->policy_id, result->user_id, result->tun_id,
+  size_t len = snprintf(log, 1023, "/%" PRId64 "/%d/%d/%d/%s/%s/%s/%s/%s/%s/%s", rebrick_util_micro_time(), result->client_id, result->is_dropped, result->why,
+                        syslog->config->gateway_id, syslog->config->service_id, result->policy_id, result->user_id, result->tun_id,
                         result->client_ip, result->client_port);
   ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
 }

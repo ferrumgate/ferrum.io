@@ -93,6 +93,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
       rebrick_kill_current_process(result);
     }
     rebrick_util_addr_to_string(&tmp->raw.dest_tcp_addr, tmp->raw.dest_tcp_addr_str);
+    rebrick_log_warn("raw destination tcp addr: %s\n", tmp->raw.dest_tcp_addr_str);
   }
 
   if (raw_dest_udp_port[0]) {
@@ -102,6 +103,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
       rebrick_kill_current_process(result);
     }
     rebrick_util_addr_to_string(&tmp->raw.dest_udp_addr, tmp->raw.dest_udp_addr_str);
+    rebrick_log_warn("raw destination udp addr: %s\n", tmp->raw.dest_udp_addr_str);
   }
 
   ///
@@ -115,6 +117,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     uv_os_getenv("RAW_LISTEN_TCP_PORT", raw_listen_tcp_port, &raw_listen_tcp_port_size);
     rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_tcp_port[0] ? raw_listen_tcp_port : raw_dest_tcp_port, &tmp->raw.listen_tcp_addr);
     rebrick_util_addr_to_string(&tmp->raw.listen_tcp_addr, tmp->raw.listen_tcp_addr_str);
+    rebrick_log_warn("raw listen tcp addr: %s\n", tmp->raw.listen_tcp_addr_str);
   }
 
   if (raw_dest_udp_port[0]) {
@@ -123,6 +126,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     uv_os_getenv("RAW_LISTEN_UDP_PORT", raw_listen_udp_port, &raw_listen_udp_port_size);
     rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_udp_port[0] ? raw_listen_udp_port : raw_dest_udp_port, &tmp->raw.listen_udp_addr);
     rebrick_util_addr_to_string(&tmp->raw.listen_udp_addr, tmp->raw.listen_udp_addr_str);
+    rebrick_log_warn("raw listen udp addr: %s\n", tmp->raw.listen_udp_addr_str);
   }
 
   /////////////////////// policy disabled ///////////////////
@@ -147,6 +151,8 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   uv_os_getenv("SYSLOG_HOST", syslog_host, &syslog_host_size);
   if (syslog_host[0])
     strncpy(tmp->syslog_host, syslog_host, sizeof(tmp->syslog_host) - 1);
+
+  rebrick_log_warn("syslog host:port is %s\n", tmp->syslog_host);
 
   *config = tmp;
   return FERRUM_SUCCESS;
