@@ -2,15 +2,11 @@
 
 static void on_send(uv_udp_send_t *req, int status) {
 
-  char current_time_str[32] = {0};
-
-  unused(current_time_str);
   rebrick_log_debug("socket on send called and status:%d\n", status);
-
   rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
   void *source = (clean_func && clean_func->anydata.ptr) ? clean_func->anydata.ptr : NULL;
 
-  if (req->handle && req->handle->data) {
+  if (req->handle && !uv_is_closing(cast(req->handle, uv_handle_t *)) && req->handle->data) {
 
     const rebrick_udpsocket_t *socket = cast_to_udpsocket(req->handle->data);
     if (status >= 0) {
@@ -32,11 +28,12 @@ static void on_send(uv_udp_send_t *req, int status) {
 }
 int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func) {
 
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   char dst_ip[REBRICK_IP_STR_LEN];
   char dst_port[REBRICK_PORT_STR_LEN];
   int32_t result;
+  if (uv_is_closing(cast(&socket->handle.udp, uv_handle_t *))) {
+    return REBRICK_ERR_IO_CLOSING;
+  }
 
   uv_udp_send_t *request = new1(uv_udp_send_t);
   fill_zero(request, sizeof(uv_udp_send_t));
@@ -60,12 +57,10 @@ int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_socka
 
 static void on_recv(uv_udp_t *handle, ssize_t nread, const uv_buf_t *rcvbuf, const struct sockaddr *addr, unsigned flags) {
 
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   unused(flags);
   const rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
 
-  if (socket) {
+  if (socket && !uv_is_closing(cast(handle, uv_handle_t *))) {
     if (nread < 0) // error or closed
     {
       if (socket->on_error) {
@@ -126,8 +121,7 @@ int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, size_t 
 }
 
 static int32_t create_socket(rebrick_udpsocket_t *socket) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
 
   socket->loop = uv_default_loop();
@@ -159,8 +153,6 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
                               const rebrick_sockaddr_t *bind_addr,
                               const rebrick_udpsocket_callbacks_t *callbacks) {
 
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   int32_t result;
   rebrick_udpsocket_t *tmp = new1(rebrick_udpsocket_t);
   constructor(tmp, rebrick_udpsocket_t);
@@ -189,7 +181,7 @@ int32_t rebrick_udpsocket_new(rebrick_udpsocket_t **socket,
 
 static void on_close(uv_handle_t *handle) {
   if (handle)
-    if (handle->data) {
+    if (handle->data && uv_is_closing(handle)) {
       rebrick_udpsocket_t *socket = cast_to_udpsocket(handle->data);
       if (socket->on_close) {
         rebrick_log_debug("handle closed\n");
@@ -201,8 +193,7 @@ static void on_close(uv_handle_t *handle) {
 }
 
 int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   if (socket) {
     // close if server is ready
 
@@ -217,8 +208,7 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket) {
 }
 
 int32_t rebrick_udpsocket_sysctl_write_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   if (socket) {
     result = uv_send_buffer_size(cast(&socket->handle.udp, uv_handle_t *), value);
@@ -230,8 +220,7 @@ int32_t rebrick_udpsocket_sysctl_write_buffer_size(rebrick_udpsocket_t *socket, 
   return REBRICK_SUCCESS;
 }
 int32_t rebrick_udpsocket_sysctl_read_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   if (socket) {
     result = uv_recv_buffer_size(cast(&socket->handle.udp, uv_handle_t *), value);

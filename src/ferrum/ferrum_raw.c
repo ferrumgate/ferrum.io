@@ -45,10 +45,6 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
     rebrick_free(pair);
   }
   rebrick_tcpsocket_destroy(tcp);
-  /* } else {
-    int32_t uv_err = HAS_UV_ERR(error) ? UV_ERR(error) : 0;
-    rebrick_log_error("destination socket error occured on socket %s\n", uv_strerror(uv_err));
-  } */
 }
 
 void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
@@ -199,14 +195,15 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   raw->socket_count++;
 }
 
-static void on_tcp_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {
+static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {
   unused(socket);
   unused(callbackdata);
   unused(error);
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
+  ferrum_log_error("socket error occured on socket %d\n", error);
   if (tcp->is_server) {
-    rebrick_log_error("server socket error occured on socket %d\n", error);
+    ferrum_log_error("server socket error occured on socket %d\n", error);
   } else {
     if (error != -14095)
       rebrick_log_error("client socket error %d\n", error);
@@ -221,10 +218,6 @@ static void on_tcp_error(rebrick_socket_t *socket, void *callbackdata, int32_t e
       rebrick_free(pair);
     }
     rebrick_tcpsocket_destroy(tcp);
-    /*  } else {
-       int32_t uv_err = HAS_UV_ERR(error) ? UV_ERR(error) : 0;
-       rebrick_log_error("client socket error occured on socket %s\n", uv_strerror(uv_err));
-     } */
   }
 }
 static void on_tcp_server_close(rebrick_socket_t *socket, void *callbackdata) {
@@ -582,7 +575,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
     listen_callback.callback_data = tmp;
     listen_callback.on_client_close = on_tcp_client_close;
     listen_callback.on_client_connect = on_tcp_client_connect;
-    listen_callback.on_error = on_tcp_error;
+    listen_callback.on_error = on_tcp_client_error;
     listen_callback.on_close = on_tcp_server_close;
     listen_callback.on_read = on_tcp_client_read;
     listen_callback.on_write = on_tcp_client_write;

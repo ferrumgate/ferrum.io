@@ -3,13 +3,13 @@
 static void on_close(uv_handle_t *handle);
 
 static void on_send(uv_write_t *req, int status) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
-  rebrick_log_debug("socket on send called and status:%d\n", status);
+
+  rebrick_log_debug("socket on send called and status:%d isclosing:%d\n", status, uv_is_closing(cast(req->handle, uv_handle_t *)));
 
   rebrick_clean_func_t *clean_func = cast(req->data, rebrick_clean_func_t *);
   void *source = clean_func ? clean_func->anydata.ptr : NULL;
-  if (req->handle && req->handle->data) {
+
+  if (req->handle && !uv_is_closing(cast(req->handle, uv_handle_t *)) && req->handle->data) {
     const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(req->handle->data);
 
     if (status < 0) {
@@ -31,11 +31,9 @@ static void on_send(uv_write_t *req, int status) {
 
 int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc) {
 
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   int32_t result;
   if (uv_is_closing(cast(&socket->handle.tcp, uv_handle_t *))) {
-    return REBRICK_ERR_IO_CLOSED;
+    return REBRICK_ERR_IO_CLOSING;
   }
 
   uv_write_t *request = new1(uv_write_t);
@@ -57,20 +55,18 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
 }
 
 static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf) {
-
-  char current_time_str[32] = {0};
-  unused(current_time_str);
-
+  rebrick_log_debug("socket on recv called readsize: %zd, isclosing:%d\n", nread, uv_is_closing(cast(handle, uv_handle_t *)));
   const rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
-
-  if (nread < 0) {
-    if (socket->on_error) {
-      rebrick_log_debug("socket error occured %zd\n", nread);
-      socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
+  if (!uv_is_closing(cast(handle, uv_handle_t *))) {
+    if (nread < 0) {
+      if (socket->on_error) {
+        rebrick_log_debug("socket error occured %zd\n", nread);
+        socket->on_error(cast_to_socket(socket), socket->callback_data, REBRICK_ERR_UV + nread);
+      }
+    } else if (socket->on_read && nread) {
+      rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
+      socket->on_read(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
     }
-  } else if (socket->on_read && nread) {
-    rebrick_log_debug("socket receive nread:%zd buflen:%zu\n", nread, rcvbuf->len);
-    socket->on_read(cast_to_socket(socket), socket->callback_data, NULL, cast(rcvbuf->base, uint8_t *), nread);
   }
   if (rcvbuf->base)
     rebrick_free(rcvbuf->base);
@@ -78,8 +74,6 @@ static void on_recv(uv_stream_t *handle, ssize_t nread, const uv_buf_t *rcvbuf) 
 
 static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf) {
   unused(client);
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   if (suggested_size <= 0) {
     rebrick_log_info("socket suggested_size is 0 from \n");
     return;
@@ -131,8 +125,6 @@ static rebrick_tcpsocket_t *create_client() {
  * @param status
  */
 static void on_client_connected(uv_stream_t *server, int status) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
 
   int32_t result;
   int32_t temp = 0;
@@ -229,8 +221,7 @@ int32_t rebrick_tcpsocket_write_buffer_size(rebrick_tcpsocket_t *socket, size_t 
 }
 
 static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
 
   socket->loop = uv_default_loop();
@@ -271,8 +262,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
 }
 
 static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
 
   socket->loop = uv_default_loop();
@@ -305,8 +295,7 @@ int32_t rebrick_tcpsocket_init(rebrick_tcpsocket_t *socket,
                                const rebrick_sockaddr_t *peer_addr,
                                int32_t backlog_or_isclient, rebrick_tcpsocket_create_client_t createclient,
                                const rebrick_tcpsocket_callbacks_t *callbacks, int32_t start_reading_immediately) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   // burası önemli,callback data
   socket->callback_data = callbacks ? callbacks->callback_data : NULL;
@@ -360,8 +349,7 @@ int32_t rebrick_tcpsocket_new2(rebrick_tcpsocket_t **socket,
                                int32_t backlog_or_isclient,
                                const rebrick_tcpsocket_callbacks_t *callbacks,
                                int32_t start_reading_immediatly) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   rebrick_tcpsocket_t *data = new1(rebrick_tcpsocket_t);
   constructor(data, rebrick_tcpsocket_t);
@@ -382,8 +370,6 @@ int32_t rebrick_tcpsocket_new2(rebrick_tcpsocket_t **socket,
 
 static void on_close(uv_handle_t *handle) {
 
-  char current_time_str[32] = {0};
-  unused(current_time_str);
   if (handle)
     if (handle->data && uv_is_closing(handle)) {
       rebrick_tcpsocket_t *socket = cast_to_tcpsocket(handle->data);
@@ -399,8 +385,7 @@ static void on_close(uv_handle_t *handle) {
 }
 
 int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   if (socket) {
     // close if server is ready
     uv_tcp_t *tcp = cast(&socket->handle.tcp, uv_tcp_t *);
@@ -416,8 +401,7 @@ int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket) {
 }
 
 int32_t rebrick_tcpsocket_destroy2(rebrick_tcpsocket_t *socket) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   if (socket) {
     // close if server is ready
     uv_handle_t *handle = cast(&socket->handle.tcp, uv_handle_t *);
@@ -433,8 +417,6 @@ int32_t rebrick_tcpsocket_destroy2(rebrick_tcpsocket_t *socket) {
 
 int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable) {
   if (socket) {
-    char current_time_str[32] = {0};
-    unused(current_time_str);
     int32_t result;
     result = uv_tcp_nodelay(&socket->handle.tcp, enable);
     if (result < 0) {
@@ -448,8 +430,7 @@ int32_t rebrick_tcpsocket_nodelay(rebrick_tcpsocket_t *socket, int enable) {
 
 int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int delay) {
   if (socket) {
-    char current_time_str[32] = {0};
-    unused(current_time_str);
+
     int32_t result;
     result = uv_tcp_keepalive(&socket->handle.tcp, enable, delay);
     if (result < 0) {
@@ -462,8 +443,6 @@ int32_t rebrick_tcpsocket_keepalive(rebrick_tcpsocket_t *socket, int enable, int
 }
 int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int enable) {
   if (socket) {
-    char current_time_str[32] = {0};
-    unused(current_time_str);
     int32_t result;
     result = uv_tcp_simultaneous_accepts(&socket->handle.tcp, enable);
     if (result < 0) {
@@ -476,8 +455,7 @@ int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int 
 }
 
 int32_t rebrick_tcpsocket_sysctl_write_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   if (socket) {
     result = uv_send_buffer_size(cast(&socket->handle.tcp, uv_handle_t *), value);
@@ -489,8 +467,7 @@ int32_t rebrick_tcpsocket_sysctl_write_buffer_size(rebrick_tcpsocket_t *socket, 
   return REBRICK_SUCCESS;
 }
 int32_t rebrick_tcpsocket_sysctl_read_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value) {
-  char current_time_str[32] = {0};
-  unused(current_time_str);
+
   int32_t result;
   if (socket) {
     result = uv_recv_buffer_size(cast(&socket->handle.tcp, uv_handle_t *), value);

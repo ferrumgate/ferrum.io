@@ -38,7 +38,7 @@
                 },
                 {
                     "name": "RAW_DESTINATION_HOST",
-                    "value": "192.168.88.250"
+                    "value": "192.168.88.10"
                 },
                 {
                     "name": "RAW_DESTINATION_TCP_PORT",
