@@ -11,6 +11,7 @@ typedef struct holder {
   ferrum_policy_t *policy;
   ferrum_syslog_t *syslog;
   ferrum_raw_t *raw;
+  // uv_signal_t sigpipe;
 } holder_t;
 
 void close_cb(uv_handle_t *handle) {
@@ -20,18 +21,16 @@ void close_cb(uv_handle_t *handle) {
 }
 
 void signal_ignore_cb(uv_signal_t *handle, int signum) {
-
+  unused(handle);
   unused(signum);
-  uv_signal_stop(handle);
-  uv_close(cast(handle, uv_handle_t *), NULL);
+  // uv_signal_stop(handle);
+  // uv_close(cast(handle, uv_handle_t *), NULL);
 }
 
 void signal_cb(uv_signal_t *handle, int signum) {
 
   unused(signum);
   uv_signal_stop(handle);
-
-  uv_sleep(100);
 
   ferrum_log_warn("ctrl+break detected, shutting down\n");
   holder_t *holder = cast(handle->data, holder_t *);
@@ -43,6 +42,7 @@ void signal_cb(uv_signal_t *handle, int signum) {
     ferrum_syslog_destroy(holder->syslog);
   if (holder->config)
     ferrum_config_destroy(holder->config);
+  uv_sleep(1000);
   uv_close(cast(handle, uv_handle_t *), close_cb);
 }
 static void set_log_level() {
@@ -116,11 +116,11 @@ int main() {
   ctrl_c.data = &holder;
   uv_signal_start(&ctrl_c, signal_cb, SIGINT);
   // so important for reset connections
-  // signal(SIGPIPE, SIG_IGN);
   // capture SIGPIPE
-  uv_signal_t sigpipe;
-  uv_signal_init(uv_default_loop(), &sigpipe);
-  uv_signal_start(&sigpipe, signal_ignore_cb, SIGPIPE);
+  signal(SIGPIPE, SIG_IGN);
+  // uv_signal_t sigpipe;
+  // uv_signal_init(uv_default_loop(), &sigpipe);
+  // uv_signal_start(&sigpipe, signal_ignore_cb, SIGPIPE);
   //////////////////////////////////
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);
   uv_loop_close(uv_default_loop());

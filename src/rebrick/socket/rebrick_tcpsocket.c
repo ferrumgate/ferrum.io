@@ -266,13 +266,28 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
   int32_t result;
 
   socket->loop = uv_default_loop();
-  result = uv_tcp_init(socket->loop, &socket->handle.tcp);
+  if (socket->bind_addr.base.sa_family == AF_INET || socket->bind_addr.base.sa_family == AF_INET6)
+    result = uv_tcp_init_ex(socket->loop, &socket->handle.tcp, socket->bind_addr.base.sa_family);
+  else
+    result = uv_tcp_init(socket->loop, &socket->handle.tcp);
   if (result < 0) {
     // TODO: make it thread safe
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
-
+  // for linux make it shareable
+  if (socket->bind_addr.base.sa_family == AF_INET || socket->bind_addr.base.sa_family == AF_INET6) {
+    uv_os_fd_t fd;
+    result = uv_fileno(cast(&socket->handle.tcp, uv_handle_t *), &fd);
+    if (result < 0) {
+      // TODO: make it thread safe
+      rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
+      return REBRICK_ERR_UV + result;
+    }
+    int32_t optval = 1;
+    setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+  }
+  /////////////////////
   result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);
   if (result < 0) {
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
