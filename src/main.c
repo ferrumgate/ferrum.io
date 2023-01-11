@@ -19,6 +19,13 @@ void close_cb(uv_handle_t *handle) {
   uv_stop(uv_default_loop());
 }
 
+void signal_ignore_cb(uv_signal_t *handle, int signum) {
+
+  unused(signum);
+  uv_signal_stop(handle);
+  uv_close(cast(handle, uv_handle_t *), NULL);
+}
+
 void signal_cb(uv_signal_t *handle, int signum) {
 
   unused(signum);
@@ -108,7 +115,12 @@ int main() {
   uv_signal_init(uv_default_loop(), &ctrl_c);
   ctrl_c.data = &holder;
   uv_signal_start(&ctrl_c, signal_cb, SIGINT);
-
+  // so important for reset connections
+  // signal(SIGPIPE, SIG_IGN);
+  // capture SIGPIPE
+  uv_signal_t sigpipe;
+  uv_signal_init(uv_default_loop(), &sigpipe);
+  uv_signal_start(&sigpipe, signal_ignore_cb, SIGPIPE);
   //////////////////////////////////
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);
   uv_loop_close(uv_default_loop());
