@@ -1,6 +1,6 @@
 #include "ferrum_raw.h"
 
-static uint64_t socket_pair_id = 0;
+// static uint64_t socket_pair_id = 0;
 
 static void free_memory(void *data) {
   if (data)
@@ -21,7 +21,7 @@ static void on_tcp_destination_connect(rebrick_socket_t *socket, void *callbackd
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
   if (pair) {
     if (pair->source)
       rebrick_tcpsocket_start_reading(pair->source);
@@ -37,7 +37,7 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
 
   // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
   rebrick_log_info("destination tcp socket closed\n");
   if (pair) {
     HASH_DEL(raw->tcp_socket_pairs, pair);
@@ -57,7 +57,7 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
   if (pair) {
     uint8_t *buf = rebrick_malloc(len);
     if_is_null_then_die(buf, "malloc problem\n");
@@ -179,20 +179,21 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(client_handle));
     return;
   }
-  client->id1 = socket_pair_id;
-  destination->id1 = socket_pair_id;
+
   ferrum_raw_tcpsocket_pair_t *pair = new1(ferrum_raw_tcpsocket_pair_t);
   constructor(pair, ferrum_raw_tcpsocket_pair_t);
   pair->source = client;
   pair->destination = destination;
-  pair->key = socket_pair_id;
+  pair->key = pair;
   pair->mark = conntrack.mark;
   pair->last_used_time = rebrick_util_micro_time();
   pair->policy_last_allow_time = rebrick_util_micro_time();
   pair->client_addr = client_addr;
-  socket_pair_id++;
-  HASH_ADD(hh, raw->tcp_socket_pairs, key, sizeof(uint64_t), pair);
+  // socket_pair_id++;
+  HASH_ADD(hh, raw->tcp_socket_pairs, key, sizeof(void *), pair);
   raw->socket_count++;
+  client->data1 = pair;
+  destination->data1 = pair;
 }
 
 static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {
@@ -209,7 +210,7 @@ static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, in
       rebrick_log_error("client socket error %d\n", error);
     // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
     ferrum_raw_tcpsocket_pair_t *pair = NULL;
-    HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+    HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
     rebrick_log_info("client tcp socket closed\n");
     if (pair) {
       rebrick_log_info("delete tcp socket pair\n");
@@ -247,7 +248,7 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
   if (pair) {
 
     pair->last_used_time = rebrick_util_micro_time();
@@ -290,7 +291,7 @@ void on_tcp_client_write(rebrick_socket_t *socket, void *callback_data, void *so
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
   if (pair && !pair->destination->is_reading_started) {
     size_t buflen = 0;
     result = rebrick_tcpsocket_write_buffer_size(tcp, &buflen);
@@ -311,7 +312,7 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   raw->socket_count--;
 
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &socket->id1, sizeof(uint64_t), pair);
+  HASH_FIND(hh, raw->tcp_socket_pairs, &socket->data1, sizeof(void *), pair);
   rebrick_log_info("client tcp socket closed\n");
   if (pair) {
     rebrick_log_info("delete tcp socket pair\n");

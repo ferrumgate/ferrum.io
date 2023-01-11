@@ -30,7 +30,7 @@ typedef struct ferrum_raw_udpsocket_pair {
 
 typedef struct ferrum_raw_tcpsocket_pair {
   base_object();
-  uint64_t key;
+  void *key;
   int32_t mark;
   int64_t last_used_time;
   // last policy result is allowed

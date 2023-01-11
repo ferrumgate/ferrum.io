@@ -8,4 +8,5 @@ sudo LOG_LEVEL=warn \
     RAW_LISTEN_TCP_PORT=8181 RAW_LISTEN_UDP_PORT=8888 GATEWAY_ID=gateway1 \
     SERVICE_ID=mysqlservice INSTANCE_ID=randominstance LMDB_FOLDER=/tmp/test4 \
     SYSLOG_HOST=localhost:9292 DISABLE_POLICY=true LD_LIBRARY_PATH=$(pwd)/external/libs/lib \
-    valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all --gen-suppressions=all --suppressions=$(pwd)/test/valgrind.options ./src/ferrum.io
+    ./src/ferrum.io
+##valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all --gen-suppressions=all --suppressions=$(pwd)/test/valgrind.options ./src/ferrum.io
