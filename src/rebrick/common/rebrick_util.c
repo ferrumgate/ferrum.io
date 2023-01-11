@@ -475,6 +475,19 @@ int32_t rebrick_util_to_int16_t(char *val, int16_t *to) {
   *to = val_int;
   return REBRICK_SUCCESS;
 }
+int32_t rebrick_util_to_size_t(char *val, size_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > UINT32_MAX || val_int < 0)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
 
 int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to) {
   errno = 0;

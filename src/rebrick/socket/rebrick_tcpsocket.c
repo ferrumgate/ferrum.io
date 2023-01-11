@@ -200,10 +200,31 @@ static void on_client_connected(uv_stream_t *server, int status) {
 int32_t rebrick_tcpsocket_start_reading(rebrick_tcpsocket_t *socket) {
   // start reading
   int32_t result;
+  if (socket->is_reading_started)
+    return REBRICK_SUCCESS;
   uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
   result = uv_read_start(tmp, on_alloc, on_recv);
   if (result)
     return REBRICK_ERR_UV + result;
+  socket->is_reading_started = TRUE;
+  return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_tcpsocket_stop_reading(rebrick_tcpsocket_t *socket) {
+  // stop reading
+  int32_t result;
+  if (!socket->is_reading_started)
+    return REBRICK_SUCCESS;
+  uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
+  result = uv_read_stop(tmp);
+  if (result)
+    return REBRICK_ERR_UV + result;
+  socket->is_reading_started = FALSE;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_tcpsocket_write_buffer_size(rebrick_tcpsocket_t *socket, size_t *size) {
+  uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
+  *size = uv_stream_get_write_queue_size(tmp);
   return REBRICK_SUCCESS;
 }
 
@@ -244,6 +265,7 @@ static int32_t create_client_socket(rebrick_tcpsocket_t *socket) {
   if (socket->start_reading_immediately) {
     uv_stream_t *tmp = cast(&socket->handle.tcp, uv_stream_t *);
     uv_read_start(tmp, on_alloc, on_recv);
+    socket->is_reading_started = TRUE;
   }
   return REBRICK_SUCCESS;
 }
@@ -447,6 +469,33 @@ int32_t rebrick_tcpsocket_simultaneous_accepts(rebrick_tcpsocket_t *socket, int 
     if (result < 0) {
 
       rebrick_log_fatal("socket simultaneous accepts failed:%s\n", uv_strerror(result));
+      return REBRICK_ERR_UV + result;
+    }
+  }
+  return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_tcpsocket_sysctl_write_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value) {
+  char current_time_str[32] = {0};
+  unused(current_time_str);
+  int32_t result;
+  if (socket) {
+    result = uv_send_buffer_size(cast(&socket->handle.tcp, uv_handle_t *), value);
+    if (result < 0) {
+      rebrick_log_error("send buffer size failed with error:%d %s\n", result, uv_strerror(result));
+      return REBRICK_ERR_UV + result;
+    }
+  }
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_tcpsocket_sysctl_read_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value) {
+  char current_time_str[32] = {0};
+  unused(current_time_str);
+  int32_t result;
+  if (socket) {
+    result = uv_recv_buffer_size(cast(&socket->handle.tcp, uv_handle_t *), value);
+    if (result < 0) {
+      rebrick_log_error("recv buffer size failed with error:%d %s\n", result, uv_strerror(result));
       return REBRICK_ERR_UV + result;
     }
   }

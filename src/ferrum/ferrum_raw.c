@@ -73,7 +73,17 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
     if (result) {
       rebrick_free(buf);
     }
+    if (tcp->is_reading_started) {
+      size_t buflen = 0;
+      result = rebrick_tcpsocket_write_buffer_size(pair->source, &buflen);
+      if (result) // error
+        return;
+      if (buflen > raw->config->socket_max_write_buf_size) { // so much data in destination buffer
+        rebrick_tcpsocket_stop_reading(tcp);
+      }
+    }
   }
+  // else not found ??????
 }
 void on_tcp_destination_write(rebrick_socket_t *socket, void *callback_data, void *source) {
   unused(socket);
@@ -283,6 +293,20 @@ void on_tcp_client_write(rebrick_socket_t *socket, void *callback_data, void *so
   unused(socket);
   unused(callback_data);
   unused(source);
+  int32_t result;
+  rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
+  ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
+  ferrum_raw_tcpsocket_pair_t *pair = NULL;
+  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->id1, sizeof(uint64_t), pair);
+  if (pair && !pair->destination->is_reading_started) {
+    size_t buflen = 0;
+    result = rebrick_tcpsocket_write_buffer_size(tcp, &buflen);
+    if (result) // error
+      return;
+    if (buflen < raw->config->socket_max_write_buf_size) { // so much data in destination buffer
+      rebrick_tcpsocket_start_reading(pair->destination);
+    }
+  }
 }
 
 static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
@@ -299,6 +323,7 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   if (pair) {
     rebrick_log_info("delete tcp socket pair\n");
     HASH_DEL(raw->tcp_socket_pairs, pair);
+    rebrick_free(pair);
   }
 
   if (!raw->socket_count && raw->is_destroy_started)

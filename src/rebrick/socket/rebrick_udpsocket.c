@@ -96,6 +96,35 @@ static void on_alloc(uv_handle_t *client, size_t suggested_size, uv_buf_t *buf) 
   rebrick_log_debug("malloc socket:%lu %p\n", buf->len, buf->base);
 }
 
+int32_t rebrick_udpsocket_start_reading(rebrick_udpsocket_t *socket) {
+  // start reading
+  int32_t result;
+  if (socket->is_reading_started)
+    return REBRICK_SUCCESS;
+  result = uv_udp_recv_start(&socket->handle.udp, on_alloc, on_recv);
+  if (result)
+    return REBRICK_ERR_UV + result;
+  socket->is_reading_started = TRUE;
+  return REBRICK_SUCCESS;
+}
+
+int32_t rebrick_udpsocket_stop_reading(rebrick_udpsocket_t *socket) {
+  // stop reading
+  int32_t result;
+  if (!socket->is_reading_started)
+    return REBRICK_SUCCESS;
+
+  result = uv_udp_recv_stop(&socket->handle.udp);
+  if (result)
+    return REBRICK_ERR_UV + result;
+  socket->is_reading_started = FALSE;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, size_t *size) {
+  *size = uv_udp_get_send_queue_size(&socket->handle.udp);
+  return REBRICK_SUCCESS;
+}
+
 static int32_t create_socket(rebrick_udpsocket_t *socket) {
   char current_time_str[32] = {0};
   unused(current_time_str);
@@ -119,6 +148,7 @@ static int32_t create_socket(rebrick_udpsocket_t *socket) {
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
+  socket->is_reading_started = TRUE;
   rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
   socket->handle.udp.data = socket;
 
@@ -186,7 +216,7 @@ int32_t rebrick_udpsocket_destroy(rebrick_udpsocket_t *socket) {
   return REBRICK_SUCCESS;
 }
 
-int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
+int32_t rebrick_udpsocket_sysctl_write_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;
@@ -199,7 +229,7 @@ int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, int32_t
   }
   return REBRICK_SUCCESS;
 }
-int32_t rebrick_udpsocket_read_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
+int32_t rebrick_udpsocket_sysctl_read_buffer_size(rebrick_udpsocket_t *socket, int32_t *value) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;

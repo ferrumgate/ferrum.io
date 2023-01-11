@@ -154,6 +154,14 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_log_warn("syslog host:port is %s\n", tmp->syslog_host);
 
+  /////////////////////// socket write buf size ///////////////////
+  tmp->socket_max_write_buf_size = 512 * 1024; // 512 kb
+  char socket_write_buf_size[REBRICK_MAX_ENV_LEN] = {0};
+  size_t socket_write_buf_size_size = sizeof(socket_write_buf_size);
+  uv_os_getenv("SOCKET_WRITE_BUF_SIZE", socket_write_buf_size, &socket_write_buf_size_size);
+  if (socket_write_buf_size[0])
+    rebrick_util_to_size_t(socket_write_buf_size, &tmp->socket_max_write_buf_size);
+
   *config = tmp;
   return FERRUM_SUCCESS;
 }

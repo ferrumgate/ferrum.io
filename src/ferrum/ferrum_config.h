@@ -11,7 +11,7 @@ typedef struct ferrum_config {
 
   struct {
     rebrick_sockaddr_t addr;
-    char addr_str[REBRICK_IP_STR_LEN];
+    char addr_str[REBRICK_IP_PORT_STR_LEN];
     char ip[REBRICK_IP_STR_LEN];
     char port[REBRICK_PORT_STR_LEN];
     char pass[REBRICK_PASS_STR_LEN];
@@ -20,7 +20,7 @@ typedef struct ferrum_config {
 
   struct {
     rebrick_sockaddr_t addr;
-    char addr_str[REBRICK_IP_STR_LEN];
+    char addr_str[REBRICK_IP_PORT_STR_LEN];
     char ip[REBRICK_IP_STR_LEN];
     char port[REBRICK_PORT_STR_LEN];
     char pass[REBRICK_PASS_STR_LEN];
@@ -49,6 +49,8 @@ typedef struct ferrum_config {
   int32_t is_policy_disabled;
   char lmdb_folder[FERRUM_PATH_LEN];
   char syslog_host[REBRICK_IP_PORT_STR_LEN];
+
+  size_t socket_max_write_buf_size;
 
 } ferrum_config_t;
 

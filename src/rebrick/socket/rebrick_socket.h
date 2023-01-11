@@ -62,6 +62,7 @@ typedef struct base_socket_callbacks {
   uint64_t id1;                                           \
   uint64_t id2;                                           \
   uint64_t id3;                                           \
+  int32_t is_reading_started;                             \
   public_ readonly_ char peer_ip[REBRICK_IP_STR_LEN];     \
   public_ readonly_ char peer_port[REBRICK_PORT_STR_LEN]; \
   public_ readonly_ char bind_ip[REBRICK_IP_STR_LEN];     \
