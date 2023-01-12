@@ -12,14 +12,17 @@ static void on_tcp_destination_close(rebrick_socket_t *socket, void *callbackdat
   unused(callbackdata);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   raw->socket_count--;
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
 }
 static void on_tcp_destination_connect(rebrick_socket_t *socket, void *callbackdata) {
   unused(callbackdata);
   unused(socket);
+
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair) {
@@ -85,6 +88,20 @@ void on_tcp_destination_write(rebrick_socket_t *socket, void *callback_data, voi
   unused(socket);
   unused(callback_data);
   unused(source);
+  int32_t result;
+  rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
+  ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
+  ferrum_raw_tcpsocket_pair_t *pair = NULL;
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
+  if (pair && !pair->source->is_reading_started) {
+    size_t buflen = 0;
+    result = rebrick_tcpsocket_write_buffer_size(tcp, &buflen);
+    if (result) // error
+      return;
+    if (buflen < raw->config->socket_max_write_buf_size) { // so much data in source buffer
+      rebrick_tcpsocket_start_reading(pair->source);
+    }
+  }
 }
 
 static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_policy_result_t *result, const rebrick_sockaddr_t *client_addr) {
@@ -107,6 +124,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   raw->socket_count++;
   raw->metrics.connected_clients++;
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   rebrick_sockaddr_t client_addr;
   fill_zero(&client_addr, sizeof(rebrick_sockaddr_t));
   int32_t result = rebrick_util_addr_to_rebrick_addr(addr, &client_addr);
@@ -179,7 +197,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(client_handle));
     return;
   }
-
+  raw->socket_count++;
   ferrum_raw_tcpsocket_pair_t *pair = new1(ferrum_raw_tcpsocket_pair_t);
   constructor(pair, ferrum_raw_tcpsocket_pair_t);
   pair->source = client;
@@ -232,6 +250,7 @@ static void on_tcp_server_close(rebrick_socket_t *socket, void *callbackdata) {
     rebrick_free(el);
   }
   raw->socket_count--;
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
 }
@@ -280,6 +299,15 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
     if (result) {
       rebrick_free(buf);
     }
+    if (tcp->is_reading_started) {
+      size_t buflen = 0;
+      result = rebrick_tcpsocket_write_buffer_size(pair->destination, &buflen);
+      if (result) // error
+        return;
+      if (buflen > raw->config->socket_max_write_buf_size) { // so much data in destination buffer
+        rebrick_tcpsocket_stop_reading(tcp);
+      }
+    }
   }
 }
 void on_tcp_client_write(rebrick_socket_t *socket, void *callback_data, void *source) {
@@ -309,7 +337,7 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   raw->metrics.connected_clients--;
   raw->socket_count--;
-
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs.tcp, &socket->data1, sizeof(void *), pair);
   rebrick_log_info("client tcp socket closed\n");
@@ -342,6 +370,7 @@ static void on_udp_destination_close(rebrick_socket_t *socket, void *callbackdat
   }
   rebrick_free(udp_callback);
   raw->socket_count--;
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
 }
@@ -506,6 +535,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     HASH_ADD(hh, raw->socket_pairs.udp, client_addr, sizeof(rebrick_sockaddr_t), pair);
     DL_APPEND(raw->lfu.udp_list, pair);
     raw->socket_count++;
+    rebrick_log_debug("socket_count %d\n", raw->socket_count);
   } else {
     pair->last_used_time = rebrick_util_micro_time();
     DL_DELETE(raw->lfu.udp_list, pair);
@@ -582,6 +612,7 @@ static void on_udp_server_close(rebrick_socket_t *socket, void *callbackdata) {
     rebrick_free(el);
   }
   raw->socket_count--;
+  rebrick_log_debug("socket_count %d\n", raw->socket_count);
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
 }
@@ -629,6 +660,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
       return result;
     }
     tmp->socket_count++;
+    rebrick_log_debug("socket_count %d\n", tmp->socket_count);
     rebrick_log_info("tcp server started at %s\n", config->raw.listen_tcp_addr_str);
   }
   // create udp listening socket
@@ -648,6 +680,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
       return result;
     }
     tmp->socket_count++;
+    rebrick_log_debug("socket_count %d\n", tmp->socket_count);
     rebrick_log_info("udp server started at %s\n", config->raw.listen_udp_addr_str);
   }
   tmp->config = config;
