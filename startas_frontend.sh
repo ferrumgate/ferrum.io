@@ -9,4 +9,4 @@ sudo LOG_LEVEL=warn \
     SERVICE_ID=mysqlservice INSTANCE_ID=randominstance LMDB_FOLDER=/tmp/test4 \
     SYSLOG_HOST=localhost:9292 DISABLE_POLICY=true LD_LIBRARY_PATH=$(pwd)/external/libs/lib \
     ./src/ferrum.io
-##valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all --gen-suppressions=all --suppressions=$(pwd)/test/valgrind.options ./src/ferrum.io
+#valgrind -v --track-origins=yes --leak-check=full --show-leak-kinds=all --gen-suppressions=all --suppressions=$(pwd)/test/valgrind.options ./src/ferrum.io

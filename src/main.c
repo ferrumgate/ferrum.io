@@ -70,30 +70,37 @@ static void set_log_level() {
 
 int main() {
 
-  /*
-    // hash performance test
-    ferrum_raw_tcpsocket_pair_t *tcp_socket_pairs = NULL;
-    int64_t start = rebrick_util_micro_time();
-    for (uint64_t i = 0; i < 10000000; ++i) {
-      ferrum_raw_tcpsocket_pair_t *pair = new1(ferrum_raw_tcpsocket_pair_t);
-      constructor(pair, ferrum_raw_tcpsocket_pair_t);
-      pair->key = pair;
-      pair->mark = i;
-      HASH_ADD(hh, tcp_socket_pairs, key, sizeof(void *), pair);
-    }
-    int64_t end = rebrick_util_micro_time();
-    fprintf(stderr, "insert %d\n", end - start);
+  /* // hash performance test
+  ferrum_raw_tcpsocket_pair_t *tcp_socket_pairs = NULL;
+  int64_t start = rebrick_util_micro_time();
+  for (uint64_t i = 0; i < 10000; ++i) {
+    ferrum_raw_tcpsocket_pair_t *pair = new1(ferrum_raw_tcpsocket_pair_t);
+    constructor(pair, ferrum_raw_tcpsocket_pair_t);
+    pair->key = pair;
+    pair->mark = i;
+    HASH_ADD(hh, tcp_socket_pairs, key, sizeof(void *), pair);
+  }
+  int64_t end = rebrick_util_micro_time();
+  fprintf(stderr, "insert %" PRId64 "\n", end - start);
 
-    start = rebrick_util_micro_time();
-    for (uint64_t i = 10000000; i > 0; --i) {
+  start = rebrick_util_micro_time();
+  for (uint64_t i = 10000; i > 0; --i) {
 
-      ferrum_raw_tcpsocket_pair_t *pair = NULL;
-      HASH_FIND(hh, tcp_socket_pairs, &i, sizeof(void *), pair);
-    }
-    end = rebrick_util_micro_time();
-    fprintf(stderr, "search %d\n", end - start);
-    exit(0);
-    */
+    ferrum_raw_tcpsocket_pair_t *pair = NULL;
+    HASH_FIND(hh, tcp_socket_pairs, &i, sizeof(void *), pair);
+  }
+  end = rebrick_util_micro_time();
+  fprintf(stderr, "search %" PRId64 "\n", end - start);
+
+  start = rebrick_util_micro_time();
+  ferrum_raw_tcpsocket_pair_t *el, *tmp;
+  HASH_ITER(hh, tcp_socket_pairs, el, tmp) {
+    HASH_DEL(tcp_socket_pairs, el);
+    rebrick_free(el);
+  }
+  end = rebrick_util_micro_time();
+  fprintf(stderr, "iter %" PRId64 "\n", end - start);
+  exit(0); */
 
   set_log_level();
   ferrum_log_warn("current version: %s\n", FERRUM_VERSION);

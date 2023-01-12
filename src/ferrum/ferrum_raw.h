@@ -25,6 +25,9 @@ typedef struct ferrum_raw_udpsocket_pair {
   int64_t policy_last_allow_time;
   rebrick_sockaddr_t client_addr;
   rebrick_udpsocket_t *udp_socket;
+  size_t source_socket_write_buf_len;
+  void *prev;
+  void *next;
   UT_hash_handle hh;
 } ferrum_raw_udpsocket_pair_t;
 
@@ -71,8 +74,14 @@ typedef struct ferrum_raw {
     public_ uint64_t rejected_clients;
   } metrics;
 
-  ferrum_raw_tcpsocket_pair_t *tcp_socket_pairs;
-  ferrum_raw_udpsocket_pair_t *udp_socket_pairs;
+  struct {
+    private_ ferrum_raw_tcpsocket_pair_t *tcp;
+    private_ ferrum_raw_udpsocket_pair_t *udp;
+  } socket_pairs;
+
+  struct {
+
+  } lfu;
 
 } ferrum_raw_t;
 

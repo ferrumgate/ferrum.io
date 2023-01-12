@@ -21,7 +21,7 @@ static void on_tcp_destination_connect(rebrick_socket_t *socket, void *callbackd
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair) {
     if (pair->source)
       rebrick_tcpsocket_start_reading(pair->source);
@@ -37,10 +37,10 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
 
   // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   rebrick_log_info("destination tcp socket closed\n");
   if (pair) {
-    HASH_DEL(raw->tcp_socket_pairs, pair);
+    HASH_DEL(raw->socket_pairs.tcp, pair);
     rebrick_tcpsocket_destroy(pair->source);
     rebrick_free(pair);
   }
@@ -57,7 +57,7 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair) {
     uint8_t *buf = rebrick_malloc(len);
     if_is_null_then_die(buf, "malloc problem\n");
@@ -190,7 +190,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   pair->policy_last_allow_time = rebrick_util_micro_time();
   pair->client_addr = client_addr;
   // socket_pair_id++;
-  HASH_ADD(hh, raw->tcp_socket_pairs, key, sizeof(void *), pair);
+  HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
   raw->socket_count++;
   client->data1 = pair;
   destination->data1 = pair;
@@ -210,11 +210,11 @@ static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, in
       rebrick_log_error("client socket error %d\n", error);
     // if (error == (REBRICK_ERR_UV + UV_EOF) || error == (REBRICK_ERR_UV + UV_ECONNRESET)) { // client connection closed
     ferrum_raw_tcpsocket_pair_t *pair = NULL;
-    HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+    HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
     rebrick_log_info("client tcp socket closed\n");
     if (pair) {
       rebrick_log_info("delete tcp socket pair\n");
-      HASH_DEL(raw->tcp_socket_pairs, pair);
+      HASH_DEL(raw->socket_pairs.tcp, pair);
       rebrick_tcpsocket_destroy(pair->destination);
       rebrick_free(pair);
     }
@@ -226,8 +226,8 @@ static void on_tcp_server_close(rebrick_socket_t *socket, void *callbackdata) {
   unused(callbackdata);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *el, *tmp;
-  HASH_ITER(hh, raw->tcp_socket_pairs, el, tmp) {
-    HASH_DEL(raw->tcp_socket_pairs, el);
+  HASH_ITER(hh, raw->socket_pairs.tcp, el, tmp) {
+    HASH_DEL(raw->socket_pairs.tcp, el);
     rebrick_tcpsocket_destroy(el->source);
     rebrick_tcpsocket_destroy(el->destination);
     rebrick_free(el);
@@ -248,7 +248,7 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair) {
 
     pair->last_used_time = rebrick_util_micro_time();
@@ -291,7 +291,7 @@ void on_tcp_client_write(rebrick_socket_t *socket, void *callback_data, void *so
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &tcp->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair && !pair->destination->is_reading_started) {
     size_t buflen = 0;
     result = rebrick_tcpsocket_write_buffer_size(tcp, &buflen);
@@ -312,11 +312,11 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   raw->socket_count--;
 
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->tcp_socket_pairs, &socket->data1, sizeof(void *), pair);
+  HASH_FIND(hh, raw->socket_pairs.tcp, &socket->data1, sizeof(void *), pair);
   rebrick_log_info("client tcp socket closed\n");
   if (pair) {
     rebrick_log_info("delete tcp socket pair\n");
-    HASH_DEL(raw->tcp_socket_pairs, pair);
+    HASH_DEL(raw->socket_pairs.tcp, pair);
     rebrick_free(pair);
   }
 
@@ -335,9 +335,9 @@ static void on_udp_destination_close(rebrick_socket_t *socket, void *callbackdat
   ferrum_raw_udpsocket2_t *udp_callback = cast(callbackdata, ferrum_raw_udpsocket2_t *);
   ferrum_raw_t *raw = udp_callback->raw;
   ferrum_raw_udpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->udp_socket_pairs, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
+  HASH_FIND(hh, raw->socket_pairs.udp, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (pair) {
-    HASH_DEL(raw->udp_socket_pairs, pair);
+    HASH_DEL(raw->socket_pairs.udp, pair);
     rebrick_free(pair);
   }
   rebrick_free(udp_callback);
@@ -351,6 +351,10 @@ static void on_udp_destination_error(rebrick_socket_t *socket, void *callbackdat
   unused(error);
   ferrum_log_error("udp destination error %d\n", error);
 }
+struct udp_callback_data2 {
+  rebrick_sockaddr_t addr;
+  ssize_t len;
+};
 
 static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata, const struct sockaddr *addr,
                                     const uint8_t *buffer, ssize_t len) {
@@ -363,7 +367,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
   ferrum_raw_udpsocket2_t *udp_callback = cast(callbackdata, ferrum_raw_udpsocket2_t *);
   ferrum_raw_t *raw = udp_callback->raw;
   ferrum_raw_udpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->udp_socket_pairs, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
+  HASH_FIND(hh, raw->socket_pairs.udp, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (!pair) {
     rebrick_log_fatal("pair not found at udp client");
     rebrick_udpsocket_destroy(cast_to_udpsocket(socket));
@@ -379,10 +383,23 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
   clean_func.func = free_memory;
   clean_func.ptr = buf;
 
+  struct udp_callback_data2 *data = new1(struct udp_callback_data2);
+  clean_func.anydata.ptr = data;
+  data->addr = pair->client_addr;
+  data->len = len;
+
   int32_t result = rebrick_udpsocket_write(raw->listen.udp, &pair->client_addr, buf, len, clean_func);
   if (result) {
     rebrick_log_error("writing udp destination failed with error: %d\n", result);
+    rebrick_free(data);
     rebrick_free(buf);
+  }
+  pair->source_socket_write_buf_len += len;
+  fprintf(stderr, "write buf len  %zu\n", pair->source_socket_write_buf_len);
+  if (socket->is_reading_started) {
+    if (pair->source_socket_write_buf_len > raw->config->socket_max_write_buf_size) { // so much data for destination target
+      rebrick_udpsocket_stop_reading(cast_to_udpsocket(socket));
+    }
   }
 }
 static void on_udp_server_error(rebrick_socket_t *socket, void *callbackdata, int error) {
@@ -425,7 +442,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
   }
 
   ferrum_raw_udpsocket_pair_t *pair = NULL;
-  HASH_FIND(hh, raw->udp_socket_pairs, &client_addr, sizeof(rebrick_sockaddr_t), pair);
+  HASH_FIND(hh, raw->socket_pairs.udp, &client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (!pair) { // not found, query conntrack
     new2(rebrick_conntrack_t, conntrack);
     new2(ferrum_policy_result_t, presult);
@@ -484,7 +501,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair->mark = conntrack.mark;
 
     // session created for 30 seconds
-    HASH_ADD(hh, raw->udp_socket_pairs, client_addr, sizeof(rebrick_sockaddr_t), pair);
+    HASH_ADD(hh, raw->socket_pairs.udp, client_addr, sizeof(rebrick_sockaddr_t), pair);
     raw->socket_count++;
   } else {
     pair->last_used_time = rebrick_util_micro_time();
@@ -529,14 +546,31 @@ static void on_udp_server_write(rebrick_socket_t *socket, void *callbackdata, vo
   unused(callbackdata);
   unused(socket);
   unused(source);
+
+  ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
+  ferrum_raw_udpsocket_pair_t *pair = NULL;
+  if (source) {
+    struct udp_callback_data2 *data = cast(source, struct udp_callback_data2 *);
+    HASH_FIND(hh, raw->socket_pairs.udp, &data->addr, sizeof(rebrick_sockaddr_t), pair);
+    if (pair) {
+      pair->source_socket_write_buf_len -= data->len;
+      fprintf(stderr, "write buf len  %zu\n", pair->source_socket_write_buf_len);
+      if (!pair->udp_socket->is_reading_started) {
+        if (pair->source_socket_write_buf_len < raw->config->socket_max_write_buf_size) {
+          rebrick_udpsocket_start_reading(pair->udp_socket);
+        }
+      }
+    }
+    rebrick_free(source);
+  }
 }
 static void on_udp_server_close(rebrick_socket_t *socket, void *callbackdata) {
   unused(socket);
   unused(callbackdata);
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_udpsocket_pair_t *el, *tmp;
-  HASH_ITER(hh, raw->udp_socket_pairs, el, tmp) {
-    HASH_DEL(raw->udp_socket_pairs, el);
+  HASH_ITER(hh, raw->socket_pairs.udp, el, tmp) {
+    HASH_DEL(raw->socket_pairs.udp, el);
     rebrick_udpsocket_destroy(el->udp_socket);
     rebrick_free(el);
   }
@@ -550,11 +584,11 @@ int32_t udp_tracker_callback_t(void *callbackdata) {
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_udpsocket_pair_t *el, *tmp;
   int64_t now = rebrick_util_micro_time();
-  HASH_ITER(hh, raw->udp_socket_pairs, el, tmp) {
-    // TODO make this fastest last used first
+  HASH_ITER(hh, raw->socket_pairs.udp, el, tmp) {
+    // TODO make this fastest use LFU
     if (now - el->last_used_time >= 10000) {
       rebrick_log_debug("destroying udp socket\n");
-      HASH_DEL(raw->udp_socket_pairs, el);
+      HASH_DEL(raw->socket_pairs.udp, el);
       rebrick_udpsocket_destroy(el->udp_socket);
       rebrick_free(el);
     }
@@ -613,7 +647,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   tmp->conntrack_get = conntrack;
   tmp->policy = policy;
   tmp->syslog = syslog;
-  result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 10 * 1000, TRUE);
+  result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 1000, TRUE);
   if (result) {
     ferrum_log_fatal("creating udp tracker timer failed with error:%d\n", result);
     ferrum_raw_destroy(tmp);
