@@ -26,8 +26,8 @@ typedef struct ferrum_raw_udpsocket_pair {
   rebrick_sockaddr_t client_addr;
   rebrick_udpsocket_t *udp_socket;
   size_t source_socket_write_buf_len;
-  void *prev;
-  void *next;
+  struct ferrum_raw_udpsocket_pair *prev;
+  struct ferrum_raw_udpsocket_pair *next;
   UT_hash_handle hh;
 } ferrum_raw_udpsocket_pair_t;
 
@@ -80,7 +80,7 @@ typedef struct ferrum_raw {
   } socket_pairs;
 
   struct {
-
+    private_ ferrum_raw_udpsocket_pair_t *udp_list;
   } lfu;
 
 } ferrum_raw_t;

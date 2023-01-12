@@ -21,36 +21,7 @@
             }
         ]
     },
-    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
     "C_Cpp.default.cStandard": "gnu17",
-    "files.associations": {
-        "rebrick_log.h": "c",
-        "rebrick_async_udpsocket.h": "c",
-        "rebrick_util.h": "c",
-        "rebrick_tls.h": "c",
-        "type_traits": "cpp",
-        "typeinfo": "c",
-        "udpecho.h": "c",
-        "tcpecho.h": "c",
-        "unistd.h": "c",
-        "cmocka.h": "c",
-        "rebrick_http2socket.h": "c",
-        "limits.h": "c",
-        "rebrick_httpsocket.h": "c",
-        "ferrum_redis.h": "c",
-        "rebrick_socket.h": "c",
-        "ferrum_policy.h": "c",
-        "*.tcc": "c",
-        "limits": "c",
-        "algorithm": "c",
-        "array": "c",
-        "string": "c",
-        "string_view": "c",
-        "atomic": "c",
-        "cstdint": "c",
-        "random": "c",
-        "functional": "c",
-        "async.h": "c"
-    },
     "editor.formatOnSave": true
 }

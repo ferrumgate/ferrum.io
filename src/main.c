@@ -34,14 +34,22 @@ void signal_cb(uv_signal_t *handle, int signum) {
 
   ferrum_log_warn("ctrl+break detected, shutting down\n");
   holder_t *holder = cast(handle->data, holder_t *);
-  if (holder->raw)
+  if (holder->raw) {
+    ferrum_log_debug("destroying ferrum raw\n");
     ferrum_raw_destroy(holder->raw);
-  if (holder->policy)
+  }
+  if (holder->policy) {
+    ferrum_log_debug("destroying ferrum policy\n");
     ferrum_policy_destroy(holder->policy);
-  if (holder->syslog)
+  }
+  if (holder->syslog) {
+    ferrum_log_debug("destroying ferrum syslog\n");
     ferrum_syslog_destroy(holder->syslog);
-  if (holder->config)
+  }
+  if (holder->config) {
+    ferrum_log_debug("destroying ferrum config\n");
     ferrum_config_destroy(holder->config);
+  }
   uv_sleep(1000);
   uv_close(cast(handle, uv_handle_t *), close_cb);
 }

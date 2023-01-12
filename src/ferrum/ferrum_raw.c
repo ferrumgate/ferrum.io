@@ -191,7 +191,6 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   pair->client_addr = client_addr;
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
-  raw->socket_count++;
   client->data1 = pair;
   destination->data1 = pair;
 }
@@ -338,6 +337,7 @@ static void on_udp_destination_close(rebrick_socket_t *socket, void *callbackdat
   HASH_FIND(hh, raw->socket_pairs.udp, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (pair) {
     HASH_DEL(raw->socket_pairs.udp, pair);
+    DL_DELETE(raw->lfu.udp_list, pair);
     rebrick_free(pair);
   }
   rebrick_free(udp_callback);
@@ -374,6 +374,8 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
     return;
   }
   pair->last_used_time = rebrick_util_micro_time();
+  DL_DELETE(raw->lfu.udp_list, pair);
+  DL_APPEND(raw->lfu.udp_list, pair);
   // send data to backends
   uint8_t *buf = rebrick_malloc(len);
   if_is_null_then_die(buf, "malloc problem\n");
@@ -395,7 +397,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
     rebrick_free(buf);
   }
   pair->source_socket_write_buf_len += len;
-  fprintf(stderr, "write buf len  %zu\n", pair->source_socket_write_buf_len);
+
   if (socket->is_reading_started) {
     if (pair->source_socket_write_buf_len > raw->config->socket_max_write_buf_size) { // so much data for destination target
       rebrick_udpsocket_stop_reading(cast_to_udpsocket(socket));
@@ -502,9 +504,12 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
 
     // session created for 30 seconds
     HASH_ADD(hh, raw->socket_pairs.udp, client_addr, sizeof(rebrick_sockaddr_t), pair);
+    DL_APPEND(raw->lfu.udp_list, pair);
     raw->socket_count++;
   } else {
     pair->last_used_time = rebrick_util_micro_time();
+    DL_DELETE(raw->lfu.udp_list, pair);
+    DL_APPEND(raw->lfu.udp_list, pair);
 
     if (pair->policy_last_allow_time - pair->last_used_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check again
       pair->policy_last_allow_time = 0;                                                     // important
@@ -554,7 +559,6 @@ static void on_udp_server_write(rebrick_socket_t *socket, void *callbackdata, vo
     HASH_FIND(hh, raw->socket_pairs.udp, &data->addr, sizeof(rebrick_sockaddr_t), pair);
     if (pair) {
       pair->source_socket_write_buf_len -= data->len;
-      fprintf(stderr, "write buf len  %zu\n", pair->source_socket_write_buf_len);
       if (!pair->udp_socket->is_reading_started) {
         if (pair->source_socket_write_buf_len < raw->config->socket_max_write_buf_size) {
           rebrick_udpsocket_start_reading(pair->udp_socket);
@@ -567,11 +571,14 @@ static void on_udp_server_write(rebrick_socket_t *socket, void *callbackdata, vo
 static void on_udp_server_close(rebrick_socket_t *socket, void *callbackdata) {
   unused(socket);
   unused(callbackdata);
+  rebrick_log_debug("udp server is closing\n");
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_udpsocket_pair_t *el, *tmp;
   HASH_ITER(hh, raw->socket_pairs.udp, el, tmp) {
+    rebrick_log_debug("destination udp socket is closing\n");
     HASH_DEL(raw->socket_pairs.udp, el);
     rebrick_udpsocket_destroy(el->udp_socket);
+    DL_DELETE(raw->lfu.udp_list, el);
     rebrick_free(el);
   }
   raw->socket_count--;
@@ -584,14 +591,14 @@ int32_t udp_tracker_callback_t(void *callbackdata) {
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   ferrum_raw_udpsocket_pair_t *el, *tmp;
   int64_t now = rebrick_util_micro_time();
-  HASH_ITER(hh, raw->socket_pairs.udp, el, tmp) {
-    // TODO make this fastest use LFU
-    if (now - el->last_used_time >= 10000) {
-      rebrick_log_debug("destroying udp socket\n");
-      HASH_DEL(raw->socket_pairs.udp, el);
-      rebrick_udpsocket_destroy(el->udp_socket);
-      rebrick_free(el);
-    }
+  DL_FOREACH_SAFE(raw->lfu.udp_list, el, tmp) {
+    if (now - el->last_used_time < 10000000) // 10 seconds old, close unused sockets
+      break;
+    rebrick_log_debug("destroying udp socket\n");
+    HASH_DEL(raw->socket_pairs.udp, el);
+    DL_DELETE(raw->lfu.udp_list, el);
+    rebrick_udpsocket_destroy(el->udp_socket);
+    rebrick_free(el);
   }
   return FERRUM_SUCCESS;
 }
@@ -647,7 +654,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   tmp->conntrack_get = conntrack;
   tmp->policy = policy;
   tmp->syslog = syslog;
-  result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 1000, TRUE);
+  result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 3000, TRUE);
   if (result) {
     ferrum_log_fatal("creating udp tracker timer failed with error:%d\n", result);
     ferrum_raw_destroy(tmp);
@@ -660,16 +667,16 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
 }
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw) {
   if (raw) {
-
     rebrick_timer_destroy(raw->udp_tracker);
     raw->is_destroy_started = TRUE;
-    if (!raw->listen.tcp && !raw->listen.udp) {
-      rebrick_free(raw);
-    }
+
     if (raw->listen.tcp)
       rebrick_tcpsocket_destroy(raw->listen.tcp);
     if (raw->listen.udp)
       rebrick_udpsocket_destroy(raw->listen.udp);
+    if (!raw->listen.tcp && !raw->listen.udp) {
+      rebrick_free(raw);
+    }
   }
   return FERRUM_SUCCESS;
 }
