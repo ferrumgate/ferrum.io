@@ -50,7 +50,7 @@ void signal_cb(uv_signal_t *handle, int signum) {
     ferrum_log_debug("destroying ferrum config\n");
     ferrum_config_destroy(holder->config);
   }
-  uv_sleep(1000);
+
   uv_close(cast(handle, uv_handle_t *), close_cb);
 }
 static void set_log_level() {
@@ -164,6 +164,9 @@ int main() {
   // uv_signal_start(&sigpipe, signal_ignore_cb, SIGPIPE);
   //////////////////////////////////
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+  for (int32_t wait = 0; wait < 1000; ++wait)
+    uv_run(uv_default_loop(), UV_RUN_ONCE);
+
   uv_loop_close(uv_default_loop());
   return 0;
 };
