@@ -17,11 +17,17 @@ if [ ! -z "$REDIS_HOST" ]; then
 fi
 echo "redis host $OPT_REDIS_HOST"
 
+OPT_SYSLOG_HOST=localhost:9292
+if [ ! -z "$SYSLOG_HOST" ]; then
+    OPT_SYSLOG_HOST=$SYSLOG_HOST
+fi
+echo "syslog host $OPT_SYSLOG_HOST"
+
 OPT_LOG_LEVEL="info"
 if [ ! -z "$LOG_LEVEL" ]; then
     OPT_LOG_LEVEL=$LOG_LEVEL
 fi
-echo "log level $OPT_REDIS_HOST"
+echo "log level $OPT_LOG_LEVEL"
 
 OPT_RAW_DESTINATION_HOST=""
 if [ ! -z "$RAW_DESTINATION_HOST" ]; then
@@ -77,6 +83,12 @@ if [ ! -z "$INSTANCE_ID" ]; then
 fi
 echo "instance id $OPT_INSTANCE_ID"
 
+OPT_SOCKET_WRITE_BUF_SIZE="524288"
+if [ ! -z "$SOCKET_WRITE_BUF_SIZE" ]; then
+    OPT_SOCKET_WRITE_BUF_SIZE=$SOCKET_WRITE_BUF_SIZE
+fi
+echo "socket write buf size $OPT_SOCKET_WRITE_BUF_SIZE"
+
 OPT_=""
 if [ ! -z "$" ]; then
     OPT_=$
@@ -88,6 +100,7 @@ fi
 LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     LOG_LEVEL=$OPT_LOG_LEVEL \
     REDIS_HOST=$OPT_REDIS_HOST \
+    SYSLOG_HOST=$OPT_SYSLOG_HOST \
     RAW_DESTINATION_HOST=$OPT_RAW_DESTINATION_HOST \
     RAW_DESTINATION_UDP_PORT=$OPT_RAW_DESTINATION_UDP_PORT \
     RAW_DESTINATION_TCP_PORT=$OPT_RAW_DESTINATION_TCP_PORT \
@@ -97,6 +110,7 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     GATEWAY_ID=$OPT_GATEWAY_ID \
     SERVICE_ID=$OPT_SERVICE_ID \
     INSTANCE_ID=$OPT_INSTANCE_ID \
+    SOCKET_WRITE_BUF_SIZE=$OPT_SOCKET_WRITE_BUF_SIZE \
     ./src/ferrum.io
 
 if ls $CORE_FOLDER/*core* 1>/dev/null 2>&1; then
