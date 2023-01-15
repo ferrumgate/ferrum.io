@@ -30,8 +30,8 @@ typedef struct ferrum_policy_result {
   char policy_id[FERRUM_ID_STR_LEN];
   char tun_id[FERRUM_ID_BIG_STR_LEN];
   char user_id[FERRUM_ID_STR_LEN];
-  char client_ip[REBRICK_IP_STR_LEN];
-  char client_port[REBRICK_PORT_STR_LEN];
+  /*   char client_ip[REBRICK_IP_STR_LEN];
+    char client_port[REBRICK_PORT_STR_LEN]; */
 } ferrum_policy_result_t;
 
 typedef struct ferrum_policy {
