@@ -98,6 +98,9 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   }
 
   if (counter < 2) {
+    lmdb->value.val[0] = 0; // set it for safety
+    ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+    ferrum_log_error("policy value is invalid: %s", lmdb->value);
     presult->is_dropped = TRUE;
     presult->why = FERRUM_POLICY_INVALID_DATA;
     return FERRUM_ERR_POLICY;

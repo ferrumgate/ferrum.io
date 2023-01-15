@@ -216,6 +216,13 @@ static void test_rebrick_util_to_uint32_t() {
   assert_int_equal(result, REBRICK_ERR_BAD_ARGUMENT);
 }
 
+static void test_rebrick_util_fill_random(void **start) {
+  unused(start);
+  char test[16] = {0};
+  rebrick_util_fill_random(test, 15);
+  assert_true(strlen(test));
+}
+
 int test_rebrick_util(void) {
 
   const struct CMUnitTest tests[] = {
@@ -227,6 +234,7 @@ int test_rebrick_util(void) {
       cmocka_unit_test(test_rebrick_util_to_int64_t),
       cmocka_unit_test(test_rebrick_util_to_int32_t),
       cmocka_unit_test(test_rebrick_util_to_uint32_t),
+      cmocka_unit_test(test_rebrick_util_fill_random),
   };
 
   return cmocka_run_group_tests(tests, setup, teardown);

@@ -38,11 +38,11 @@
                 },
                 {
                     "name": "RAW_DESTINATION_HOST",
-                    "value": "192.168.88.10"
+                    "value": "192.168.88.250"
                 },
                 {
                     "name": "RAW_DESTINATION_TCP_PORT",
-                    "value": "80"
+                    "value": "22"
                 },
                 {
                     "name": "RAW_DESTINATION_UDP_PORT",

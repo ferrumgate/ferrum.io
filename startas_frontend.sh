@@ -1,7 +1,7 @@
 ulimit -c unlimited
 sudo sh -c "echo /tmp/core-%e-%t-%s > /proc/sys/kernel/core_pattern"
 mkdir -p /tmp/test4
-sudo LOG_LEVEL=warn \
+sudo LOG_LEVEL=info \
     REDIS_HOST=localhost:6379 \
     RAW_DESTINATION_HOST=192.168.88.250 \
     RAW_DESTINATION_TCP_PORT=22 RAW_DESTINATION_UDP_PORT=5556 RAW_LISTEN_IP=192.168.88.10 \

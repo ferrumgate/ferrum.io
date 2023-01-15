@@ -13,6 +13,7 @@ static void on_tcp_destination_close(rebrick_socket_t *socket, void *callbackdat
   ferrum_raw_t *raw = cast(callbackdata, ferrum_raw_t *);
   raw->socket_count--;
   rebrick_log_debug("socket_count %d\n", raw->socket_count);
+
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
 }
@@ -108,7 +109,12 @@ static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_polic
 
   unused(client_addr);
   char log[1024] = {0};
-  size_t len = snprintf(log, 1023, "/%" PRId64 "/%d/%d/%d/%s/%s/%s/%s/%s/%s/%s", rebrick_util_micro_time(), result->client_id, result->is_dropped, result->why,
+  uint64_t now = rebrick_util_micro_time();
+  uint32_t rand = rebrick_util_rand();
+  // char rand[33] = {0};
+  // rebrick_util_fill_random(rand, 32);
+
+  size_t len = snprintf(log, 1023, ",%" PRId64 ",%" PRIu32 ",%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s", now, rand, 1, 1, result->client_id, result->is_dropped, result->why,
                         syslog->config->gateway_id, syslog->config->service_id, result->policy_id, result->user_id, result->tun_id,
                         result->client_ip, result->client_port);
   ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
@@ -165,7 +171,6 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     return;
   }
   // execute policy, if fails close socket
-
   result = ferrum_policy_execute(raw->policy, conntrack.mark, &presult);
   if (result) {
     rebrick_log_error("policy execute failed with error:%d\n", result);
@@ -270,20 +275,27 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
   if (pair) {
 
     pair->last_used_time = rebrick_util_micro_time();
-    if (pair->policy_last_allow_time - pair->last_used_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check
+    if (pair->last_used_time - pair->policy_last_allow_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check
+      pair->policy_last_allow_time = 0;
       new2(ferrum_policy_result_t, presult);
       result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
       if (result) {
         rebrick_log_error("policy execute failed with error:%d\n", result);
         write_activity_log(raw->syslog, &presult, &pair->client_addr);
+        HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
+        rebrick_tcpsocket_destroy(pair->destination);
+        rebrick_free(pair);
         return;
       }
       if (presult.is_dropped) {
 
         rebrick_log_debug("tcp connection blocked\n");
         write_activity_log(raw->syslog, &presult, &pair->client_addr);
+        HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
+        rebrick_tcpsocket_destroy(pair->destination);
+        rebrick_free(pair);
         return;
       }
       pair->policy_last_allow_time = rebrick_util_micro_time();
@@ -338,14 +350,14 @@ static void on_tcp_client_close(rebrick_socket_t *socket, void *callbackdata) {
   raw->metrics.connected_clients--;
   raw->socket_count--;
   rebrick_log_debug("socket_count %d\n", raw->socket_count);
-  ferrum_raw_tcpsocket_pair_t *pair = NULL;
+  /* ferrum_raw_tcpsocket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs.tcp, &socket->data1, sizeof(void *), pair);
   rebrick_log_info("client tcp socket closed\n");
   if (pair) {
     rebrick_log_info("delete tcp socket pair\n");
     HASH_DEL(raw->socket_pairs.tcp, pair);
     rebrick_free(pair);
-  }
+  } */
 
   if (!raw->socket_count && raw->is_destroy_started)
     rebrick_free(raw);
@@ -361,13 +373,13 @@ static void on_udp_destination_close(rebrick_socket_t *socket, void *callbackdat
   unused(callbackdata);
   ferrum_raw_udpsocket2_t *udp_callback = cast(callbackdata, ferrum_raw_udpsocket2_t *);
   ferrum_raw_t *raw = udp_callback->raw;
-  ferrum_raw_udpsocket_pair_t *pair = NULL;
+  /* ferrum_raw_udpsocket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs.udp, &udp_callback->client_addr, sizeof(rebrick_sockaddr_t), pair);
   if (pair) {
     HASH_DEL(raw->socket_pairs.udp, pair);
     DL_DELETE(raw->lfu.udp_list, pair);
     rebrick_free(pair);
-  }
+  } */
   rebrick_free(udp_callback);
   raw->socket_count--;
   rebrick_log_debug("socket_count %d\n", raw->socket_count);
@@ -541,7 +553,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     DL_DELETE(raw->lfu.udp_list, pair);
     DL_APPEND(raw->lfu.udp_list, pair);
 
-    if (pair->policy_last_allow_time - pair->last_used_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check again
+    if (pair->last_used_time - pair->policy_last_allow_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check again
       pair->policy_last_allow_time = 0;                                                     // important
       // execute policy, if fails close socket
       new2(ferrum_policy_result_t, presult);
@@ -549,11 +561,19 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       if (result) {
         rebrick_log_error("policy execute failed with error:%d\n", result);
         write_activity_log(raw->syslog, &presult, &pair->client_addr);
+        HASH_DEL(raw->socket_pairs.udp, pair);
+        rebrick_udpsocket_destroy(pair->udp_socket);
+        DL_DELETE(raw->lfu.udp_list, pair);
+        rebrick_free(pair);
         return;
       }
       if (presult.is_dropped) {
         rebrick_log_debug("udp connection blocked %s:%s\n", ip_str, port_str);
         write_activity_log(raw->syslog, &presult, &pair->client_addr);
+        HASH_DEL(raw->socket_pairs.udp, pair);
+        rebrick_udpsocket_destroy(pair->udp_socket);
+        DL_DELETE(raw->lfu.udp_list, pair);
+        rebrick_free(pair);
         return;
       }
       pair->policy_last_allow_time = rebrick_util_micro_time();

@@ -6,7 +6,7 @@
 #include "ferrum_policy.h"
 #include "ferrum_syslog.h"
 
-#define FERRUM_RAW_POLICY_CHECK_MS 5000
+#define FERRUM_RAW_POLICY_CHECK_MS 5000000
 typedef struct ferrum_raw_udpsocket2 {
   base_object();
 
