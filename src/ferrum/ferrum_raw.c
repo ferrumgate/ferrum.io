@@ -446,6 +446,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
   unused(addr);
   unused(buffer);
   unused(len);
+  int32_t result;
   ferrum_raw_udpsocket2_t *udp_callback = cast(callbackdata, ferrum_raw_udpsocket2_t *);
   ferrum_raw_t *raw = udp_callback->raw;
   ferrum_raw_udpsocket_pair_t *pair = NULL;
@@ -458,6 +459,36 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
   pair->last_used_time = rebrick_util_micro_time();
   DL_DELETE(raw->lfu.udp_list, pair);
   DL_APPEND(raw->lfu.udp_list, pair);
+
+  // check every 5 seconds policy again
+  if (pair->last_used_time - pair->policy_last_allow_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check again
+    pair->policy_last_allow_time = 0;                                                     // important
+    // execute policy, if fails close socket
+    new2(ferrum_policy_result_t, presult);
+    result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
+    if (result) {
+      rebrick_log_error("policy execute failed with error:%d\n", result);
+      write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+      HASH_DEL(raw->socket_pairs.udp, pair);
+      rebrick_udpsocket_destroy(pair->udp_socket);
+      DL_DELETE(raw->lfu.udp_list, pair);
+      rebrick_free(pair);
+      return;
+    }
+    if (presult.is_dropped) {
+      rebrick_log_debug("udp connection blocked\n");
+      write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+      HASH_DEL(raw->socket_pairs.udp, pair);
+      rebrick_udpsocket_destroy(pair->udp_socket);
+      DL_DELETE(raw->lfu.udp_list, pair);
+      rebrick_free(pair);
+      return;
+    }
+    pair->policy_last_allow_time = rebrick_util_micro_time();
+    // policy ok
+    // no need to write log again
+  }
+
   // send data to backends
   uint8_t *buf = rebrick_malloc(len);
   if_is_null_then_die(buf, "malloc problem\n");
@@ -472,7 +503,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
   data->addr = pair->client_addr;
   data->len = len;
 
-  int32_t result = rebrick_udpsocket_write(raw->listen.udp, &pair->client_addr, buf, len, clean_func);
+  result = rebrick_udpsocket_write(raw->listen.udp, &pair->client_addr, buf, len, clean_func);
   if (result) {
     rebrick_log_error("writing udp destination failed with error: %d\n", result);
     rebrick_free(data);
