@@ -51,6 +51,35 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
   rebrick_tcpsocket_destroy(tcp);
 }
 
+static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_policy_result_t *presult, rebrick_sockaddr_t *client, char *client_ip, char *client_port) {
+
+  // unused(client_addr);
+  char log[1024] = {0};
+  uint64_t now = rebrick_util_micro_time();
+  uint32_t rand = rebrick_util_rand(); // fast work
+
+  char *c_ip = client_ip;
+  char *c_port = client_port;
+  char ip_str[REBRICK_IP_STR_LEN] = {0};
+  char port_str[REBRICK_PORT_STR_LEN] = {0};
+
+  // if client ip is null then convert to string for syslog
+  if (!c_ip) {
+    rebrick_util_addr_to_ip_string(client, ip_str); // dont need to check result
+
+    c_ip = ip_str;
+  }
+  if (!c_port) {
+    rebrick_util_addr_to_port_string(client, port_str); // dont need to check resutl
+    c_port = port_str;
+  }
+
+  size_t len = snprintf(log, 1023, ",%" PRId64 ",%" PRIu32 ",%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s", now, rand, 1, 1, presult->client_id, presult->is_dropped,
+                        presult->why, syslog->config->gateway_id, syslog->config->service_id, presult->policy_id, presult->user_id, presult->tun_id,
+                        c_ip, c_port);
+  ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
+}
+
 void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
                              const struct sockaddr *addr, const uint8_t *buffer, ssize_t len) {
   unused(socket);
@@ -58,11 +87,40 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
   unused(addr);
   unused(buffer);
   unused(len);
+  int32_t result;
   rebrick_tcpsocket_t *tcp = cast_to_tcpsocket(socket);
   ferrum_raw_t *raw = cast(callback_data, ferrum_raw_t *);
   ferrum_raw_tcpsocket_pair_t *pair = NULL;
   HASH_FIND(hh, raw->socket_pairs.tcp, &tcp->data1, sizeof(void *), pair);
   if (pair) {
+
+    pair->last_used_time = rebrick_util_micro_time();
+    if (pair->last_used_time - pair->policy_last_allow_time > FERRUM_RAW_POLICY_CHECK_MS) { // every 5 seconds check
+      pair->policy_last_allow_time = 0;
+      new2(ferrum_policy_result_t, presult);
+      result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
+      if (result) {
+        rebrick_log_error("policy execute failed with error:%d\n", result);
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        HASH_DEL(raw->socket_pairs.tcp, pair);
+        rebrick_tcpsocket_destroy(pair->source);
+        rebrick_tcpsocket_destroy(pair->destination);
+        rebrick_free(pair);
+        return;
+      }
+      if (presult.is_dropped) {
+
+        rebrick_log_debug("tcp connection blocked\n");
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        HASH_DEL(raw->socket_pairs.tcp, pair);
+        rebrick_tcpsocket_destroy(pair->source);
+        rebrick_tcpsocket_destroy(pair->destination);
+        rebrick_free(pair);
+        return;
+      }
+      pair->policy_last_allow_time = rebrick_util_micro_time();
+    }
+
     uint8_t *buf = rebrick_malloc(len);
     if_is_null_then_die(buf, "malloc problem\n");
     memcpy(buf, buffer, len);
@@ -103,35 +161,6 @@ void on_tcp_destination_write(rebrick_socket_t *socket, void *callback_data, voi
       rebrick_tcpsocket_start_reading(pair->source);
     }
   }
-}
-
-static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_policy_result_t *presult, rebrick_sockaddr_t *client, char *client_ip, char *client_port) {
-
-  // unused(client_addr);
-  char log[1024] = {0};
-  uint64_t now = rebrick_util_micro_time();
-  uint32_t rand = rebrick_util_rand(); // fast work
-
-  char *c_ip = client_ip;
-  char *c_port = client_port;
-  char ip_str[REBRICK_IP_STR_LEN] = {0};
-  char port_str[REBRICK_PORT_STR_LEN] = {0};
-
-  // if client ip is null then convert to string for syslog
-  if (!c_ip) {
-    rebrick_util_addr_to_ip_string(client, ip_str); // dont need to check result
-
-    c_ip = ip_str;
-  }
-  if (!c_port) {
-    rebrick_util_addr_to_port_string(client, port_str); // dont need to check resutl
-    c_port = port_str;
-  }
-
-  size_t len = snprintf(log, 1023, ",%" PRId64 ",%" PRIu32 ",%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s", now, rand, 1, 1, presult->client_id, presult->is_dropped,
-                        presult->why, syslog->config->gateway_id, syslog->config->service_id, presult->policy_id, presult->user_id, presult->tun_id,
-                        c_ip, c_port);
-  ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
 }
 
 static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbackdata,
