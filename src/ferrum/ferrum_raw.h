@@ -4,7 +4,9 @@
 #include "ferrum_config.h"
 #include "ferrum_redis.h"
 #include "ferrum_policy.h"
+#include "ferrum_syslog.h"
 
+#define FERRUM_RAW_POLICY_CHECK_MS 5000000
 typedef struct ferrum_raw_udpsocket2 {
   base_object();
 
@@ -16,18 +18,29 @@ typedef struct ferrum_raw_udpsocket2 {
 typedef struct ferrum_raw_udpsocket_pair {
   base_object();
   int32_t mark;
-  int64_t last_used;
+  int64_t last_used_time;
+  /**
+   * @brief last policy result is allowed
+   */
+  int64_t policy_last_allow_time;
   rebrick_sockaddr_t client_addr;
   rebrick_udpsocket_t *udp_socket;
+  size_t source_socket_write_buf_len;
+  struct ferrum_raw_udpsocket_pair *prev;
+  struct ferrum_raw_udpsocket_pair *next;
   UT_hash_handle hh;
 } ferrum_raw_udpsocket_pair_t;
 
 typedef struct ferrum_raw_tcpsocket_pair {
   base_object();
-  uint64_t key;
-
+  void *key;
+  int32_t mark;
+  int64_t last_used_time;
+  // last policy result is allowed
+  int64_t policy_last_allow_time;
   rebrick_tcpsocket_t *source;
   rebrick_tcpsocket_t *destination;
+  rebrick_sockaddr_t client_addr;
 
   UT_hash_handle hh;
 } ferrum_raw_tcpsocket_pair_t;
@@ -39,6 +52,7 @@ typedef struct ferrum_raw {
 
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
+  private_ const ferrum_syslog_t *syslog;
   private_ rebrick_conntrack_get_func_t conntrack_get;
 
   private_ int32_t socket_count;
@@ -60,13 +74,19 @@ typedef struct ferrum_raw {
     public_ uint64_t rejected_clients;
   } metrics;
 
-  ferrum_raw_tcpsocket_pair_t *tcp_socket_pairs;
-  ferrum_raw_udpsocket_pair_t *udp_socket_pairs;
+  struct {
+    private_ ferrum_raw_tcpsocket_pair_t *tcp;
+    private_ ferrum_raw_udpsocket_pair_t *udp;
+  } socket_pairs;
+
+  struct {
+    private_ ferrum_raw_udpsocket_pair_t *udp_list;
+  } lfu;
 
 } ferrum_raw_t;
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
-                       const ferrum_policy_t *policy,
+                       const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
                        rebrick_conntrack_get_func_t conntrack_get);
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw);
 

@@ -275,6 +275,29 @@ uint16_t rebrick_util_rand16() {
   return out[--outleft];
 }
 
+static int32_t srand_initted = 0;
+static const char *charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// fill with random characters
+void rebrick_util_fill_random(char *dest, size_t len) {
+  // init default ssed
+  if (!srand_initted) {
+    srand(time(NULL));
+    srand_initted = 1;
+  }
+  char tmp[128];
+  ssize_t ret = getrandom(tmp, sizeof(tmp), 0);
+  int randomError = ret == -1;
+  if (randomError) {
+    fprintf(stderr, "/dev/urandom read error %s\n", strerror(errno));
+  }
+  size_t setlen = strlen(charset);
+  for (uint32_t i = 0; i < len && i < sizeof(tmp); ++i) {
+    size_t index = randomError ? (rand() % setlen) : (tmp[i] % setlen); // if error occured
+    dest[i] = charset[index];
+  }
+}
+
 //////////region////////rand16////////stop///////////////
 
 char *rebrick_util_time_r(char *str) {
@@ -462,6 +485,33 @@ int32_t rebrick_util_to_int32_t(char *val, int32_t *to) {
   *to = val_int;
   return REBRICK_SUCCESS;
 }
+int32_t rebrick_util_to_int16_t(char *val, int16_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > INT16_MAX || val_int < INT16_MIN)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+int32_t rebrick_util_to_size_t(char *val, size_t *to) {
+  errno = 0;
+  char *endptr;
+  int64_t val_int = strtoll(val, &endptr, 10);
+  if ((errno == ERANGE) || (errno != 0 && val_int == 0L) || val == endptr) {
+
+    return REBRICK_ERR_BAD_ARGUMENT;
+  }
+  if (val_int > UINT32_MAX || val_int < 0)
+    return REBRICK_ERR_BAD_ARGUMENT;
+  *to = val_int;
+  return REBRICK_SUCCESS;
+}
+
 int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to) {
   errno = 0;
   char *endptr;

@@ -13,7 +13,6 @@ rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
 
 DESTFOLDER=$(pwd)/libs
-
 ######## install libuv ###############
 cp libuv-v1.44.2.tar.gz $TMPFOLDER
 
@@ -41,7 +40,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$DESTFOLDER -DCMAKE_BUILD_TYPE=Debug ../
 make
 make install
 
-######## install openssl #################
+######### install openssl #################
 cd $CURRENTFOLDER
 cp openssl-1.1.1q.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
@@ -76,7 +75,16 @@ cd hiredis-1.0.2
 export PREFIX=$DESTFOLDER
 make
 make install
-
+######## install lmdb ############
+cd $CURRENTFOLDER
+DESTFOLDER=$(pwd)/libs
+cp lmdb.0.9.90.zip $TMPFOLDER
+cd $TMPFOLDER
+unzip lmdb.0.9.90.zip
+cd lmdb/libraries/liblmdb
+make
+make install prefix=$DESTFOLDER
+#
 ############ make ready ##############
 #cd $CURRENTFOLDER
 ##chown -R hframed:hframed libs

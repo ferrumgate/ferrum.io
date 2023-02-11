@@ -93,6 +93,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
       rebrick_kill_current_process(result);
     }
     rebrick_util_addr_to_string(&tmp->raw.dest_tcp_addr, tmp->raw.dest_tcp_addr_str);
+    rebrick_log_warn("raw destination tcp addr: %s\n", tmp->raw.dest_tcp_addr_str);
   }
 
   if (raw_dest_udp_port[0]) {
@@ -102,6 +103,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
       rebrick_kill_current_process(result);
     }
     rebrick_util_addr_to_string(&tmp->raw.dest_udp_addr, tmp->raw.dest_udp_addr_str);
+    rebrick_log_warn("raw destination udp addr: %s\n", tmp->raw.dest_udp_addr_str);
   }
 
   ///
@@ -115,6 +117,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     uv_os_getenv("RAW_LISTEN_TCP_PORT", raw_listen_tcp_port, &raw_listen_tcp_port_size);
     rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_tcp_port[0] ? raw_listen_tcp_port : raw_dest_tcp_port, &tmp->raw.listen_tcp_addr);
     rebrick_util_addr_to_string(&tmp->raw.listen_tcp_addr, tmp->raw.listen_tcp_addr_str);
+    rebrick_log_warn("raw listen tcp addr: %s\n", tmp->raw.listen_tcp_addr_str);
   }
 
   if (raw_dest_udp_port[0]) {
@@ -123,6 +126,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     uv_os_getenv("RAW_LISTEN_UDP_PORT", raw_listen_udp_port, &raw_listen_udp_port_size);
     rebrick_util_ip_port_to_addr(raw_listen_ip[0] ? raw_listen_ip : "0.0.0.0", raw_listen_udp_port[0] ? raw_listen_udp_port : raw_dest_udp_port, &tmp->raw.listen_udp_addr);
     rebrick_util_addr_to_string(&tmp->raw.listen_udp_addr, tmp->raw.listen_udp_addr_str);
+    rebrick_log_warn("raw listen udp addr: %s\n", tmp->raw.listen_udp_addr_str);
   }
 
   /////////////////////// policy disabled ///////////////////
@@ -131,6 +135,32 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   uv_os_getenv("DISABLE_POLICY", disable_policy, &disable_policy_size);
   if (!(strcmp(disable_policy, "true") || !strcmp(disable_policy, "TRUE")))
     tmp->is_policy_disabled = TRUE;
+
+  /////////////////////// lmdb folder ///////////////////
+  strncpy(tmp->lmdb_folder, "/var/lib/ferrumgate", sizeof(tmp->lmdb_folder));
+  char lmdb_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t lmdb_folder_size = sizeof(lmdb_folder);
+  uv_os_getenv("LMDB_FOLDER", lmdb_folder, &lmdb_folder_size);
+  if (lmdb_folder[0])
+    strncpy(tmp->lmdb_folder, lmdb_folder, sizeof(tmp->lmdb_folder) - 1);
+
+  /////////////////////// syslog host port ///////////////////
+  strncpy(tmp->syslog_host, "localhost:9191", sizeof(tmp->syslog_host));
+  char syslog_host[REBRICK_MAX_ENV_LEN] = {0};
+  size_t syslog_host_size = sizeof(syslog_host);
+  uv_os_getenv("SYSLOG_HOST", syslog_host, &syslog_host_size);
+  if (syslog_host[0])
+    strncpy(tmp->syslog_host, syslog_host, sizeof(tmp->syslog_host) - 1);
+
+  rebrick_log_warn("syslog host:port is %s\n", tmp->syslog_host);
+
+  /////////////////////// socket write buf size ///////////////////
+  tmp->socket_max_write_buf_size = 512 * 1024; // 512 kb
+  char socket_write_buf_size[REBRICK_MAX_ENV_LEN] = {0};
+  size_t socket_write_buf_size_size = sizeof(socket_write_buf_size);
+  uv_os_getenv("SOCKET_WRITE_BUF_SIZE", socket_write_buf_size, &socket_write_buf_size_size);
+  if (socket_write_buf_size[0])
+    rebrick_util_to_size_t(socket_write_buf_size, &tmp->socket_max_write_buf_size);
 
   *config = tmp;
   return FERRUM_SUCCESS;

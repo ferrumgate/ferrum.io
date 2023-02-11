@@ -127,11 +127,7 @@ static void rebrick_udpsocket_asserver_communication(void **start) {
 
   result = rebrick_udpsocket_destroy(server);
   assert_int_equal(result, 0);
-  max_check = 100;
-  while (max_check--) {
-    usleep(1000);
-    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-  }
+  loop(max_check, 1000, TRUE);
 }
 
 static void on_dnsclient_error_occured(rebrick_socket_t *socket, void *data, int32_t error) {
@@ -223,7 +219,7 @@ static void test_rebrick_udpsocket_check_memory(void **state) {
     assert_int_equal(received_count, 1);
     rebrick_udpsocket_destroy(dnsclient);
     counter = 1000;
-    loop(counter, 1000, FALSE);
+    loop(counter, 1000, TRUE);
   }
   rebrick_free(testdata);
 }
@@ -292,7 +288,7 @@ static void test_rebrick_udpsocket_check_memory2(void **state) {
   }
   rebrick_udpsocket_destroy(dnsclient);
   int32_t counter = 100;
-  loop(counter, 100, FALSE);
+  loop(counter, 100, TRUE);
   rebrick_free(testdata);
 }
 
@@ -331,13 +327,6 @@ static void test_rebrick_udpsocket_check_memory3(void **state) {
   rebrick_udpsocket_destroy(dnsclient);
   int32_t counter = 100;
   loop(counter, 1000, TRUE);
-  /*  while (counter)
-  {
-      usleep(1000);
-      uv_run(uv_default_loop(), UV_RUN_NOWAIT);
-      counter--;
-  } */
-  // assert_true(received_count > 0);
 }
 
 int test_rebrick_udpsocket(void) {

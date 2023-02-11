@@ -1,10 +1,10 @@
-CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../external/libs/include
+CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_SFH -I$(shell pwd)/../external/libs/include
 #LDFLAGS = -shared  -o librebrick.so.1.0.0 -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2
-LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2 -lhiredis -lnetfilter_conntrack -lnfnetlink
+LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2 -lhiredis -llmdb -lnetfilter_conntrack -lnfnetlink
 
 
-CFLAGSTEST =  -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu17  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include
-LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl -lcrypto -lnghttp2 -lhiredis -lnetfilter_conntrack -lnfnetlink
+CFLAGSTEST =  -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_FNV  -I$(shell pwd)/../src -I$(shell pwd)/../external/libs/include
+LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl -lcrypto -lnghttp2 -lhiredis -llmdb -lnetfilter_conntrack -lnfnetlink
 
 
 
@@ -20,8 +20,8 @@ OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_log.o ./
 		 ./rebrick/lib/b64/encode.o ./rebrick/lib/picohttpparser.o   \
 		  ./rebrick/file/rebrick_filestream.o ./rebrick/netfilter/rebrick_conntrack.o
 
-OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
- ./ferrum/ferrum_policy.o
+OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_lmdb.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
+ ./ferrum/ferrum_policy.o ./ferrum/ferrum_syslog.o
 
 
 OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o ./rebrick/test_rebrick_util.o ./rebrick/test_rebrick_resolve.o \
@@ -39,7 +39,9 @@ OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcp
 OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis.o \
 					./ferrum/test_ferrum_config.o ../src/ferrum/ferrum_config.o \
 					./ferrum/test_ferrum_raw.o ../src/ferrum/ferrum_raw.o \
-					./ferrum/test_ferrum_policy.o ../src/ferrum/ferrum_policy.o
+					./ferrum/test_ferrum_policy.o ../src/ferrum/ferrum_policy.o \
+					./ferrum/test_ferrum_lmdb.o ../src/ferrum/ferrum_lmdb.o \
+					./ferrum/test_ferrum_syslog.o ../src/ferrum/ferrum_syslog.o \
 
 
 
@@ -65,9 +67,9 @@ ferrum.io : $(OBJS_REBRICK) $(OBJS_FERRUM)
 	
 
 
-check:clean
+check:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrun
-checkvalgrind:clean
+checkvalgrind:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile testrunvalgrind
 buildtest:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile test

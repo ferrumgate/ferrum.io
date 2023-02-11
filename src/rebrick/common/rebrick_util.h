@@ -5,6 +5,7 @@
 #include "rebrick_resolve.h"
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/random.h>
 
 /**
  * @brief linked list structure and functions
@@ -97,6 +98,8 @@ uint16_t rebrick_util_rand16();
 
 // gets current time
 char *rebrick_util_time_r(char *str);
+
+void rebrick_util_fill_random(char *dest, size_t len);
 
 /**
  * @brief converts @see rebrick_sockaddr_t to ip string
@@ -193,4 +196,6 @@ int32_t rebrick_util_gethostname(char hostname[REBRICK_HOSTNAME_LEN]);
 
 int32_t rebrick_util_to_int64_t(char *val, int64_t *to);
 int32_t rebrick_util_to_int32_t(char *val, int32_t *to);
+int32_t rebrick_util_to_int16_t(char *val, int16_t *to);
 int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to);
+int32_t rebrick_util_to_size_t(char *val, size_t *to);

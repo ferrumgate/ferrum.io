@@ -56,6 +56,9 @@ int32_t rebrick_timer_new(rebrick_timer_t **timer, rebrick_timer_callback_t call
 }
 
 int32_t rebrick_timer_start(rebrick_timer_t *timer) {
+  return rebrick_timer_start_after(timer, timer->milisecond);
+}
+int32_t rebrick_timer_start_after(rebrick_timer_t *timer, int32_t elapsed) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   int32_t result;
@@ -67,7 +70,7 @@ int32_t rebrick_timer_start(rebrick_timer_t *timer) {
   if (timer->is_started)
     return REBRICK_SUCCESS;
 
-  result = uv_timer_start(&timer->timer, timer_callback, timer->milisecond, timer->milisecond);
+  result = uv_timer_start(&timer->timer, timer_callback, elapsed, timer->milisecond);
   if (result < 0) {
 
     rebrick_log_fatal("start timer failed:%s\n", uv_strerror(result));

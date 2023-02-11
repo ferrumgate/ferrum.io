@@ -115,5 +115,9 @@ int32_t rebrick_tcpsocket_destroy(rebrick_tcpsocket_t *socket);
 int32_t rebrick_tcpsocket_destroy2(rebrick_tcpsocket_t *socket);
 int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, size_t len, rebrick_clean_func_t cleanfunc);
 int32_t rebrick_tcpsocket_start_reading(rebrick_tcpsocket_t *socket);
+int32_t rebrick_tcpsocket_stop_reading(rebrick_tcpsocket_t *socket);
+int32_t rebrick_tcpsocket_write_buffer_size(rebrick_tcpsocket_t *socket, size_t *size);
 
+int32_t rebrick_tcpsocket_sysctl_write_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value);
+int32_t rebrick_tcpsocket_sysctl_read_buffer_size(rebrick_tcpsocket_t *socket, int32_t *value);
 #endif

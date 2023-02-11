@@ -25,8 +25,8 @@ static int teardown(void **state) {
 
 rebrick_sockaddr_t last_resolved_addr;
 int32_t resolved;
-static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr) {
-
+static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr, void *data) {
+  unused(data);
   char current_time_str[32] = {0};
   unused(current_time_str);
   char ip[REBRICK_IP_STR_LEN];
@@ -37,16 +37,17 @@ static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr
 }
 
 int32_t last_error;
-static void on_error(const char *domain, int32_t type, int32_t error) {
+static void on_error(const char *domain, int32_t type, int32_t error, void *data) {
   char current_time_str[32] = {0};
   unused(current_time_str);
-  rebrick_log_error( "resolve domain %s with type %d failed with error %d \n", domain, type, error);
+  unused(data);
+  rebrick_log_error("resolve domain %s with type %d failed with error %d \n", domain, type, error);
   last_error = error;
 }
 
 static void resolve_google_com_A(void **start) {
   unused(start);
-  int32_t result = rebrick_resolve("www.google.com", A, on_resolve, on_error);
+  int32_t result = rebrick_resolve("www.google.com", A, on_resolve, on_error, NULL);
   assert_int_equal(result, REBRICK_SUCCESS);
   int32_t counter;
   last_error = 0;
@@ -59,7 +60,7 @@ static void resolve_google_com_A(void **start) {
 
 static void resolve_google_com_AAAA(void **start) {
   unused(start);
-  int32_t result = rebrick_resolve("www.google.com", AAAA, on_resolve, on_error);
+  int32_t result = rebrick_resolve("www.google.com", AAAA, on_resolve, on_error, NULL);
   assert_int_equal(result, REBRICK_SUCCESS);
   int32_t counter;
   last_error = 0;
@@ -72,7 +73,7 @@ static void resolve_google_com_AAAA(void **start) {
 
 static void resolve_google2_com_failed(void **start) {
   unused(start);
-  int32_t result = rebrick_resolve("www.google2.com", A, on_resolve, on_error);
+  int32_t result = rebrick_resolve("www.google2.com", A, on_resolve, on_error, NULL);
   assert_int_equal(result, REBRICK_SUCCESS);
   int32_t counter;
   last_error = 0;
