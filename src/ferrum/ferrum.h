@@ -3,7 +3,7 @@
 
 #include "../rebrick/rebrick.h"
 
-#define FERRUM_VERSION "1.1.0"
+#define FERRUM_VERSION "1.2.0"
 
 #define FERRUM_SUCCESS REBRICK_SUCCESS
 #define ferrum_log_debug rebrick_log_debug

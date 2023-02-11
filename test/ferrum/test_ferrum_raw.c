@@ -10,20 +10,20 @@
     usleep(100);                              \
     uv_run(uv_default_loop(), UV_RUN_NOWAIT); \
   }
-const char *lmdb_folder = "/tmp/abc";
+const char *policy_db_folder = "/tmp/abc";
 static int setup(void **state) {
 
   unused(state);
-  setenv("LMDB_FOLDER", lmdb_folder, 1);
+  setenv("POLICY_DB_FOLDER", policy_db_folder, 1);
   setenv("DISABLE_POLICY", "true", 1);
-  mkdir(lmdb_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir(policy_db_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   fprintf(stdout, "****  %s ****\n", __FILE__);
   return 0;
 }
 
 static int teardown(void **state) {
   unused(state);
-  setenv("LMDB_FOLDER", "", 1);
+  setenv("POLICY_DB_FOLDER", "", 1);
   setenv("DISABLE_POLICY", "", 1);
   uv_loop_close(uv_default_loop());
   return 0;

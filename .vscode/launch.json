@@ -73,7 +73,7 @@
                     "value": "randominstance"
                 },
                 {
-                    "name": "LMDB_FOLDER",
+                    "name": "POLICY_DB_FOLDER",
                     "value": "/tmp/test4"
                 },
                 {
