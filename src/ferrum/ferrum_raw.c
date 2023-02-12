@@ -51,7 +51,9 @@ static void on_tcp_destination_error(rebrick_socket_t *socket, void *callbackdat
   rebrick_tcpsocket_destroy(tcp);
 }
 
-static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_policy_result_t *presult, rebrick_sockaddr_t *client, char *client_ip, char *client_port) {
+static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_policy_result_t *presult, rebrick_sockaddr_t *client,
+                               char *client_ip, char *client_port, int32_t is_tcp,
+                               rebrick_sockaddr_t *dest, char *dest_ip, char *dest_port) {
 
   // unused(client_addr);
   char log[1024] = {0};
@@ -74,9 +76,25 @@ static void write_activity_log(const ferrum_syslog_t *syslog, const ferrum_polic
     c_port = port_str;
   }
 
-  size_t len = snprintf(log, 1023, ",%" PRId64 ",%" PRIu32 ",%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s", now, rand, 1, 1, presult->client_id, presult->is_dropped,
+  char *d_ip = dest_ip;
+  char *d_port = dest_port;
+  char dip_str[REBRICK_IP_STR_LEN] = {0};
+  char dport_str[REBRICK_PORT_STR_LEN] = {0};
+
+  // if client ip is null then convert to string for syslog
+  if (!d_ip) {
+    rebrick_util_addr_to_ip_string(dest, dip_str); // dont need to check result
+
+    d_ip = dip_str;
+  }
+  if (!d_port) {
+    rebrick_util_addr_to_port_string(dest, dport_str); // dont need to check resutl
+    d_port = dport_str;
+  }
+
+  size_t len = snprintf(log, 1023, ",%" PRId64 ",%" PRIu32 ",%d,%d,%d,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", now, rand, 1, 1, presult->client_id, presult->is_dropped,
                         presult->why, syslog->config->gateway_id, syslog->config->service_id, presult->policy_id, presult->user_id, presult->tun_id,
-                        c_ip, c_port);
+                        c_ip, c_port, is_tcp ? "tcp" : "udp", d_ip, d_port);
   ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
 }
 
@@ -101,7 +119,7 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
       result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
       if (result) {
         rebrick_log_error("policy execute failed with error:%d\n", result);
-        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
         HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
         rebrick_tcpsocket_destroy(pair->destination);
@@ -111,7 +129,7 @@ void on_tcp_destination_read(rebrick_socket_t *socket, void *callback_data,
       if (presult.is_dropped) {
 
         rebrick_log_debug("tcp connection blocked\n");
-        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
         HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
         rebrick_tcpsocket_destroy(pair->destination);
@@ -207,7 +225,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
     presult.is_dropped = TRUE;
     presult.why = FERRUM_POLICY_CLIENT_NOT_FOUND;
-    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(client_handle));
     return;
   }
@@ -215,18 +233,18 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   result = ferrum_policy_execute(raw->policy, conntrack.mark, &presult);
   if (result) {
     rebrick_log_error("policy execute failed with error:%d\n", result);
-    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(client_handle));
     return;
   }
   if (presult.is_dropped) {
     rebrick_log_debug("tcp connection blocked %s:%s\n", ip_str, port_str);
-    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
     rebrick_tcpsocket_destroy(cast_to_tcpsocket(client_handle));
     return;
   }
   // event log, policy is allowed, log and continue
-  write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+  write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
   rebrick_tcpsocket_t *client = cast_to_tcpsocket(client_handle);
   rebrick_tcpsocket_t *destination;
   new2(rebrick_tcpsocket_callbacks_t, destination_callback);
@@ -253,6 +271,8 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   pair->last_used_time = rebrick_util_micro_time();
   pair->policy_last_allow_time = rebrick_util_micro_time();
   pair->client_addr = client_addr;
+  strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+  strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
   client->data1 = pair;
@@ -322,7 +342,7 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
       result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
       if (result) {
         rebrick_log_error("policy execute failed with error:%d\n", result);
-        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
         HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
         rebrick_tcpsocket_destroy(pair->destination);
@@ -332,7 +352,7 @@ void on_tcp_client_read(rebrick_socket_t *socket, void *callback_data,
       if (presult.is_dropped) {
 
         rebrick_log_debug("tcp connection blocked\n");
-        write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+        write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
         HASH_DEL(raw->socket_pairs.tcp, pair);
         rebrick_tcpsocket_destroy(pair->source);
         rebrick_tcpsocket_destroy(pair->destination);
@@ -468,7 +488,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
     result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
     if (result) {
       rebrick_log_error("policy execute failed with error:%d\n", result);
-      write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+      write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       HASH_DEL(raw->socket_pairs.udp, pair);
       rebrick_udpsocket_destroy(pair->udp_socket);
       DL_DELETE(raw->lfu.udp_list, pair);
@@ -477,7 +497,7 @@ static void on_udp_destination_read(rebrick_socket_t *socket, void *callbackdata
     }
     if (presult.is_dropped) {
       rebrick_log_debug("udp connection blocked\n");
-      write_activity_log(raw->syslog, &presult, &pair->client_addr, NULL, NULL);
+      write_activity_log(raw->syslog, &presult, &pair->client_addr, pair->client_ip, pair->client_port, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       HASH_DEL(raw->socket_pairs.udp, pair);
       rebrick_udpsocket_destroy(pair->udp_socket);
       DL_DELETE(raw->lfu.udp_list, pair);
@@ -567,24 +587,24 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
       presult.is_dropped = TRUE;
       presult.why = FERRUM_POLICY_CLIENT_NOT_FOUND;
-      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       return;
     }
     // execute policy, if fails close socket
     result = ferrum_policy_execute(raw->policy, conntrack.mark, &presult);
     if (result) {
       rebrick_log_error("policy execute failed with error:%d\n", result);
-      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       return;
     }
 
     if (presult.is_dropped) {
       rebrick_log_debug("udp connection blocked %s:%s\n", ip_str, port_str);
-      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+      write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       return;
     }
     // event log and continue
-    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+    write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
 
     ferrum_raw_udpsocket2_t *udp2 = new1(ferrum_raw_udpsocket2_t);
     constructor(udp2, ferrum_raw_udpsocket2_t);
@@ -610,6 +630,9 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair = new1(ferrum_raw_udpsocket_pair_t);
     constructor(pair, ferrum_raw_udpsocket_pair_t);
     pair->client_addr = client_addr;
+    strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+    strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
+
     pair->last_used_time = rebrick_util_micro_time();
     pair->policy_last_allow_time = rebrick_util_micro_time();
     pair->udp_socket = socket;
@@ -632,7 +655,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       result = ferrum_policy_execute(raw->policy, pair->mark, &presult);
       if (result) {
         rebrick_log_error("policy execute failed with error:%d\n", result);
-        write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+        write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
         HASH_DEL(raw->socket_pairs.udp, pair);
         rebrick_udpsocket_destroy(pair->udp_socket);
         DL_DELETE(raw->lfu.udp_list, pair);
@@ -641,7 +664,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       }
       if (presult.is_dropped) {
         rebrick_log_debug("udp connection blocked %s:%s\n", ip_str, port_str);
-        write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str);
+        write_activity_log(raw->syslog, &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
         HASH_DEL(raw->socket_pairs.udp, pair);
         rebrick_udpsocket_destroy(pair->udp_socket);
         DL_DELETE(raw->lfu.udp_list, pair);
@@ -736,6 +759,10 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   if (config->raw.listen_tcp_addr_str[0]) {
     memcpy(&tmp->listen.tcp_listening_addr, &config->raw.listen_tcp_addr, sizeof(rebrick_sockaddr_t));
     memcpy(&tmp->listen.tcp_destination_addr, &config->raw.dest_tcp_addr, sizeof(rebrick_sockaddr_t));
+
+    rebrick_util_addr_to_ip_string(&tmp->listen.tcp_destination_addr, tmp->listen.tcp_destination_ip);     // dont need to check result
+    rebrick_util_addr_to_port_string(&tmp->listen.tcp_destination_addr, tmp->listen.tcp_destination_port); // dont need to check resutl
+
     new2(rebrick_tcpsocket_callbacks_t, listen_callback);
     listen_callback.callback_data = tmp;
     listen_callback.on_client_close = on_tcp_client_close;
@@ -759,6 +786,10 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   if (config->raw.listen_udp_addr_str[0]) {
     memcpy(&tmp->listen.udp_listening_addr, &config->raw.listen_udp_addr, sizeof(rebrick_sockaddr_t));
     memcpy(&tmp->listen.udp_destination_addr, &config->raw.dest_udp_addr, sizeof(rebrick_sockaddr_t));
+
+    rebrick_util_addr_to_ip_string(&tmp->listen.udp_destination_addr, tmp->listen.udp_destination_ip);     // dont need to check result
+    rebrick_util_addr_to_port_string(&tmp->listen.udp_destination_addr, tmp->listen.udp_destination_port); // dont need to check resutl
+
     new2(rebrick_udpsocket_callbacks_t, listen_callback);
     listen_callback.callback_data = tmp;
     listen_callback.on_read = on_udp_server_read;

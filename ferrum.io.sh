@@ -83,6 +83,13 @@ if [ ! -z "$INSTANCE_ID" ]; then
 fi
 echo "instance id $OPT_INSTANCE_ID"
 
+OPT_POLICY_DB_FOLDER="/var/lib/ferrumgate/policy"
+if [ ! -z "$POLICY_DB_FOLDER" ]; then
+    OPT_POLICY_DB_FOLDER=$POLICY_DB_FOLDER
+fi
+echo "policy db folder $OPT_POLICY_DB_FOLDER"
+mkdir -p $OPT_POLICY_DB_FOLDER
+
 OPT_SOCKET_WRITE_BUF_SIZE="524288"
 if [ ! -z "$SOCKET_WRITE_BUF_SIZE" ]; then
     OPT_SOCKET_WRITE_BUF_SIZE=$SOCKET_WRITE_BUF_SIZE
@@ -111,7 +118,7 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     SERVICE_ID=$OPT_SERVICE_ID \
     INSTANCE_ID=$OPT_INSTANCE_ID \
     SOCKET_WRITE_BUF_SIZE=$OPT_SOCKET_WRITE_BUF_SIZE \
-    ./src/ferrum.io
+    POLICY_DB_FOLDER=$OPT_POLICY_DB_FOLDER ./src/ferrum.io
 
 if ls $CORE_FOLDER/*core* 1>/dev/null 2>&1; then
     folder=$(((RANDOM % 1000000) + 1))
