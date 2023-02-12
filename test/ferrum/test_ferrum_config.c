@@ -88,18 +88,18 @@ static void ferrum_config_object_disable_policy() {
   setenv("DISABLE_POLICY", "false", 1);
 }
 
-static void ferrum_config_object_lmdb_folder() {
+static void ferrum_config_object_policy_db_folder() {
   ferrum_config_t *config = NULL;
   int32_t result;
-  setenv("LMDB_FOLDER", "/var/tmp/ferrumgate", 1);
+  setenv("POLICY_DB_FOLDER", "/var/tmp/ferrumgate", 1);
 
   result = ferrum_config_new(&config);
   assert_true(result >= 0);
   assert_non_null(config);
 
-  assert_string_equal(config->lmdb_folder, "/var/tmp/ferrumgate");
+  assert_string_equal(config->policy_db_folder, "/var/tmp/ferrumgate");
   ferrum_config_destroy(config);
-  setenv("LMDB_FOLDER", "", 1);
+  setenv("POLICY_DB_FOLDER", "", 1);
 }
 
 static void ferrum_config_object_syslog_host() {
@@ -149,7 +149,7 @@ int test_ferrum_config(void) {
       cmocka_unit_test(ferrum_config_object_redis_ip_port),
       cmocka_unit_test(ferrum_config_object_raw),
       cmocka_unit_test(ferrum_config_object_disable_policy),
-      cmocka_unit_test(ferrum_config_object_lmdb_folder),
+      cmocka_unit_test(ferrum_config_object_policy_db_folder),
       cmocka_unit_test(ferrum_config_object_syslog_host)
 
   };

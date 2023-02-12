@@ -13,7 +13,7 @@ int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbna
   strncpy(tmp->path, path, sizeof(tmp->path) - 1);
   // open env
   if ((result = mdb_env_create(&tmp->env))) {
-    ferrum_log_error("lmdb path %s could not open :%s", path, mdb_strerror(result));
+    ferrum_log_error("lmdb path %s could not open :%s\n", path, mdb_strerror(result));
     rebrick_free(tmp);
     return FERRUM_ERR_LMDB;
   }
@@ -21,7 +21,7 @@ int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbna
   mdb_env_set_mapsize(tmp->env, maxsize ? maxsize : (size_t)1073741824); // 2GB
 
   if ((result = mdb_env_open(tmp->env, tmp->path, MDB_NOTLS, 0664))) {
-    ferrum_log_error("lmdb path %s could not open :%s", path, mdb_strerror(result));
+    ferrum_log_error("lmdb path %s could not open :%s\n", path, mdb_strerror(result));
     mdb_env_close(tmp->env);
     rebrick_free(tmp);
     return FERRUM_ERR_LMDB;
@@ -29,13 +29,13 @@ int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbna
 
   tmp->parent_trx = NULL;
   if ((result = mdb_txn_begin(tmp->env, tmp->parent_trx, 0, &tmp->trx))) {
-    ferrum_log_error("lmdb path %s could not open :%s", path, mdb_strerror(result));
+    ferrum_log_error("lmdb path %s could not open :%s\n", path, mdb_strerror(result));
     mdb_env_close(tmp->env);
     rebrick_free(tmp);
     return FERRUM_ERR_LMDB;
   }
   if ((result = mdb_dbi_open(tmp->trx, dbname, MDB_CREATE, &tmp->dbi))) {
-    ferrum_log_error("lmdb path %s could not open :%s", path, mdb_strerror(result));
+    ferrum_log_error("lmdb path %s could not open :%s\n", path, mdb_strerror(result));
     mdb_txn_abort(tmp->trx);
     mdb_env_close(tmp->env);
     rebrick_free(tmp);
@@ -66,14 +66,14 @@ int32_t ferrum_lmdb_put(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lm
   int32_t result;
   lmdb->parent_trx = NULL;
   if ((result = mdb_txn_begin(lmdb->env, lmdb->parent_trx, 0, &lmdb->trx))) {
-    ferrum_log_error("lmdb trx begin failed with error: %s", mdb_strerror(result));
+    ferrum_log_error("lmdb trx begin failed with error: %s\n", mdb_strerror(result));
 
     return FERRUM_ERR_LMDB;
   }
   MDB_val kval = {.mv_size = key->size, .mv_data = key->val};
   MDB_val vval = {.mv_size = value->size, .mv_data = value->val};
   if ((result = mdb_put(lmdb->trx, lmdb->dbi, &kval, &vval, 0))) {
-    ferrum_log_error("lmdb put failed with error: %s", mdb_strerror(result));
+    ferrum_log_error("lmdb put failed with error: %s\n", mdb_strerror(result));
     mdb_txn_abort(lmdb->trx);
     return FERRUM_ERR_LMDB;
   }
@@ -84,7 +84,7 @@ int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lm
   int32_t result;
   lmdb->parent_trx = NULL;
   if ((result = mdb_txn_begin(lmdb->env, lmdb->parent_trx, MDB_RDONLY, &lmdb->trx))) {
-    ferrum_log_error("lmdb trx begin failed with error: %s", mdb_strerror(result));
+    ferrum_log_error("lmdb trx begin failed with error: %s\n", mdb_strerror(result));
 
     return FERRUM_ERR_LMDB;
   }
@@ -92,7 +92,7 @@ int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lm
   MDB_val vval;
   if ((result = mdb_get(lmdb->trx, lmdb->dbi, &kval, &vval))) {
     if (result != MDB_NOTFOUND)
-      ferrum_log_error("lmdb get failed with error: %s", mdb_strerror(result));
+      ferrum_log_error("lmdb get failed with error: %s\n", mdb_strerror(result));
     mdb_txn_abort(lmdb->trx);
     return result == MDB_NOTFOUND ? FERRUM_ERR_LMDB_ROW_NOT_FOUND : FERRUM_ERR_LMDB;
   }

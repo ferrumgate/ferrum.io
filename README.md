@@ -8,9 +8,9 @@ under external folder, there are some libs like libuv for async I/O,
 and for unit testing cmock project,
 run prepare.libs.sh script, for preparing compile environment
 then install
-> apt install libnetfilter-conntrack-dev
+> install libnetfilter-conntrack-dev
 >
-> apt install conntrack
+> install conntrack
 
 ## Testing
 
@@ -38,17 +38,3 @@ export LD_LIBRARY_PATH=$(pwd)/../external/libs/lib
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-
-## troubleshot
-
-conntrack table list
-> conntrack -L|grep 8080
-
-setting mark on conntrack
->iptables -t mangle -A INPUT -p udp -i enp3s0 -j CONNMARK --set-mark 4000000000
-
-## core dump prepare
-
-echo '/var/lib/ferrum/core.%e.%p' | sudo tee /proc/sys/kernel/core_pattern
-/etc/sysctl.d/50-coredump.conf
-kernel.core_pattern=/dev/null

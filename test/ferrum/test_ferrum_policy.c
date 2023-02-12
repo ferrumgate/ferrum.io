@@ -30,7 +30,7 @@ static void ferrum_object_create_destroy_success(void **start) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   const char *folder = "/tmp/test4";
-  setenv("LMDB_FOLDER", folder, 1);
+  setenv("POLICY_DB_FOLDER", folder, 1);
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   ferrum_config_t *config;
@@ -50,7 +50,7 @@ static void ferrum_policy_execute_policy_disabled(void **start) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   const char *folder = "/tmp/test4";
-  setenv("LMDB_FOLDER", folder, 1);
+  setenv("POLICY_DB_FOLDER", folder, 1);
   setenv("DISABLE_POLICY", "true", 1);
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -76,7 +76,7 @@ static void ferrum_policy_execute_policy_row_not_found(void **start) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   const char *folder = "/tmp/test4";
-  setenv("LMDB_FOLDER", folder, 1);
+  setenv("POLICY_DB_FOLDER", folder, 1);
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   ferrum_config_t *config;
@@ -103,7 +103,7 @@ static void ferrum_policy_execute_policy_row_invalid(void **start) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   const char *folder = "/tmp/test4";
-  setenv("LMDB_FOLDER", folder, 1);
+  setenv("POLICY_DB_FOLDER", folder, 1);
   setenv("SERVICE_ID", "10", 1);
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -141,7 +141,7 @@ static void ferrum_policy_execute_policy_row_ok(void **start) {
   char current_time_str[32] = {0};
   unused(current_time_str);
   const char *folder = "/tmp/test4";
-  setenv("LMDB_FOLDER", folder, 1);
+  setenv("POLICY_DB_FOLDER", folder, 1);
   setenv("SERVICE_ID", "10", 1);
   rmdir(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);

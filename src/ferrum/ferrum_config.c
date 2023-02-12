@@ -137,12 +137,12 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     tmp->is_policy_disabled = TRUE;
 
   /////////////////////// lmdb folder ///////////////////
-  strncpy(tmp->lmdb_folder, "/var/lib/ferrumgate", sizeof(tmp->lmdb_folder));
-  char lmdb_folder[REBRICK_MAX_ENV_LEN] = {0};
-  size_t lmdb_folder_size = sizeof(lmdb_folder);
-  uv_os_getenv("LMDB_FOLDER", lmdb_folder, &lmdb_folder_size);
-  if (lmdb_folder[0])
-    strncpy(tmp->lmdb_folder, lmdb_folder, sizeof(tmp->lmdb_folder) - 1);
+  strncpy(tmp->policy_db_folder, "/var/lib/ferrumgate/policy", sizeof(tmp->policy_db_folder));
+  char policy_db_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t policy_db_folder_size = sizeof(policy_db_folder);
+  uv_os_getenv("POLICY_DB_FOLDER", policy_db_folder, &policy_db_folder_size);
+  if (policy_db_folder[0])
+    strncpy(tmp->policy_db_folder, policy_db_folder, sizeof(tmp->policy_db_folder) - 1);
 
   /////////////////////// syslog host port ///////////////////
   strncpy(tmp->syslog_host, "localhost:9191", sizeof(tmp->syslog_host));
