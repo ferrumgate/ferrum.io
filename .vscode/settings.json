@@ -23,5 +23,10 @@
     },
     "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
     "C_Cpp.default.cStandard": "gnu17",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "files.associations": {
+        "ferrum_raw.h": "c",
+        "ferrum_raw_socket_pair.h": "c",
+        "ferrum_protocol.h": "c"
+    }
 }

@@ -4,6 +4,7 @@
 
 #define FERRUM_HOSTNAME_LEN 64
 #define FERRUM_PATH_LEN 512
+#define FERRUM_ROOT_FQDN_LEN 64
 
 typedef struct ferrum_config {
   base_object();
@@ -49,6 +50,9 @@ typedef struct ferrum_config {
   int32_t is_policy_disabled;
   char policy_db_folder[FERRUM_PATH_LEN];
   char syslog_host[REBRICK_IP_PORT_STR_LEN];
+  char protocol_type[REBRICK_NAME_STR_LEN];
+  char dns_db_folder[FERRUM_PATH_LEN];
+  char root_fqdn[FERRUM_ROOT_FQDN_LEN];
 
   size_t socket_max_write_buf_size;
 

@@ -61,7 +61,7 @@ static void ferrum_raw_tcp(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "80", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -126,7 +126,7 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "81", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -177,7 +177,7 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "9595", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -244,7 +244,7 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "9595", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -322,7 +322,7 @@ static void ferrum_raw_udp(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
@@ -385,7 +385,7 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
@@ -456,7 +456,7 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "9192", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "19191", 1);

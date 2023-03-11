@@ -27,6 +27,8 @@ extern int test_ferrum_raw();
 extern int test_ferrum_policy();
 extern int test_ferrum_lmdb();
 extern int test_ferrum_syslog();
+extern int test_ferrum_activity_log();
+extern int test_ferrum_protocol_raw();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
@@ -60,7 +62,7 @@ int main() {
       exit(1);
     if (test_ferrum_config())
       exit(1);
-*/
+
   if (test_ferrum_policy())
     exit(1);
 
@@ -70,8 +72,17 @@ int main() {
   if (test_ferrum_syslog())
     exit(1);
 
+
   if (test_ferrum_raw())
     exit(1);
+
+  if (test_ferrum_activity_log())
+    exit(1);
+    */
+
+  if (test_ferrum_protocol_raw()) {
+    exit(1);
+  }
 
   // these below tests are not validated yet
 
