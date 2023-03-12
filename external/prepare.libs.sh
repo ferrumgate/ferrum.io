@@ -27,7 +27,7 @@ make
 #make check
 make install
 
-######## install cmocka ############
+####### install cmocka ############
 cd $CURRENTFOLDER
 cp cmocka-1.1.5.tar.xz $TMPFOLDER
 cd $TMPFOLDER
@@ -85,6 +85,20 @@ cd lmdb/libraries/liblmdb
 make
 make install prefix=$DESTFOLDER
 #
+
+###### install ldns  ################
+cd $CURRENTFOLDER
+cp ldns-1.8.3.tar.gz /tmp/uv
+DESTFOLDER=$(pwd)/libs
+cd $TMPFOLDER
+
+tar xvf ldns-1.8.3.tar.gz
+cd ldns-1.8.3
+./configure --prefix=$DESTFOLDER
+make
+make install
+rm -rf $DESTFOLDER/share/man3
+
 ############ make ready ##############
 #cd $CURRENTFOLDER
 ##chown -R hframed:hframed libs

@@ -110,6 +110,10 @@
   fill_zero(&x, sizeof(y)); \
   strncpy(x.type_name, #y, REBRICK_STRUCT_NAME_LEN - 1);
 
+#define new3(y, x) \
+  y x;             \
+  fill_zero(&x, sizeof(y));
+
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
 #define cast(x, y) ((y)(x))

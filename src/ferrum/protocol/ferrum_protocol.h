@@ -31,6 +31,7 @@ typedef struct ferrum_protocol {
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
   private_ const ferrum_syslog_t *syslog;
+  private_ const ferrum_lmdb_t *lmdb_dns;
   struct {
     ferrum_raw_udpsocket_pair_t *udp;
     ferrum_raw_tcpsocket_pair_t *tcp;
