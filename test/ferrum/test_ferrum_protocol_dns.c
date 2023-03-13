@@ -39,21 +39,23 @@ static void on_udp_server_write(rebrick_socket_t *socket, void *callbackdata, vo
 int32_t ferrum_parse_dns_query(const uint8_t *buffer, size_t len, ferrum_dns_query_t *dns);
 
 static void test_ferrum_parse_dns_query(void **start) {
-  const uint8_t packet_bytes[] = {
-      0x70, 0x40, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
+  uint8_t packet_bytes[] = {
+      0x95, 0xd4, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
       0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
       0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
       0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xa4,
-      0x15, 0x73, 0x38, 0xdb, 0x31, 0x4e, 0xd8};
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
   ferrum_dns_query_t dns;
   memset(&dns, 0, sizeof(dns));
   ferrum_parse_dns_query(packet_bytes, 55, &dns);
-  assert_int_equal(dns.query_id, 0x7040);
+  assert_int_equal(dns.query_id, 0x95d4);
   assert_int_equal(dns.query_class, LDNS_RR_CLASS_IN);
   assert_int_equal(dns.query_type, LDNS_RR_TYPE_A);
   assert_string_equal(dns.query, "www.google.com");
+  assert_int_equal(dns.edns.present, 1);
 
   unused(start);
 }
@@ -69,6 +71,7 @@ static void test_ferrum_dns_reply_empty_packet(void **start) {
   dns.query_class = LDNS_RR_CLASS_IN;
   dns.query_type = LDNS_RR_TYPE_A;
   dns.flags.rd = 1;
+  dns.edns.present = 1;
   uint8_t *answer = NULL;
   size_t answer_len = 0;
   // empty query test
@@ -81,13 +84,22 @@ static void test_ferrum_dns_reply_empty_packet(void **start) {
 
   char packet_bytes[] = {
       0xc5, 0x50, 0x81, 0x83, 0x00, 0x01, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x05, 0x74, 0x65, 0x73,
+      0x00, 0x00, 0x00, 0x01, 0x05, 0x74, 0x65, 0x73,
       0x74, 0x32, 0x0a, 0x66, 0x65, 0x72, 0x72, 0x75,
       0x6d, 0x67, 0x61, 0x74, 0x65, 0x03, 0x63, 0x6f,
-      0x6d, 0x00, 0x00, 0x01, 0x00, 0x01};
-  assert_int_equal(answer_len, 38);
+      0x6d, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
+      0x29, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00};
+  assert_int_equal(answer_len, 49);
+  for (size_t i = 0; i < answer_len; i++) {
 
-  assert_memory_equal(answer, packet_bytes, 38);
+    printf(", ");
+    printf("0x%02X", answer[i]);
+    if (!((i + 1) % 8))
+      printf("\n");
+  }
+  printf("\n");
+  assert_memory_equal(answer, packet_bytes, 49);
   rebrick_free(answer);
 }
 
@@ -101,6 +113,7 @@ static void test_ferrum_dns_reply_ip_packet(void **start) {
   dns.query_class = LDNS_RR_CLASS_IN;
   dns.query_type = LDNS_RR_TYPE_A;
   dns.flags.rd = 1;
+  dns.edns.present = 1;
   uint8_t *answer = NULL;
   size_t answer_len = 0;
   // empty query test
@@ -113,20 +126,23 @@ static void test_ferrum_dns_reply_ip_packet(void **start) {
 
   char packet_bytes[] = {
       0xc5, 0x50, 0x81, 0x80, 0x00, 0x01, 0x00, 0x01,
-      0x00, 0x00, 0x00, 0x00, 0x0a, 0x66, 0x65, 0x72,
+      0x00, 0x00, 0x00, 0x01, 0x0a, 0x66, 0x65, 0x72,
       0x72, 0x75, 0x6d, 0x67, 0x61, 0x74, 0x65, 0x03,
       0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
       0xc0, 0x0c, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00,
-      0x0e, 0x10, 0x00, 0x04, 0xc7, 0x24, 0x9e, 0x64};
+      0x0e, 0x10, 0x00, 0x04, 0xc7, 0x24, 0x9e, 0x64,
+      0x00, 0x00, 0x29, 0x05, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00};
 
-  assert_int_equal(answer_len, 48);
-  for (int i = 0; i < answer_len; i++) {
+  assert_int_equal(answer_len, 59);
+  for (size_t i = 0; i < answer_len; i++) {
 
     printf(", ");
     printf("0x%02X", answer[i]);
     if (!((i + 1) % 8))
       printf("\n");
   }
+  printf("\n");
   assert_memory_equal(answer, packet_bytes, 48);
   rebrick_free(answer);
 }
@@ -170,6 +186,30 @@ static void test_reply_dns_empty(void **start) {
   loop(counter, 100, TRUE);
   rebrick_udpsocket_destroy(socket);
   loop(counter, 100, TRUE);
+}
+
+int remove_recursive(const char *const path) {
+  DIR *const directory = opendir(path);
+  if (directory) {
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+      if (!strcmp(".", entry->d_name) || !strcmp("..", entry->d_name)) {
+        continue;
+      }
+      char filename[strlen(path) + strlen(entry->d_name) + 2];
+      sprintf(filename, "%s/%s", path, entry->d_name);
+      int (*const remove_func)(const char *) = entry->d_type == DT_DIR ? remove_recursive : unlink;
+      if (remove_func(filename)) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        closedir(directory);
+        return -1;
+      }
+    }
+    if (closedir(directory)) {
+      return -1;
+    }
+  }
+  return remove(path);
 }
 
 int test_ferrum_protocol_dns(void) {

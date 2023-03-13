@@ -30,6 +30,7 @@ extern int test_ferrum_syslog();
 extern int test_ferrum_activity_log();
 extern int test_ferrum_protocol_raw();
 extern int test_ferrum_protocol_dns();
+extern int test_ferrum_dns();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
@@ -80,13 +81,15 @@ int main() {
   if (test_ferrum_activity_log())
     exit(1);
 
-
+*/
   if (test_ferrum_protocol_raw()) {
     exit(1);
   }
-  */
 
   if (test_ferrum_protocol_dns()) {
+    exit(1);
+  }
+  if (test_ferrum_dns()) {
     exit(1);
   }
   // these below tests are not validated yet
