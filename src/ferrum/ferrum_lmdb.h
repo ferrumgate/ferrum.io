@@ -30,6 +30,7 @@ int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbna
 int32_t ferrum_lmdb_put(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lmdb_entry_t *value);
 int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key, ferrum_lmdb_entry_t *value);
 int32_t ferrum_lmdb_del(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key);
+int32_t ferrum_lmdb_list_all(ferrum_lmdb_t *lmdb);
 int32_t ferrum_lmdb_destroy(ferrum_lmdb_t *lmdb);
 
 #endif

@@ -5,6 +5,7 @@ int32_t ferrum_dns_new(ferrum_dns_t **dns, ferrum_config_t *config) {
   result = ferrum_lmdb_new(&lmdb, config->dns_db_folder, "dns", 3, 1073741824);
   if (result)
     return result;
+  ferrum_log_info("dns lmdb folder:%s\n", config->dns_db_folder);
 
   ferrum_dns_t *tmp = new1(ferrum_dns_t);
   if (!tmp) {
@@ -34,12 +35,17 @@ int32_t ferrum_dns_find_local_a(const ferrum_dns_t *dns, char fqdn[FERRUM_DNS_MA
   lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/local/dns/%s/a", fqdn);
   int32_t result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
   if (result) {
-    if (result == FERRUM_ERR_LMDB)
+    if (result == FERRUM_ERR_LMDB) {
+      ferrum_log_debug("query local dns %s error:%d\n", fqdn, result);
       return FERRUM_ERR_DNS;
+    }
+    ferrum_log_debug("query local dns %s not found\n", fqdn);
+    // ferrum_lmdb_list_all(lmdb);
     return FERRUM_SUCCESS; // ip is empty
   }
+
   size_t min = MIN(lmdb->value.size, REBRICK_IP_STR_LEN - 1);
   memcpy(ip, lmdb->value.val, min);
-
+  ferrum_log_debug("query local dns %s ip:%s\n", fqdn, ip);
   return FERRUM_SUCCESS;
 }

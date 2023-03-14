@@ -65,7 +65,7 @@ int32_t ferrum_parse_dns_query(const uint8_t *buffer, size_t len, ferrum_dns_que
   ldns_buffer_free(lbuf);
   ldns_pkt_free(query_pkt);
 
-  ferrum_log_debug("dns packet query: %s type:%d class:%d id:%d\n", dns->query, dns->query_type, dns->query_class, dns->query_id);
+  ferrum_log_debug("dns packet query:%s type:%d class:%d id:%d\n", dns->query, dns->query_type, dns->query_class, dns->query_id);
 
   return FERRUM_SUCCESS;
 }
