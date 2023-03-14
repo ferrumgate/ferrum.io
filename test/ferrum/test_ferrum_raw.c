@@ -10,13 +10,41 @@
     usleep(100);                              \
     uv_run(uv_default_loop(), UV_RUN_NOWAIT); \
   }
+
+static int remove_recursive(const char *const path) {
+  DIR *const directory = opendir(path);
+  if (directory) {
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+      if (!strcmp(".", entry->d_name) || !strcmp("..", entry->d_name)) {
+        continue;
+      }
+      char filename[strlen(path) + strlen(entry->d_name) + 2];
+      sprintf(filename, "%s/%s", path, entry->d_name);
+      int (*const remove_func)(const char *) = entry->d_type == DT_DIR ? remove_recursive : unlink;
+      if (remove_func(filename)) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        closedir(directory);
+        return -1;
+      }
+    }
+    if (closedir(directory)) {
+      return -1;
+    }
+  }
+  return remove(path);
+}
+
 const char *policy_db_folder = "/tmp/abc";
+const char *dns_db_folder = "/tmp/abcd";
 static int setup(void **state) {
 
   unused(state);
   setenv("POLICY_DB_FOLDER", policy_db_folder, 1);
   setenv("DISABLE_POLICY", "true", 1);
   mkdir(policy_db_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  setenv("DNS_DB_FOLDER", dns_db_folder, 1);
+  mkdir(dns_db_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   fprintf(stdout, "****  %s ****\n", __FILE__);
   return 0;
 }
@@ -24,6 +52,7 @@ static int setup(void **state) {
 static int teardown(void **state) {
   unused(state);
   setenv("POLICY_DB_FOLDER", "", 1);
+  setenv("DNS_DB_FOLDER", "", 1);
   setenv("DISABLE_POLICY", "", 1);
   uv_loop_close(uv_default_loop());
   return 0;

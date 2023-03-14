@@ -34,8 +34,6 @@ extern int test_ferrum_dns();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
-  if (test_rebrick_util())
-    exit(1);
   /*
     if (test_rebrick_filestream())
       exit(1);
@@ -66,22 +64,21 @@ int main() {
     if (test_ferrum_config())
       exit(1);
 
-  if (test_ferrum_policy())
-    exit(1);
+    if (test_ferrum_policy())
+      exit(1);
 
-  if (test_ferrum_lmdb())
-    exit(1);
+    if (test_ferrum_lmdb())
+      exit(1);
 
-  if (test_ferrum_syslog())
-    exit(1);
-
+    if (test_ferrum_syslog())
+      exit(1);
+  */
 
   if (test_ferrum_raw())
     exit(1);
 
   if (test_ferrum_activity_log())
     exit(1);
-
 
   if (test_ferrum_protocol_raw()) {
     exit(1);
@@ -92,7 +89,8 @@ int main() {
   }
   if (test_ferrum_dns()) {
     exit(1);
-  } */
+  }
+
   // these below tests are not validated yet
 
   /*

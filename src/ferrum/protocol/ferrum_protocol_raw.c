@@ -14,7 +14,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   /*  if (!protocol->data) { // only when connected
      char log_id[128] = {0};
      snprintf(log_id, sizeof(log_id) - 1, "%s%" PRId64 "", protocol->config->instance_id, rebrick_util_micro_time());
-     ferrum_write_activity_log_raw(protocol->syslog, log_id, "Raw", &pair->policy_result, &pair->client_addr,
+     ferrum_write_activity_log_raw(protocol->syslog, log_id, "raw", &pair->policy_result, &pair->client_addr,
                                    pair->client_ip, pair->client_port, FALSE, &pair->udp_destination_addr, pair->udp_destination_ip, pair->udp_destination_port);
      protocol->data = (void *)1; // any invalid pointer data, dont delete it or deference it
    } */

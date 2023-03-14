@@ -163,7 +163,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     rebrick_util_to_size_t(socket_write_buf_size, &tmp->socket_max_write_buf_size);
 
   /////////////////////// protocol  ///////////////////
-  strncpy(tmp->protocol_type, "Raw", sizeof(tmp->protocol_type));
+  strncpy(tmp->protocol_type, "raw", sizeof(tmp->protocol_type));
   char protocol_type[REBRICK_NAME_STR_LEN] = {0};
   size_t protocol_type_size = sizeof(protocol_type);
   uv_os_getenv("PROTOCOL_TYPE", protocol_type, &protocol_type_size);

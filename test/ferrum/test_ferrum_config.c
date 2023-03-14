@@ -119,13 +119,13 @@ static void ferrum_config_object_syslog_host() {
 static void ferrum_config_object_protocol() {
   ferrum_config_t *config = NULL;
   int32_t result;
-  setenv("PROTOCOL_TYPE", "Dns", 1);
+  setenv("PROTOCOL_TYPE", "dns", 1);
 
   result = ferrum_config_new(&config);
   assert_true(result >= 0);
   assert_non_null(config);
 
-  assert_string_equal(config->protocol_type, "Dns");
+  assert_string_equal(config->protocol_type, "dns");
   ferrum_config_destroy(config);
   setenv("PROTOCOL_TYPE", "", 1);
 }

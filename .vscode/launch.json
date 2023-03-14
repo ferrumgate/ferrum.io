@@ -94,7 +94,7 @@
                 },
                 {
                     "name": "PROTOCOL_TYPE",
-                    "value": "Dns"
+                    "value": "dns"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",

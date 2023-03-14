@@ -13,6 +13,7 @@ rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
 
 DESTFOLDER=$(pwd)/libs
+
 ######## install libuv ###############
 cp libuv-v1.44.2.tar.gz $TMPFOLDER
 
@@ -55,7 +56,7 @@ make install_sw
 
 ###### install nghttp2  ################
 cd $CURRENTFOLDER
-cp nghttp2-1.50.0.tar.gz /tmp/uv
+cp nghttp2-1.50.0.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
@@ -88,13 +89,13 @@ make install prefix=$DESTFOLDER
 
 ###### install ldns  ################
 cd $CURRENTFOLDER
-cp ldns-1.8.3.tar.gz /tmp/uv
+cp ldns-1.8.3.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
 tar xvf ldns-1.8.3.tar.gz
 cd ldns-1.8.3
-./configure --prefix=$DESTFOLDER
+./configure --prefix=$DESTFOLDER --with-ssl=$DESTFOLDER
 make
 make install
 rm -rf $DESTFOLDER/share/man3
