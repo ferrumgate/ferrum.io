@@ -43,6 +43,10 @@ void signal_cb(uv_signal_t *handle, int signum) {
     ferrum_log_debug("destroying ferrum policy\n");
     ferrum_policy_destroy(holder->policy);
   }
+  if (holder->dns) {
+    ferrum_log_debug("destroying ferrum dns\n");
+    ferrum_dns_destroy(holder->dns);
+  }
   if (holder->syslog) {
     ferrum_log_debug("destroying ferrum syslog\n");
     ferrum_syslog_destroy(holder->syslog);

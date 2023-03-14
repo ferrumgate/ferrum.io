@@ -38,15 +38,15 @@
                 },
                 {
                     "name": "RAW_DESTINATION_HOST",
-                    "value": "192.168.88.250"
+                    "value": "1.1.1.1"
                 },
                 {
                     "name": "RAW_DESTINATION_TCP_PORT",
-                    "value": "22"
+                    "value": "53"
                 },
                 {
                     "name": "RAW_DESTINATION_UDP_PORT",
-                    "value": "5555"
+                    "value": "53"
                 },
                 {
                     "name": "RAW_LISTEN_IP",
@@ -58,7 +58,7 @@
                 },
                 {
                     "name": "RAW_LISTEN_UDP_PORT",
-                    "value": "8888"
+                    "value": "5353"
                 },
                 {
                     "name": "GATEWAY_ID",
@@ -83,6 +83,18 @@
                 {
                     "name": "DISABLE_POLICY",
                     "value": "true"
+                },
+                {
+                    "name": "DNS_DB_FOLDER",
+                    "value": "/tmp/dns"
+                },
+                {
+                    "name": "ROOT_FQDN",
+                    "value": "ferrumgate.zero"
+                },
+                {
+                    "name": "PROTOCOL_TYPE",
+                    "value": "Dns"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",

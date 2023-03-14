@@ -221,7 +221,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   }
 
   // check if query ends with our root domain
-  if (!result && rebrick_util_str_endswith(dns.query, protocol->config->root_fqdn)) {
+  if (!result && rebrick_util_fqdn_endswith(dns.query, protocol->config->root_fqdn)) {
     if (dns.query_type == LDNS_RR_TYPE_AAAA) { // return nx
       result = reply_dns_empty(pair, &dns, LDNS_RCODE_NXDOMAIN);
       if (!result)
