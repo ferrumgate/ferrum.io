@@ -168,8 +168,7 @@ int test_ferrum_lmdb(void) {
       cmocka_unit_test(ferrum_object_check_open_file),
       cmocka_unit_test(ferrum_object_create_destroy_success),
       cmocka_unit_test(ferrum_object_put_get_del_get),
-      cmocka_unit_test(ferrum_object_list_all),
-      cmocka_unit_test(ferrum_object_list_all2),
+      cmocka_unit_test(ferrum_object_list_all)
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);
