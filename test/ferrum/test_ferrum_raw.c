@@ -10,13 +10,41 @@
     usleep(100);                              \
     uv_run(uv_default_loop(), UV_RUN_NOWAIT); \
   }
+
+static int remove_recursive(const char *const path) {
+  DIR *const directory = opendir(path);
+  if (directory) {
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+      if (!strcmp(".", entry->d_name) || !strcmp("..", entry->d_name)) {
+        continue;
+      }
+      char filename[strlen(path) + strlen(entry->d_name) + 2];
+      sprintf(filename, "%s/%s", path, entry->d_name);
+      int (*const remove_func)(const char *) = entry->d_type == DT_DIR ? remove_recursive : unlink;
+      if (remove_func(filename)) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        closedir(directory);
+        return -1;
+      }
+    }
+    if (closedir(directory)) {
+      return -1;
+    }
+  }
+  return remove(path);
+}
+
 const char *policy_db_folder = "/tmp/abc";
+const char *dns_db_folder = "/tmp/abcd";
 static int setup(void **state) {
 
   unused(state);
   setenv("POLICY_DB_FOLDER", policy_db_folder, 1);
   setenv("DISABLE_POLICY", "true", 1);
   mkdir(policy_db_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  setenv("DNS_DB_FOLDER", dns_db_folder, 1);
+  mkdir(dns_db_folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   fprintf(stdout, "****  %s ****\n", __FILE__);
   return 0;
 }
@@ -24,6 +52,7 @@ static int setup(void **state) {
 static int teardown(void **state) {
   unused(state);
   setenv("POLICY_DB_FOLDER", "", 1);
+  setenv("DNS_DB_FOLDER", "", 1);
   setenv("DISABLE_POLICY", "", 1);
   uv_loop_close(uv_default_loop());
   return 0;
@@ -61,7 +90,7 @@ static void ferrum_raw_tcp(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "80", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -78,8 +107,12 @@ static void ferrum_raw_tcp(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -111,6 +144,8 @@ Accept: text/html\r\n\
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
 }
 
 int tcp_error_occured = 0;
@@ -126,7 +161,7 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "81", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -139,12 +174,16 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -170,6 +209,8 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
 }
 
 static void ferrum_raw_tcp_destination_closed(void **start) {
@@ -177,7 +218,7 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "9595", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -194,12 +235,16 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -237,6 +282,9 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
+
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
 }
 
 static void ferrum_raw_tcp_client_closed(void **start) {
@@ -244,7 +292,7 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_TCP_PORT", "9595", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_TCP_PORT", "19191", 1);
@@ -261,12 +309,17 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -299,6 +352,8 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
 
   tcp_echo_stop();
   tcp_echo_close_client();
@@ -322,7 +377,7 @@ static void ferrum_raw_udp(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
@@ -335,12 +390,17 @@ static void ferrum_raw_udp(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -377,6 +437,9 @@ static void ferrum_raw_udp(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
+
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
   rebrick_free(testdata);
 }
 
@@ -385,7 +448,7 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "5555", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "8888", 1);
@@ -398,12 +461,17 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -440,6 +508,9 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
 
+  ferrum_dns_destroy(dns);
+  loop(counter, 100, TRUE);
+
   rebrick_free(testdata);
 }
 
@@ -456,7 +527,7 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   ferrum_config_t *config = NULL;
   int32_t result;
   int32_t counter;
-  setenv("RAW_DESTINATION_HOST", "localhost", 1);
+  setenv("RAW_DESTINATION_HOST", "127.0.0.1", 1);
   setenv("RAW_DESTINATION_UDP_PORT", "9192", 1);
   setenv("RAW_LISTEN_IP", "127.0.0.1", 1);
   setenv("RAW_LISTEN_UDP_PORT", "19191", 1);
@@ -469,12 +540,17 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  loop(counter, 100, TRUE);
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_udpsocket_t *client;
@@ -506,6 +582,9 @@ static void ferrum_raw_udp_closed_destination(void **start) {
 
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
+  loop(counter, 100, TRUE);
+
+  ferrum_dns_destroy(dns);
   loop(counter, 100, TRUE);
 }
 

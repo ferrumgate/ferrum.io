@@ -24,7 +24,7 @@ RUN locale
 RUN apt update && \ 
     apt install --assume-yes --no-install-recommends zlib1g iproute2 conntrack
 
-RUN mkdir -p /var/run/ferrumgate && mkdir -p /var/lib/ferrumgate/policy
+RUN mkdir -p /var/run/ferrumgate && mkdir -p /var/lib/ferrumgate/policy && mkdir -p /var/lib/ferrumgate/dns
 WORKDIR /ferrum.io
 COPY --from=builder /ferrum.io/src /ferrum.io/src
 COPY --from=builder /ferrum.io/external/libs/lib /ferrum.io/external/libs/lib

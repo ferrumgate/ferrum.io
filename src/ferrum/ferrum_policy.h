@@ -36,8 +36,8 @@ typedef struct ferrum_policy_result {
 
 typedef struct ferrum_policy {
   base_object();
-  ferrum_config_t *config;
-  ferrum_lmdb_t *lmdb;
+  private_ ferrum_config_t *config;
+  private_ ferrum_lmdb_t *lmdb;
 } ferrum_policy_t;
 
 int32_t ferrum_policy_new(ferrum_policy_t **policy, ferrum_config_t *config);

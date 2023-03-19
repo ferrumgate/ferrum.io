@@ -116,6 +116,20 @@ static void ferrum_config_object_syslog_host() {
   setenv("SYSLOG_SOCK", "", 1);
 }
 
+static void ferrum_config_object_protocol() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("PROTOCOL_TYPE", "dns", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->protocol_type, "dns");
+  ferrum_config_destroy(config);
+  setenv("PROTOCOL_TYPE", "", 1);
+}
+
 static void ferrum_config_object_raw() {
   ferrum_config_t *config = NULL;
   int32_t result;
@@ -143,6 +157,34 @@ static void ferrum_config_object_raw() {
   ferrum_config_destroy(config);
 }
 
+static void ferrum_config_object_dns_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("DNS_DB_FOLDER", "/var/tmp/ferrumgate/dns", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->dns_db_folder, "/var/tmp/ferrumgate/dns");
+  ferrum_config_destroy(config);
+  setenv("DNS_DB_FOLDER", "", 1);
+}
+
+static void ferrum_config_object_root_fqdn() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("ROOT_FQDN", "ferrum.zero", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->root_fqdn, "ferrum.zero");
+  ferrum_config_destroy(config);
+  setenv("ROOT_FQDN", "", 1);
+}
+
 int test_ferrum_config(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(ferrum_config_object_create_destroy),
@@ -150,7 +192,10 @@ int test_ferrum_config(void) {
       cmocka_unit_test(ferrum_config_object_raw),
       cmocka_unit_test(ferrum_config_object_disable_policy),
       cmocka_unit_test(ferrum_config_object_policy_db_folder),
-      cmocka_unit_test(ferrum_config_object_syslog_host)
+      cmocka_unit_test(ferrum_config_object_syslog_host),
+      cmocka_unit_test(ferrum_config_object_protocol),
+      cmocka_unit_test(ferrum_config_object_dns_db_folder),
+      cmocka_unit_test(ferrum_config_object_root_fqdn),
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

@@ -162,6 +162,30 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   if (socket_write_buf_size[0])
     rebrick_util_to_size_t(socket_write_buf_size, &tmp->socket_max_write_buf_size);
 
+  /////////////////////// protocol  ///////////////////
+  strncpy(tmp->protocol_type, "raw", sizeof(tmp->protocol_type));
+  char protocol_type[REBRICK_NAME_STR_LEN] = {0};
+  size_t protocol_type_size = sizeof(protocol_type);
+  uv_os_getenv("PROTOCOL_TYPE", protocol_type, &protocol_type_size);
+  if (protocol_type[0])
+    strncpy(tmp->protocol_type, protocol_type, sizeof(tmp->protocol_type) - 1);
+
+  /////////////////////// root fqdn  ///////////////////
+  strncpy(tmp->root_fqdn, "ferrumgate.zero", sizeof(tmp->root_fqdn));
+  char root_fqdn[FERRUM_ROOT_FQDN_LEN] = {0};
+  size_t root_fqdn_size = sizeof(root_fqdn);
+  uv_os_getenv("ROOT_FQDN", root_fqdn, &root_fqdn_size);
+  if (root_fqdn[0])
+    strncpy(tmp->root_fqdn, root_fqdn, sizeof(tmp->root_fqdn) - 1);
+
+  /////////////////////// lmdb dns folder ///////////////////
+  strncpy(tmp->dns_db_folder, "/var/lib/ferrumgate/dns", sizeof(tmp->dns_db_folder));
+  char dns_db_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t dns_db_folder_size = sizeof(dns_db_folder);
+  uv_os_getenv("DNS_DB_FOLDER", dns_db_folder, &dns_db_folder_size);
+  if (dns_db_folder[0])
+    strncpy(tmp->dns_db_folder, dns_db_folder, sizeof(tmp->dns_db_folder) - 1);
+
   *config = tmp;
   return FERRUM_SUCCESS;
 }

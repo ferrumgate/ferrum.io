@@ -223,6 +223,34 @@ static void test_rebrick_util_fill_random(void **start) {
   assert_true(strlen(test));
 }
 
+static void test_rebrick_util_fqdn_endswith(void **start) {
+  unused(start);
+
+  int32_t result = rebrick_util_fqdn_endswith("www.google.com", "abcd.google.com");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_fqdn_endswith("", "");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_endswith("www.google.com", "google.com");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_endswith("google.com", "google.com");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_endswith(".google.com", "google.com");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_endswith("ggoogle.com", "google.com");
+  assert_int_equal(result, 0);
+  result = rebrick_util_fqdn_endswith("www.ggoogle.com", "google.com");
+  assert_int_equal(result, 0);
+  result = rebrick_util_fqdn_endswith("www.google.com", "");
+  assert_int_equal(result, 0);
+  result = rebrick_util_fqdn_endswith("", "google.com");
+  assert_int_equal(result, 0);
+}
+
 int test_rebrick_util(void) {
 
   const struct CMUnitTest tests[] = {
@@ -235,6 +263,7 @@ int test_rebrick_util(void) {
       cmocka_unit_test(test_rebrick_util_to_int32_t),
       cmocka_unit_test(test_rebrick_util_to_uint32_t),
       cmocka_unit_test(test_rebrick_util_fill_random),
+      cmocka_unit_test(test_rebrick_util_fqdn_endswith),
   };
 
   return cmocka_run_group_tests(tests, setup, teardown);

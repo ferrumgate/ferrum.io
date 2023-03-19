@@ -86,6 +86,13 @@ int rebrick_util_join_linked_items(const rebrick_linked_item_t *list, const char
  */
 int rebrick_util_str_endswith(const char *domainname, const char *search);
 
+/**
+ * @brief check if search sting ends with fqdn, google.com in www.google.com -> 1,
+ *  google.com in google.com -> 1, becareful "" in "" ->1
+ * @return  1 for success, 0 for not found
+ */
+int rebrick_util_fqdn_endswith(const char *domainname, const char *search);
+
 void rebrick_util_str_tolower(char *str);
 
 // gets time in micro seconds

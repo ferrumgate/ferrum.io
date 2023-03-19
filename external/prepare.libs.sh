@@ -13,6 +13,7 @@ rm -rf $TMPFOLDER
 mkdir -p $TMPFOLDER
 
 DESTFOLDER=$(pwd)/libs
+
 ######## install libuv ###############
 cp libuv-v1.44.2.tar.gz $TMPFOLDER
 
@@ -27,7 +28,7 @@ make
 #make check
 make install
 
-######## install cmocka ############
+####### install cmocka ############
 cd $CURRENTFOLDER
 cp cmocka-1.1.5.tar.xz $TMPFOLDER
 cd $TMPFOLDER
@@ -55,7 +56,7 @@ make install_sw
 
 ###### install nghttp2  ################
 cd $CURRENTFOLDER
-cp nghttp2-1.50.0.tar.gz /tmp/uv
+cp nghttp2-1.50.0.tar.gz $TMPFOLDER
 DESTFOLDER=$(pwd)/libs
 cd $TMPFOLDER
 
@@ -85,6 +86,20 @@ cd lmdb/libraries/liblmdb
 make
 make install prefix=$DESTFOLDER
 #
+
+###### install ldns  ################
+cd $CURRENTFOLDER
+cp ldns-1.8.3.tar.gz $TMPFOLDER
+DESTFOLDER=$(pwd)/libs
+cd $TMPFOLDER
+
+tar xvf ldns-1.8.3.tar.gz
+cd ldns-1.8.3
+./configure --prefix=$DESTFOLDER --with-ssl=$DESTFOLDER
+make
+make install
+rm -rf $DESTFOLDER/share/man3
+
 ############ make ready ##############
 #cd $CURRENTFOLDER
 ##chown -R hframed:hframed libs

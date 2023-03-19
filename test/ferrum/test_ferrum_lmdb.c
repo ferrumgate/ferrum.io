@@ -24,6 +24,30 @@ static int teardown(void **state) {
   return 0;
 }
 
+static int remove_recursive(const char *const path) {
+  DIR *const directory = opendir(path);
+  if (directory) {
+    struct dirent *entry;
+    while ((entry = readdir(directory))) {
+      if (!strcmp(".", entry->d_name) || !strcmp("..", entry->d_name)) {
+        continue;
+      }
+      char filename[strlen(path) + strlen(entry->d_name) + 2];
+      sprintf(filename, "%s/%s", path, entry->d_name);
+      int (*const remove_func)(const char *) = entry->d_type == DT_DIR ? remove_recursive : unlink;
+      if (remove_func(filename)) {
+        fprintf(stderr, "%s\n", strerror(errno));
+        closedir(directory);
+        return -1;
+      }
+    }
+    if (closedir(directory)) {
+      return -1;
+    }
+  }
+  return remove(path);
+}
+
 static void ferrum_object_create_destroy_success(void **start) {
   unused(start);
   unused(start);
@@ -31,7 +55,7 @@ static void ferrum_object_create_destroy_success(void **start) {
   unused(current_time_str);
   ferrum_lmdb_t *lmdb;
   const char *folder = "/tmp/test4";
-  rmdir(folder);
+  remove_recursive(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
@@ -66,7 +90,7 @@ static void ferrum_object_put_get_del_get(void **start) {
   unused(current_time_str);
   ferrum_lmdb_t *lmdb;
   const char *folder = "/tmp/test5";
-  rmdir(folder);
+  remove_recursive(folder);
   mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
@@ -104,12 +128,47 @@ static void ferrum_object_put_get_del_get(void **start) {
   ferrum_lmdb_destroy(lmdb);
 }
 
+static void ferrum_object_list_all(void **start) {
+  unused(start);
+  unused(start);
+  char current_time_str[32] = {0};
+  unused(current_time_str);
+  ferrum_lmdb_t *lmdb;
+  const char *folder = "/tmp/test5";
+  remove_recursive(folder);
+  mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  int32_t result = ferrum_lmdb_new(&lmdb, folder, "dns", 0, 0);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  // save data
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
+
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum");
+
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 2);
+
+  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum2");
+
+  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_lmdb_t *lmdb2;
+  result = ferrum_lmdb_new(&lmdb2, folder, "dns", 0, 0);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  ferrum_lmdb_list_all(lmdb2);
+  ferrum_lmdb_destroy(lmdb);
+  ferrum_lmdb_destroy(lmdb2);
+}
+
 int test_ferrum_lmdb(void) {
 
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(ferrum_object_check_open_file),
       cmocka_unit_test(ferrum_object_create_destroy_success),
       cmocka_unit_test(ferrum_object_put_get_del_get),
+      cmocka_unit_test(ferrum_object_list_all)
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

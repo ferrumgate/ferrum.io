@@ -10,6 +10,7 @@ typedef struct holder {
   ferrum_config_t *config;
   ferrum_policy_t *policy;
   ferrum_syslog_t *syslog;
+  ferrum_dns_t *dns;
   ferrum_raw_t *raw;
   // uv_signal_t sigpipe;
 } holder_t;
@@ -41,6 +42,10 @@ void signal_cb(uv_signal_t *handle, int signum) {
   if (holder->policy) {
     ferrum_log_debug("destroying ferrum policy\n");
     ferrum_policy_destroy(holder->policy);
+  }
+  if (holder->dns) {
+    ferrum_log_debug("destroying ferrum dns\n");
+    ferrum_dns_destroy(holder->dns);
   }
   if (holder->syslog) {
     ferrum_log_debug("destroying ferrum syslog\n");
@@ -128,6 +133,13 @@ int main() {
     rebrick_kill_current_process(result);
   }
 
+  ferrum_dns_t *dns;
+  result = ferrum_dns_new(&dns, config);
+  if (result) {
+    ferrum_log_fatal("dns create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   if (result) {
@@ -138,12 +150,13 @@ int main() {
       .config = config,
       .policy = policy,
       .syslog = syslog,
+      .dns = dns
 
   };
 
   if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
     ferrum_raw_t *raw = NULL;
-    result = ferrum_raw_new(&raw, config, policy, syslog, rebrick_conntrack_get);
+    result = ferrum_raw_new(&raw, config, policy, syslog, dns, rebrick_conntrack_get);
     if (result) {
       ferrum_log_fatal("raw create failed:%d\n", result);
       rebrick_kill_current_process(result);

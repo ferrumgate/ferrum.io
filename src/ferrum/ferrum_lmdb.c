@@ -120,3 +120,44 @@ int32_t ferrum_lmdb_del(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_t *key) {
   mdb_txn_commit(lmdb->trx);
   return FERRUM_SUCCESS;
 }
+
+int32_t ferrum_lmdb_list_all(ferrum_lmdb_t *lmdb) {
+  int32_t result;
+  lmdb->parent_trx = NULL;
+  if ((result = mdb_txn_begin(lmdb->env, lmdb->parent_trx, 0, &lmdb->trx))) {
+    ferrum_log_error("lmdb trx begin failed with error: %s", mdb_strerror(result));
+
+    return FERRUM_ERR_LMDB;
+  }
+  MDB_cursor *cursor;
+  if ((result = mdb_cursor_open(lmdb->trx, lmdb->dbi, &cursor))) {
+    ferrum_log_error("lmdb cursor open failed with error: %s", mdb_strerror(result));
+    mdb_txn_abort(lmdb->trx);
+    return FERRUM_ERR_LMDB;
+  }
+  int counter = 0;
+  lmdb->key.size = 0;
+  lmdb->key.val[0] = 0;
+  MDB_val kval = {.mv_size = lmdb->key.size, .mv_data = lmdb->key.val};
+  MDB_val vval;
+  while (1) {
+
+    if (result = mdb_cursor_get(cursor, &kval, &vval, counter ? MDB_NEXT : MDB_FIRST)) {
+      ferrum_log_error("lmdb get failed with error: %s\n", mdb_strerror(result));
+      break;
+    } else {
+      lmdb->key.size = kval.mv_size;
+      memcpy(lmdb->key.val, kval.mv_data, kval.mv_size);
+      lmdb->key.val[lmdb->key.size] = 0;
+
+      lmdb->value.size = vval.mv_size;
+      memcpy(lmdb->value.val, vval.mv_data, vval.mv_size > sizeof(lmdb->value.val) ? sizeof(lmdb->value.val) - 1 : vval.mv_size);
+      lmdb->value.val[lmdb->value.size] = 0; // if string than put c style string
+      ferrum_log_info("%s ==> %s\n", lmdb->key.val, lmdb->value.val);
+    }
+    counter++;
+  }
+  mdb_cursor_close(cursor);
+  mdb_txn_abort(lmdb->trx);
+  return FERRUM_SUCCESS;
+}

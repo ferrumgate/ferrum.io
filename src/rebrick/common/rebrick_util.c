@@ -15,6 +15,30 @@ int rebrick_util_str_endswith(const char *domainname, const char *search) {
   return 0;
 }
 
+int rebrick_util_fqdn_endswith(const char *domainname, const char *search) {
+  if (domainname && search) {
+    int len1 = strlen(domainname);
+    int len2 = strlen(search);
+    // eğer google.com icinde www.google.com
+    if (len1 < len2)
+      return 0;
+    if (!len1 && !len2)
+      return 1;
+    if (!len1 || !len2)
+      return 0;
+    for (int i = 1; i <= len2; ++i) {
+      if (search[len2 - i] != domainname[len1 - i])
+        return 0;
+    }
+    if (len1 == len2)
+      return 1;
+    if (domainname[len1 - len2 - 1] == '.')
+      return 1;
+    return 0;
+  }
+  return 0;
+}
+
 rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linked_item_t *previous) {
   rebrick_linked_item_t *item = new1(rebrick_linked_item_t);
   if (item == NULL)

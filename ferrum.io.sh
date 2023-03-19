@@ -90,11 +90,24 @@ fi
 echo "policy db folder $OPT_POLICY_DB_FOLDER"
 mkdir -p $OPT_POLICY_DB_FOLDER
 
+OPT_DNS_DB_FOLDER="/var/lib/ferrumgate/dns"
+if [ ! -z "$DNS_DB_FOLDER" ]; then
+    OPT_DNS_DB_FOLDER=$DNS_DB_FOLDER
+fi
+echo "dns db folder $OPT_DNS_DB_FOLDER"
+mkdir -p $OPT_DNS_DB_FOLDER
+
 OPT_SOCKET_WRITE_BUF_SIZE="524288"
 if [ ! -z "$SOCKET_WRITE_BUF_SIZE" ]; then
     OPT_SOCKET_WRITE_BUF_SIZE=$SOCKET_WRITE_BUF_SIZE
 fi
 echo "socket write buf size $OPT_SOCKET_WRITE_BUF_SIZE"
+
+OPT_ROOT_FQDN="ferrumgate.zero"
+if [ ! -z "$ROOT_FQDN" ]; then
+    OPT_ROOT_FQDN=$ROOT_FQDN
+fi
+echo "root fqdn $OPT_ROOT_FQDN"
 
 OPT_=""
 if [ ! -z "$" ]; then
