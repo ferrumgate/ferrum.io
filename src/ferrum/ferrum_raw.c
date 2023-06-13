@@ -13,7 +13,7 @@ static int32_t ferrum_protocol_create(ferrum_protocol_t **protocol,
                                       const ferrum_config_t *config,
                                       const ferrum_syslog_t *syslog,
                                       const ferrum_policy_t *policy,
-                                      const ferrum_dns_t *dns) {
+                                      const ferrum_dns_db_t *dns) {
   if (!strcmp(config->protocol_type, "dns"))
     return ferrum_protocol_dns_new(protocol, tcp, udp, config, policy, syslog, dns);
   else if (!strcmp(config->protocol_type, "raw"))
@@ -761,7 +761,7 @@ int32_t udp_tracker_callback_t(void *callbackdata) {
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
                        const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
-                       const ferrum_dns_t *dns,
+                       const ferrum_dns_db_t *dns,
                        rebrick_conntrack_get_func_t conntrack) {
 
   ferrum_raw_t *tmp = new1(ferrum_raw_t);

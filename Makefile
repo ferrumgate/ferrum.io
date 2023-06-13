@@ -1,4 +1,4 @@
-CFLAGS = -fPIC -Wall -W -O3 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_SFH -I$(shell pwd)/../external/libs/include
+CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_SFH -I$(shell pwd)/../external/libs/include
 #LDFLAGS = -shared  -o librebrick.so.1.0.0 -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2
 LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2 -lhiredis -llmdb -lnetfilter_conntrack -lnfnetlink -lldns
 
@@ -22,7 +22,7 @@ OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_log.o ./
 
 OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_lmdb.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
  ./ferrum/ferrum_policy.o ./ferrum/ferrum_syslog.o ./ferrum/ferrum_activity_log.o ./ferrum/protocol/ferrum_protocol_raw.o \
-./ferrum/ferrum_dns.o ./ferrum/protocol/ferrum_protocol_dns.o
+./ferrum/ferrum_dns_db.o ./ferrum/protocol/ferrum_protocol_dns.o ./ferrum/cache/ferrum_dns_cache.o
 
 
 OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o ./rebrick/test_rebrick_util.o ./rebrick/test_rebrick_resolve.o \
@@ -46,7 +46,8 @@ OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis
 					./ferrum/test_ferrum_activity_log.o ../src/ferrum/ferrum_activity_log.o \
 					./ferrum/test_ferrum_protocol_raw.o ../src/ferrum/protocol/ferrum_protocol_raw.o \
 					./ferrum/test_ferrum_protocol_dns.o ../src/ferrum/protocol/ferrum_protocol_dns.o \
-					./ferrum/test_ferrum_dns.o ../src/ferrum/ferrum_dns.o \
+					./ferrum/test_ferrum_dns_db.o ../src/ferrum/ferrum_dns_db.o \
+					./ferrum/test_ferrum_dns_cache.o ../src/ferrum/cache/ferrum_dns_cache.o
 					
 
 

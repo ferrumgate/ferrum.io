@@ -27,6 +27,8 @@
     "files.associations": {
         "ferrum_raw.h": "c",
         "ferrum_raw_socket_pair.h": "c",
-        "ferrum_protocol.h": "c"
+        "ferrum_protocol.h": "c",
+        "ldns.h": "c",
+        "ferrum_dns_packet.h": "c"
     }
 }

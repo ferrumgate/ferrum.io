@@ -5,7 +5,7 @@
 #include "ferrum_redis.h"
 #include "ferrum_policy.h"
 #include "ferrum_syslog.h"
-#include "ferrum_dns.h"
+#include "ferrum_dns_db.h"
 #include "ferrum_raw_socket_pair.h"
 #include "ferrum_activity_log.h"
 #include "protocol/ferrum_protocol.h"
@@ -29,7 +29,7 @@ typedef struct ferrum_raw {
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
   private_ const ferrum_syslog_t *syslog;
-  private_ const ferrum_dns_t *dns;
+  private_ const ferrum_dns_db_t *dns;
   private_ rebrick_conntrack_get_func_t conntrack_get;
 
   private_ int32_t socket_count;
@@ -69,7 +69,7 @@ typedef struct ferrum_raw {
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
                        const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
-                       const ferrum_dns_t *dns,
+                       const ferrum_dns_db_t *dns,
                        rebrick_conntrack_get_func_t conntrack_get);
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw);
 

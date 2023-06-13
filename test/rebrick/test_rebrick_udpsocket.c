@@ -189,7 +189,6 @@ static void test_rebrick_udpsocket_check_memory(void **state) {
 
   rebrick_sockaddr_t bindaddr;
   rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
-  rebrick_udpsocket_t *dnsclient;
 
   new2(rebrick_udpsocket_callbacks_t, callbacks);
   callbacks.callback_data = NULL;
@@ -199,7 +198,7 @@ static void test_rebrick_udpsocket_check_memory(void **state) {
 
 #define COUNTER 250
   for (int i = 0; i < COUNTER; ++i) {
-
+    rebrick_udpsocket_t *dnsclient;
     result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
     assert_int_equal(result, 0);
 

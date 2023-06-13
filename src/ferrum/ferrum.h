@@ -3,7 +3,7 @@
 
 #include "../rebrick/rebrick.h"
 
-#define FERRUM_VERSION "1.3.0"
+#define FERRUM_VERSION "1.4.0"
 
 #define FERRUM_SUCCESS REBRICK_SUCCESS
 #define ferrum_log_debug rebrick_log_debug
@@ -23,5 +23,6 @@
 
 #define FERRUM_ID_STR_LEN 32
 #define FERRUM_ID_BIG_STR_LEN 96
+#define FERRUM_USER_MAX_GROUP_COUNT 16
 
 #endif

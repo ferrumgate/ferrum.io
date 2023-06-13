@@ -36,7 +36,7 @@ static void on_udp_server_write(rebrick_socket_t *socket, void *callbackdata, vo
   rebrick_free(source);
 }
 
-int32_t ferrum_parse_dns_query(const uint8_t *buffer, size_t len, ferrum_dns_query_t *dns);
+int32_t ferrum_dns_packet_from(const uint8_t *buffer, size_t len, ferrum_dns_packet_t *dns);
 
 static void test_ferrum_parse_dns_query(void **start) {
   uint8_t packet_bytes[] = {
@@ -48,9 +48,9 @@ static void test_ferrum_parse_dns_query(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  ferrum_dns_query_t dns;
+  ferrum_dns_packet_t dns;
   memset(&dns, 0, sizeof(dns));
-  ferrum_parse_dns_query(packet_bytes, 55, &dns);
+  ferrum_dns_packet_from(packet_bytes, 55, &dns);
   assert_int_equal(dns.query_id, 0x95d4);
   assert_int_equal(dns.query_class, LDNS_RR_CLASS_IN);
   assert_int_equal(dns.query_type, LDNS_RR_TYPE_A);
@@ -60,11 +60,11 @@ static void test_ferrum_parse_dns_query(void **start) {
   unused(start);
 }
 
-int32_t ferrum_dns_reply_empty_packet(ferrum_dns_query_t *dns, ldns_pkt_rcode rcode, uint8_t **answer, size_t *answer_size);
+int32_t ferrum_dns_reply_empty_packet(ferrum_dns_packet_t *dns, ldns_pkt_rcode rcode, uint8_t **answer, size_t *answer_size);
 
 static void test_ferrum_dns_reply_empty_packet(void **start) {
   unused(start);
-  ferrum_dns_query_t dns;
+  ferrum_dns_packet_t dns;
   memset(&dns, 0, sizeof(dns));
 
   dns.query_id = 0xc550;
@@ -103,11 +103,11 @@ static void test_ferrum_dns_reply_empty_packet(void **start) {
   rebrick_free(answer);
 }
 
-int32_t ferrum_dns_reply_ip_packet(ferrum_dns_query_t *dns, const char *ip, uint16_t ttl, uint8_t **answer, size_t *answer_size);
+int32_t ferrum_dns_reply_ip_packet(ferrum_dns_packet_t *dns, const char *ip, uint16_t ttl, uint8_t **answer, size_t *answer_size);
 
 static void test_ferrum_dns_reply_ip_packet(void **start) {
   unused(start);
-  ferrum_dns_query_t dns;
+  ferrum_dns_packet_t dns;
   memset(&dns, 0, sizeof(dns));
   dns.query_id = 0xc550;
   dns.query_class = LDNS_RR_CLASS_IN;
@@ -147,7 +147,7 @@ static void test_ferrum_dns_reply_ip_packet(void **start) {
   rebrick_free(answer);
 }
 
-int32_t reply_dns_empty(ferrum_raw_udpsocket_pair_t *pair, ferrum_dns_query_t *dns, ldns_pkt_rcode rcode);
+int32_t reply_dns_empty(ferrum_raw_udpsocket_pair_t *pair, ferrum_dns_packet_t *dns, ldns_pkt_rcode rcode);
 
 static void test_reply_dns_empty(void **start) {
   unused(start);
@@ -169,7 +169,7 @@ static void test_reply_dns_empty(void **start) {
   rebrick_udpsocket_new(&socket, &bind, &callback);
   pair.udp_listening_socket = socket;
   loop(counter, 100, TRUE);
-  ferrum_dns_query_t dns;
+  ferrum_dns_packet_t dns;
   memset(&dns, 0, sizeof(dns));
   dns.query_id = 0xc550;
   dns.query_class = LDNS_RR_CLASS_IN;

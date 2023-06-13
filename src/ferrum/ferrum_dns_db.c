@@ -1,5 +1,5 @@
-#include "ferrum_dns.h"
-int32_t ferrum_dns_new(ferrum_dns_t **dns, ferrum_config_t *config) {
+#include "ferrum_dns_db.h"
+int32_t ferrum_dns_db_new(ferrum_dns_db_t **dns, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
   result = ferrum_lmdb_new(&lmdb, config->dns_db_folder, "dns", 3, 1073741824);
@@ -7,18 +7,18 @@ int32_t ferrum_dns_new(ferrum_dns_t **dns, ferrum_config_t *config) {
     return result;
   ferrum_log_info("dns lmdb folder:%s\n", config->dns_db_folder);
 
-  ferrum_dns_t *tmp = new1(ferrum_dns_t);
+  ferrum_dns_db_t *tmp = new1(ferrum_dns_db_t);
   if (!tmp) {
     ferrum_log_fatal("malloc problem\n");
     rebrick_kill_current_process(REBRICK_ERR_MALLOC);
   }
-  constructor(tmp, ferrum_dns_t);
+  constructor(tmp, ferrum_dns_db_t);
   tmp->config = config;
   tmp->lmdb = lmdb;
   *dns = tmp;
   return FERRUM_SUCCESS;
 }
-int32_t ferrum_dns_destroy(ferrum_dns_t *dns) {
+int32_t ferrum_dns_db_destroy(ferrum_dns_db_t *dns) {
   if (dns) {
     if (dns->lmdb) {
       ferrum_lmdb_destroy(dns->lmdb);
@@ -29,7 +29,7 @@ int32_t ferrum_dns_destroy(ferrum_dns_t *dns) {
   return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_dns_find_local_a(const ferrum_dns_t *dns, char fqdn[FERRUM_DNS_MAX_FQDN_LEN], char ip[REBRICK_IP_STR_LEN]) {
+int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char fqdn[FERRUM_DNS_MAX_FQDN_LEN], char ip[REBRICK_IP_STR_LEN]) {
 
   ferrum_lmdb_t *lmdb = dns->lmdb;
   lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/local/dns/%s/a", fqdn);

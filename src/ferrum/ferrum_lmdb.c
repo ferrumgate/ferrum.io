@@ -142,7 +142,7 @@ int32_t ferrum_lmdb_list_all(ferrum_lmdb_t *lmdb) {
   MDB_val vval;
   while (1) {
 
-    if (result = mdb_cursor_get(cursor, &kval, &vval, counter ? MDB_NEXT : MDB_FIRST)) {
+    if ((result = mdb_cursor_get(cursor, &kval, &vval, counter ? MDB_NEXT : MDB_FIRST))) {
       ferrum_log_error("lmdb get failed with error: %s\n", mdb_strerror(result));
       break;
     } else {

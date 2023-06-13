@@ -30,14 +30,14 @@ extern int test_ferrum_syslog();
 extern int test_ferrum_activity_log();
 extern int test_ferrum_protocol_raw();
 extern int test_ferrum_protocol_dns();
-extern int test_ferrum_dns();
+extern int test_ferrum_dns_db();
+extern int test_ferrum_dns_cache_page();
+extern int test_ferrum_dns_cache();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
-  if (test_ferrum_lmdb())
-    exit(1);
-  /*
-    if (test_rebrick_filestream())
+
+  /*   if (test_rebrick_filestream())
       exit(1);
 
     if (test_rebrick_util())
@@ -55,26 +55,25 @@ int main() {
     if (test_rebrick_timer())
       exit(1);
 
-    if (test_rebrick_udpsocket())
-      exit(1);
+  if (test_rebrick_udpsocket())
+    exit(1);
 
-    if (test_rebrick_tcpsocket())
-      exit(1);
+  if (test_rebrick_tcpsocket())
+    exit(1);
 
-    if (test_ferrum_redis())
-      exit(1);
-    if (test_ferrum_config())
-      exit(1);
+  /*if (test_ferrum_redis())
+    exit(1);
+  if (test_ferrum_config())
+    exit(1);
 
-    if (test_ferrum_policy())
-      exit(1);
+  if (test_ferrum_policy())
+    exit(1);
 
-    if (test_ferrum_lmdb())
-      exit(1);
+  if (test_ferrum_lmdb())
+    exit(1);
 
-    if (test_ferrum_syslog())
-      exit(1);
-
+  if (test_ferrum_syslog())
+    exit(1);
 
   if (test_ferrum_raw())
     exit(1);
@@ -89,10 +88,20 @@ int main() {
   if (test_ferrum_protocol_dns()) {
     exit(1);
   }
-  if (test_ferrum_dns()) {
+  if (test_ferrum_dns_db()) {
     exit(1);
   }
-*/
+
+  if (test_ferrum_dns_cache_page()) {
+    exit(1);
+  }
+  if (test_ferrum_dns_cache()) {
+    exit(1);
+  } */
+  if (test_ferrum_protocol_dns()) {
+    exit(1);
+  }
+
   // these below tests are not validated yet
 
   /*
