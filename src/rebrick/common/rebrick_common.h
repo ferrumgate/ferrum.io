@@ -114,6 +114,16 @@
   y x;             \
   fill_zero(&x, sizeof(y));
 
+#define new4(y, x)                  \
+  y *x = rebrick_malloc(sizeof(y)); \
+  fill_zero(x, sizeof(y));          \
+  if_is_null_then_die(x, "malloc problem\n")
+
+#define rebrick_malloc2(x, y) \
+  x = rebrick_malloc(y);      \
+  fill_zero(x, y);            \
+  if_is_null_then_die(x, "malloc problem\n")
+
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))
 #define cast(x, y) ((y)(x))

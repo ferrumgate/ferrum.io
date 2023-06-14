@@ -101,6 +101,47 @@ static void ferrum_config_object_policy_db_folder() {
   ferrum_config_destroy(config);
   setenv("POLICY_DB_FOLDER", "", 1);
 }
+static void ferrum_config_object_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("DB_FOLDER", "", 1);
+}
+
+static void ferrum_config_object_track_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("TRACK_DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->track_db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("TRACK_DB_FOLDER", "", 1);
+}
+
+static void ferrum_config_object_authz_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("AUTHZ_DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->authz_db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("AUTHZ_DB_FOLDER", "", 1);
+}
 
 static void ferrum_config_object_syslog_host() {
   ferrum_config_t *config = NULL;

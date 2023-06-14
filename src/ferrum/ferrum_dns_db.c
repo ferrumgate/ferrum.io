@@ -32,20 +32,20 @@ int32_t ferrum_dns_db_destroy(ferrum_dns_db_t *dns) {
 int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char fqdn[FERRUM_DNS_MAX_FQDN_LEN], char ip[REBRICK_IP_STR_LEN]) {
 
   ferrum_lmdb_t *lmdb = dns->lmdb;
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/local/dns/%s/a", fqdn);
-  int32_t result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/local/dns/%s/a", fqdn);
+  int32_t result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   if (result) {
     if (result == FERRUM_ERR_LMDB) {
       ferrum_log_debug("query local dns %s error:%d\n", fqdn, result);
-      return FERRUM_ERR_DNS;
+      return FERRUM_ERR_DNS_DB;
     }
     ferrum_log_debug("query local dns %s not found\n", fqdn);
     // ferrum_lmdb_list_all(lmdb);
     return FERRUM_SUCCESS; // ip is empty
   }
 
-  size_t min = MIN(lmdb->value.size, REBRICK_IP_STR_LEN - 1);
-  memcpy(ip, lmdb->value.val, min);
+  size_t min = MIN(lmdb->root->value.size, REBRICK_IP_STR_LEN - 1);
+  memcpy(ip, lmdb->root->value.val, min);
   ferrum_log_debug("query local dns %s ip:%s\n", fqdn, ip);
   return FERRUM_SUCCESS;
 }

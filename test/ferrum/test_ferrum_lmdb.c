@@ -75,11 +75,11 @@ static void ferrum_object_check_open_file(void **start) {
   strncat(working_dir, "/data", 10);
   int32_t result = ferrum_lmdb_new(&lmdb, working_dir, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
-  size_t len = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
-  lmdb->key.size = len;
-  result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  size_t len = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
+  lmdb->root->key.size = len;
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_string_equal(lmdb->value.val, "hamza");
+  assert_string_equal(lmdb->root->value.val, "hamza");
   ferrum_lmdb_destroy(lmdb);
 }
 
@@ -95,34 +95,34 @@ static void ferrum_object_put_get_del_get(void **start) {
   int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
   // save data
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "ferrum");
 
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   // get again
-  lmdb->value.size = 0;
-  memset(lmdb->value.val, 0, sizeof(lmdb->value.val));
-  result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->value.size = 0;
+  memset(lmdb->root->value.val, 0, sizeof(lmdb->root->value.val));
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
-  assert_string_equal(lmdb->value.val, "ferrum");
+  assert_string_equal(lmdb->root->value.val, "ferrum");
 
   // get not found
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 2);
-  result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 2);
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_ERR_LMDB_ROW_NOT_FOUND);
 
   // del
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
-  result = ferrum_lmdb_del(lmdb, &lmdb->key);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
+  result = ferrum_lmdb_del(lmdb, &lmdb->root->key);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   // get again
   //  get not found
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
-  result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_ERR_LMDB_ROW_NOT_FOUND);
 
   ferrum_lmdb_destroy(lmdb);
@@ -140,18 +140,18 @@ static void ferrum_object_list_all(void **start) {
   int32_t result = ferrum_lmdb_new(&lmdb, folder, "dns", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
   // save data
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 1);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "ferrum");
 
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/test/%d", 2);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 2);
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "ferrum2");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "ferrum2");
 
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   ferrum_lmdb_t *lmdb2;

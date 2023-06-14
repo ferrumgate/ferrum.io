@@ -33,27 +33,28 @@ extern int test_ferrum_protocol_dns();
 extern int test_ferrum_dns_db();
 extern int test_ferrum_dns_cache_page();
 extern int test_ferrum_dns_cache();
+extern int test_ferrum_track_db();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
 
-  /*   if (test_rebrick_filestream())
-      exit(1);
+  /* if (test_rebrick_filestream())
+    exit(1);
 
-    if (test_rebrick_util())
-      exit(1);
+  if (test_rebrick_util())
+    exit(1);
 
-    if (test_rebrick_resolve())
-      exit(1);
+  if (test_rebrick_resolve())
+    exit(1);
 
-    if (test_rebrick_buffer())
-      exit(1);
+  if (test_rebrick_buffer())
+    exit(1);
 
-    if (test_rebrick_buffers())
-      exit(1);
+  if (test_rebrick_buffers())
+    exit(1);
 
-    if (test_rebrick_timer())
-      exit(1);
+  if (test_rebrick_timer())
+    exit(1);
 
   if (test_rebrick_udpsocket())
     exit(1);
@@ -61,15 +62,15 @@ int main() {
   if (test_rebrick_tcpsocket())
     exit(1);
 
-  /*if (test_ferrum_redis())
+  if (test_ferrum_redis())
     exit(1);
   if (test_ferrum_config())
     exit(1);
 
-  if (test_ferrum_policy())
+  if (test_ferrum_lmdb())
     exit(1);
 
-  if (test_ferrum_lmdb())
+  if (test_ferrum_policy())
     exit(1);
 
   if (test_ferrum_syslog())
@@ -85,9 +86,6 @@ int main() {
     exit(1);
   }
 
-  if (test_ferrum_protocol_dns()) {
-    exit(1);
-  }
   if (test_ferrum_dns_db()) {
     exit(1);
   }
@@ -98,9 +96,13 @@ int main() {
   if (test_ferrum_dns_cache()) {
     exit(1);
   } */
-  if (test_ferrum_protocol_dns()) {
+  if (test_ferrum_track_db()) {
     exit(1);
   }
+
+  /* if (test_ferrum_protocol_dns()) {
+    exit(1);
+  } */
 
   // these below tests are not validated yet
 

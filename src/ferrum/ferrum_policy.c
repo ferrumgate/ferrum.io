@@ -3,7 +3,7 @@
 int32_t ferrum_policy_new(ferrum_policy_t **policy, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, config->policy_db_folder, "ferrumgate", 3, 1073741824);
+  result = ferrum_lmdb_new(&lmdb, config->policy_db_folder, "policy", 24, 1073741824);
   if (result)
     return result;
 
@@ -42,8 +42,8 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
 
   // `/authorize/track/id/${tun.trackId}/service/id/${svc.id}`
   ferrum_lmdb_t *lmdb = policy->lmdb;
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/%u/service/id/%s", client_id, policy->config->service_id);
-  result = ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/%u/service/id/%s", client_id, policy->config->service_id);
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
   if (result && result != FERRUM_ERR_LMDB_ROW_NOT_FOUND) {
     presult->is_dropped = TRUE;
     presult->why = FERRUM_POLICY_EXECUTE_FAILED;
@@ -66,7 +66,7 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   } */
   result = 0;
   int32_t counter = 0;
-  char *tmp = lmdb->value.val;
+  char *tmp = lmdb->root->value.val;
   char *token = strsep(&tmp, ",");
   while (token) {
     switch (counter) {
@@ -98,9 +98,9 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
   }
 
   if (counter < 2) {
-    lmdb->value.val[0] = 0; // set it for safety
-    ferrum_lmdb_get(lmdb, &lmdb->key, &lmdb->value);
-    ferrum_log_error("policy value is invalid: %s", lmdb->value);
+    lmdb->root->value.val[0] = 0; // set it for safety
+    ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
+    ferrum_log_error("policy value is invalid: %s\n", &lmdb->root->value);
     presult->is_dropped = TRUE;
     presult->why = FERRUM_POLICY_INVALID_DATA;
     return FERRUM_ERR_POLICY;

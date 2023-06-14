@@ -405,8 +405,9 @@ static int32_t dns_cache_clean(void *callback) {
   unused(callback);
   ferrum_protocol_t *dns = cast(callback, ferrum_protocol_t *);
   cast_to_dns_data_var(dns->data, dns_data);
-  ferrum_logger_debug("cleaning dns cache\n");
+  ferrum_log_debug("cleaning dns cache\n");
   ferrum_dns_cache_clear_timedoutdata(dns_data->cache);
+  return FERRUM_SUCCESS;
 }
 
 int32_t ferrum_protocol_dns_destroy(ferrum_protocol_t *protocol) {

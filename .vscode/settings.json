@@ -29,6 +29,8 @@
         "ferrum_raw_socket_pair.h": "c",
         "ferrum_protocol.h": "c",
         "ldns.h": "c",
-        "ferrum_dns_packet.h": "c"
+        "ferrum_dns_packet.h": "c",
+        "type_traits": "c",
+        "ferrum_track_db.h": "c"
     }
 }

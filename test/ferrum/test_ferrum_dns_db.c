@@ -103,11 +103,11 @@ static void test_ferrum_dns_db_find_local_a(void **start) {
   assert_string_equal(ip, "");
 
   // save data
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/local/dns/ferrumgate.com/a");
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/local/dns/ferrumgate.com/a");
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "192.168.1.1");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "192.168.1.1");
 
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   result = ferrum_dns_db_find_local_a(dns, "ferrumgate.com", ip);

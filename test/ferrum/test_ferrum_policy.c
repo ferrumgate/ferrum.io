@@ -112,11 +112,11 @@ static void ferrum_policy_execute_policy_row_invalid(void **start) {
   assert_int_equal(result, FERRUM_SUCCESS);
 
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 2, 160000);
+  result = ferrum_lmdb_new(&lmdb, folder, "policy", 2, 160000);
   assert_int_equal(result, FERRUM_SUCCESS);
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/12/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/12/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, "1,");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
   ferrum_lmdb_destroy(lmdb);
 
@@ -150,31 +150,31 @@ static void ferrum_policy_execute_policy_row_ok(void **start) {
   assert_int_equal(result, FERRUM_SUCCESS);
 
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 2, 160000);
+  result = ferrum_lmdb_new(&lmdb, folder, "policy", 2, 160000);
   assert_int_equal(result, FERRUM_SUCCESS);
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/12/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,2,abc,def,ghi");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
-  assert_int_equal(result, FERRUM_SUCCESS);
-
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/13/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, ",1,2,,,ghi");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/12/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, "1,2,abc,def,ghi");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/14/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "1,2,,,ghi");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/13/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, ",1,2,,,ghi");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/15/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "ab,2,,,ghi,");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/14/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, "1,2,,,ghi");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/authorize/track/id/16/service/id/10");
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->key.val) - 1, "0,2,,ghi,,");
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/15/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, "ab,2,,,ghi,");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authorize/track/id/16/service/id/10");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->key.val) - 1, "0,2,,ghi,,");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   ferrum_lmdb_destroy(lmdb);
