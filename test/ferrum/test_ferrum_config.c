@@ -53,6 +53,7 @@ static void ferrum_config_object_redis_ip_port() {
   assert_true(strcmp(config->redis.addr_str, "[127.0.0.1]:[1234]") == 0 || strcmp(config->redis.addr_str, "[::1]:[1234]") == 0);
   assert_true(strcmp(config->redis.ip, "127.0.0.1") == 0 || strcmp(config->redis.ip, "::1") == 0);
   assert_true(strcmp(config->redis.port, "1234") == 0);
+  assert_true(config->redis.port_int == 1234);
   assert_string_equal(config->redis.pass, "pass1");
 
   ferrum_config_destroy(config);

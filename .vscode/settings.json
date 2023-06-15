@@ -31,6 +31,7 @@
         "ldns.h": "c",
         "ferrum_dns_packet.h": "c",
         "type_traits": "c",
-        "ferrum_track_db.h": "c"
+        "ferrum_track_db.h": "c",
+        "ferrum_authz_db.h": "c"
     }
 }

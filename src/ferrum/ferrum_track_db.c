@@ -2,7 +2,7 @@
 int32_t ferrum_track_db_new(ferrum_track_db_t **track, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, config->track_db_folder, "track", 24, 1073741824);
+  result = ferrum_lmdb_new(&lmdb, config->db_folder[0] ? config->db_folder : config->track_db_folder, "track", 24, 1073741824);
   if (result)
     return result;
   ferrum_log_info("track lmdb folder:%s\n", config->track_db_folder);

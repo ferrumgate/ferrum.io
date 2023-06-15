@@ -112,7 +112,7 @@ static void ferrum_raw_tcp(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -183,7 +183,7 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -244,7 +244,7 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -319,7 +319,7 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -400,7 +400,7 @@ static void ferrum_raw_udp(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -471,7 +471,7 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -550,7 +550,7 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_udpsocket_t *client;

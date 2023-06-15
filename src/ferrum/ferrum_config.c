@@ -42,6 +42,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
   rebrick_util_addr_to_port_string(&tmp->redis.addr, tmp->redis.port);
+  rebrick_util_to_int32_t(tmp->redis.port, &tmp->redis.port_int);
 
   size_t redis_pass_size = sizeof(tmp->redis.pass);
   uv_os_getenv("REDIS_PASS", tmp->redis.pass, &redis_pass_size);
@@ -66,9 +67,35 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis_local.addr, tmp->redis_local.ip);
   rebrick_util_addr_to_port_string(&tmp->redis_local.addr, tmp->redis_local.port);
+  rebrick_util_to_int32_t(tmp->redis_local.port, &tmp->redis_local.port_int);
 
   size_t redis_local_pass_size = sizeof(tmp->redis_local.pass);
   uv_os_getenv("REDIS_PASS", tmp->redis_local.pass, &redis_local_pass_size);
+
+  /////////////////////// fill redis intel server   ///////////////////
+
+  char redis_intel_host[REBRICK_MAX_ENV_LEN] = {0};
+  size_t redis_intel_host_size = sizeof(redis_intel_host);
+  uv_os_getenv("REDIS_INTEL_HOST", redis_intel_host, &redis_intel_host_size);
+
+  if (!redis_intel_host[0])
+    strncpy(redis_intel_host, "localhost", REBRICK_HOST_STR_LEN);
+
+  result = rebrick_util_resolve_sync(redis_intel_host, &tmp->redis_intel.addr, 6379);
+  if (result) {
+    rebrick_log_fatal("%s resolution failed with error:%d\n", redis_intel_host, result);
+    rebrick_kill_current_process(result);
+  }
+
+  rebrick_util_addr_to_string(&tmp->redis_intel.addr, tmp->redis_intel.addr_str);
+  rebrick_log_warn("redis intel host:port is %s\n", tmp->redis_intel.addr_str);
+
+  rebrick_util_addr_to_ip_string(&tmp->redis_intel.addr, tmp->redis_intel.ip);
+  rebrick_util_addr_to_port_string(&tmp->redis_intel.addr, tmp->redis_intel.port);
+  rebrick_util_to_int32_t(tmp->redis_intel.port, &tmp->redis_intel.port_int);
+
+  size_t redis_intel_pass_size = sizeof(tmp->redis_intel.pass);
+  uv_os_getenv("REDIS_INTEL_PASS", tmp->redis_intel.pass, &redis_intel_pass_size);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};
@@ -137,7 +164,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     tmp->is_policy_disabled = TRUE;
 
   /////////////////////// lmdb folder ///////////////////
-  strncpy(tmp->db_folder, "/var/lib/ferrumgate/db", sizeof(tmp->db_folder));
+  strncpy(tmp->db_folder, "", sizeof(tmp->db_folder));
   char db_folder[REBRICK_MAX_ENV_LEN] = {0};
   size_t db_folder_size = sizeof(db_folder);
   uv_os_getenv("DB_FOLDER", db_folder, &db_folder_size);

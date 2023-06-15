@@ -5,6 +5,11 @@
 #include "../ferrum_raw_socket_pair.h"
 #include "../ferrum_activity_log.h"
 #include "../cache/ferrum_dns_cache.h"
+#include "../ferrum_dns_db.h"
+#include "../ferrum_track_db.h"
+#include "../ferrum_authz_db.h"
+#include "../ferrum_redis.h"
+#include "ferrum_dns_packet.h"
 
 struct ferrum_protocol;
 
@@ -33,7 +38,10 @@ typedef struct ferrum_protocol {
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
   private_ const ferrum_syslog_t *syslog;
+  private_ const ferrum_redis_t *redis_intel;
   private_ const ferrum_dns_db_t *dns_db;
+  private_ const ferrum_track_db_t *track_db;
+  private_ const ferrum_authz_db_t *authz_db;
   struct {
     ferrum_raw_udpsocket_pair_t *udp;
     ferrum_raw_tcpsocket_pair_t *tcp;

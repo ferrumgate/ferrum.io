@@ -39,7 +39,7 @@ int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
 
-  /* if (test_rebrick_filestream())
+  if (test_rebrick_filestream())
     exit(1);
 
   if (test_rebrick_util())
@@ -100,7 +100,7 @@ int main() {
   if (test_ferrum_track_db()) {
     exit(1);
   }
-  */
+
   if (test_ferrum_authz_db()) {
     exit(1);
   }

@@ -2,7 +2,7 @@
 int32_t ferrum_authz_db_new(ferrum_authz_db_t **authz, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, config->authz_db_folder, "authz", 24, 1073741824);
+  result = ferrum_lmdb_new(&lmdb, config->db_folder[0] ? config->db_folder : config->authz_db_folder, "authz", 24, 1073741824);
   if (result)
     return result;
   ferrum_log_info("authz lmdb folder:%s\n", config->authz_db_folder);

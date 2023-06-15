@@ -11,11 +11,14 @@ static int32_t ferrum_protocol_create(ferrum_protocol_t **protocol,
                                       ferrum_raw_udpsocket_pair_t *udp,
                                       ferrum_raw_tcpsocket_pair_t *tcp,
                                       const ferrum_config_t *config,
-                                      const ferrum_syslog_t *syslog,
                                       const ferrum_policy_t *policy,
-                                      const ferrum_dns_db_t *dns) {
+                                      const ferrum_syslog_t *syslog,
+                                      const ferrum_redis_t *redis_intel,
+                                      const ferrum_dns_db_t *dns_db,
+                                      const ferrum_track_db_t *track_db,
+                                      const ferrum_authz_db_t *authz_db) {
   if (!strcmp(config->protocol_type, "dns"))
-    return ferrum_protocol_dns_new(protocol, tcp, udp, config, policy, syslog, dns);
+    return ferrum_protocol_dns_new(protocol, tcp, udp, config, policy, syslog, redis_intel, dns_db, track_db, authz_db);
   else if (!strcmp(config->protocol_type, "raw"))
     return ferrum_protocol_raw_new(protocol, tcp, udp, config, policy, syslog);
 
@@ -260,7 +263,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
   memcpy(&pair->policy_result, &presult, sizeof(presult));
 
-  result = ferrum_protocol_create(&pair->protocol, NULL, pair, raw->config, raw->syslog, raw->policy, raw->dns);
+  result = ferrum_protocol_create(&pair->protocol, NULL, pair, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db);
   if (result) {
     rebrick_log_error("protocol create failed %s:%s\n", ip_str, port_str);
     ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
@@ -634,7 +637,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair->udp_listening_socket = raw->listen.udp;
     memcpy(&pair->policy_result, &presult, sizeof(presult));
 
-    result = ferrum_protocol_create(&pair->protocol, pair, NULL, raw->config, raw->syslog, raw->policy, raw->dns);
+    result = ferrum_protocol_create(&pair->protocol, pair, NULL, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db);
     if (result) {
       rebrick_log_error("protocol create failed %s:%s\n", ip_str, port_str);
       ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
@@ -760,8 +763,12 @@ int32_t udp_tracker_callback_t(void *callbackdata) {
 }
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
-                       const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
-                       const ferrum_dns_db_t *dns,
+                       const ferrum_policy_t *policy,
+                       const ferrum_syslog_t *syslog,
+                       const ferrum_redis_t *redis_intel,
+                       const ferrum_dns_db_t *dns_db,
+                       const ferrum_track_db_t *track_db,
+                       const ferrum_authz_db_t *authz_db,
                        rebrick_conntrack_get_func_t conntrack) {
 
   ferrum_raw_t *tmp = new1(ferrum_raw_t);
@@ -822,7 +829,10 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   tmp->conntrack_get = conntrack;
   tmp->policy = policy;
   tmp->syslog = syslog;
-  tmp->dns = dns;
+  tmp->dns_db = dns_db;
+  tmp->authz_db = authz_db;
+  tmp->track_db = track_db;
+  tmp->redis_intel = redis_intel;
   result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 3000, TRUE);
   if (result) {
     ferrum_log_fatal("creating udp tracker timer failed with error:%d\n", result);

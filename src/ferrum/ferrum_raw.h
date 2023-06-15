@@ -29,7 +29,10 @@ typedef struct ferrum_raw {
   private_ const ferrum_config_t *config;
   private_ const ferrum_policy_t *policy;
   private_ const ferrum_syslog_t *syslog;
-  private_ const ferrum_dns_db_t *dns;
+  private_ const ferrum_redis_t *redis_intel;
+  private_ const ferrum_dns_db_t *dns_db;
+  private_ const ferrum_track_db_t *track_db;
+  private_ const ferrum_authz_db_t *authz_db;
   private_ rebrick_conntrack_get_func_t conntrack_get;
 
   private_ int32_t socket_count;
@@ -68,8 +71,12 @@ typedef struct ferrum_raw {
 } ferrum_raw_t;
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
-                       const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
-                       const ferrum_dns_db_t *dns,
+                       const ferrum_policy_t *policy,
+                       const ferrum_syslog_t *syslog,
+                       const ferrum_redis_t *redis,
+                       const ferrum_dns_db_t *dns_db,
+                       const ferrum_track_db_t *track_db,
+                       const ferrum_authz_db_t *authz_db,
                        rebrick_conntrack_get_func_t conntrack_get);
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw);
 

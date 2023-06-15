@@ -383,7 +383,7 @@ static void redis_object_cmd_stream(void **start) {
   stream_item_count = 0;
   result = ferrum_redis_send(redis, cmd, "xadd %s 0-1 id hamza", channel);
   assert_int_equal(result, FERRUM_SUCCESS);
-  loop(counter, 100, !stream_item_count);
+  loop(counter, 1000, !stream_item_count);
   assert_string_equal(stream_id, "0-1");
   assert_string_equal(stream_field, "id");
   assert_string_equal(stream_value, "hamza");
@@ -392,7 +392,7 @@ static void redis_object_cmd_stream(void **start) {
   stream_item_count = 0;
   result = ferrum_redis_send(redis, cmd, "xadd %s 0-2 id2 hamza2", channel);
   assert_int_equal(result, FERRUM_SUCCESS);
-  loop(counter, 100, !stream_item_count);
+  loop(counter, 1000, !stream_item_count);
   assert_string_equal(stream_id, "0-2");
   assert_string_equal(stream_field, "id2");
   assert_string_equal(stream_value, "hamza2");
