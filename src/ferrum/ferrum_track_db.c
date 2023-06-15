@@ -55,18 +55,21 @@ int32_t ferrum_track_db_get_data(const ferrum_track_db_t *track_db, uint32_t tra
     // ferrum_lmdb_list_all(lmdb);
     return FERRUM_SUCCESS; // track is empty
   }
-  char errbuf[200] = {0};
 
+  if (!lmdb->root->value.size)
+    return FERRUM_SUCCESS;
+
+  char errbuf[200] = {0};
   toml_table_t *conf = toml_parse(lmdb->root->value.val, errbuf, sizeof(errbuf));
   if (!conf) {
     ferrum_log_debug("query local track %u parse error %s\n", track_id, errbuf);
-    return FERRUM_ERR_TRACK_PARSE;
+    return FERRUM_ERR_TRACK_DB_PARSE;
   }
   toml_datum_t user_id = toml_string_in(conf, "userId");
   if (!user_id.ok) {
     ferrum_log_debug("query local track %u cannot read user_id %s\n", track_id, errbuf);
     toml_free(conf);
-    return FERRUM_ERR_TRACK_PARSE;
+    return FERRUM_ERR_TRACK_DB_PARSE;
   }
   size_t user_id_len = strlen(user_id.u.s);
   new4(ferrum_track_db_row_t, tmp_row);
@@ -82,7 +85,7 @@ int32_t ferrum_track_db_get_data(const ferrum_track_db_t *track_db, uint32_t tra
     ferrum_log_debug("query local track %u cannot read group ids %s\n", track_id, errbuf);
     toml_free(conf);
     ferrum_track_db_row_destroy(tmp_row);
-    return FERRUM_ERR_TRACK_PARSE;
+    return FERRUM_ERR_TRACK_DB_PARSE;
   }
   size_t group_ids_len = strlen(group_ids.u.s);
   if (group_ids_len) {
@@ -103,12 +106,14 @@ int32_t ferrum_track_db_get_update_time(const ferrum_track_db_t *track_db, uint3
   *update_time = 0;
   if (result) {
     if (result == FERRUM_ERR_LMDB) {
-      ferrum_log_error("query local track %u error:%d\n", track_id, result);
+      ferrum_log_error("query local track %u update time error:%d\n", track_id, result);
       return FERRUM_ERR_TRACK_DB;
     }
-    ferrum_log_debug("query local track %u not found\n", track_id);
+    ferrum_log_debug("query local track %u update time not found\n", track_id);
     return FERRUM_SUCCESS; // track is empty
   }
-  rebrick_util_to_int64_t(lmdb->root->value.val, update_time);
+  if (lmdb->root->value.size)
+    rebrick_util_to_int64_t(lmdb->root->value.val, update_time);
+  ferrum_log_debug("query local track %u  update time %" PRId64 "\n", track_id, *update_time);
   return FERRUM_SUCCESS;
 }

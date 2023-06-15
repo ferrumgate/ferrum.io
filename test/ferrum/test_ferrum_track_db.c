@@ -110,21 +110,21 @@ static void test_ferrum_track_db_get_data_get_updatetime(void **start) {
   lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value) - 1, "[userId:\"axd\"\ngroupIds=\",abc,def,\"");
   ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   result = ferrum_track_db_get_data(track, 2, &row);
-  assert_int_equal(result, FERRUM_ERR_TRACK_PARSE);
+  assert_int_equal(result, FERRUM_ERR_TRACK_DB_PARSE);
 
   // userId not ok
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key) - 1, "/track/id/2/data");
   lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value) - 1, "userId2=\"axd\"\ngroupIds=\",abc,def,\"");
   ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   result = ferrum_track_db_get_data(track, 2, &row);
-  assert_int_equal(result, FERRUM_ERR_TRACK_PARSE);
+  assert_int_equal(result, FERRUM_ERR_TRACK_DB_PARSE);
 
   // groupids not ok
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key) - 1, "/track/id/2/data");
   lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value) - 1, "userId=\"axd\"\ngroupIds2=\",,\"");
   ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   result = ferrum_track_db_get_data(track, 2, &row);
-  assert_int_equal(result, FERRUM_ERR_TRACK_PARSE);
+  assert_int_equal(result, FERRUM_ERR_TRACK_DB_PARSE);
 
   ferrum_lmdb_destroy(lmdb);
   ferrum_track_db_destroy(track);

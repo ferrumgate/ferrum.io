@@ -43,9 +43,10 @@ int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char fqdn[FERRUM_
     // ferrum_lmdb_list_all(lmdb);
     return FERRUM_SUCCESS; // ip is empty
   }
-
-  size_t min = MIN(lmdb->root->value.size, REBRICK_IP_STR_LEN - 1);
-  memcpy(ip, lmdb->root->value.val, min);
-  ferrum_log_debug("query local dns %s ip:%s\n", fqdn, ip);
+  if (lmdb->root->value.size) {
+    size_t min = MIN(lmdb->root->value.size, REBRICK_IP_STR_LEN - 1);
+    memcpy(ip, lmdb->root->value.val, min);
+    ferrum_log_debug("query local dns %s ip:%s\n", fqdn, ip);
+  }
   return FERRUM_SUCCESS;
 }
