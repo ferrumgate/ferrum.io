@@ -34,6 +34,7 @@ typedef struct ferrum_lmdb {
   MDB_dbi dbi;
   MDB_txn *trx;
   ferrum_lmdb_root_t *root;
+  int32_t mock_error;
 
 } ferrum_lmdb_t;
 

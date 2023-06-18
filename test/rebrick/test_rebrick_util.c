@@ -251,6 +251,90 @@ static void test_rebrick_util_fqdn_endswith(void **start) {
   assert_int_equal(result, 0);
 }
 
+static void test_rebrick_util_str_includes(void **start) {
+  unused(start);
+
+  int32_t result = rebrick_util_str_includes(NULL, NULL, ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes("abc", NULL, ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes("", "", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes("abc", "ab", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes("abc", "abc", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes("abc", "abcd", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes("abc,def", "abc", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes("dabc,def", "abc", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes(",abc,def,", "abc", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes(",def,abc", "abc", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes(",def,abc,eg", "ab,eg", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes(",def,abc,eg", "ab,egc", ",");
+  assert_int_equal(result, 0);
+  result = rebrick_util_str_includes(",def,abc,eg", "", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_str_includes("", "ab,de", ",");
+  assert_int_equal(result, 0);
+  result = rebrick_util_str_includes(",,,,", ",,", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_str_includes(",ab,,,", "def", ",");
+  assert_int_equal(result, 0);
+}
+
+static void test_rebrick_util_fqdn_includes(void **start) {
+  unused(start);
+
+  int32_t result = rebrick_util_fqdn_includes(NULL, NULL, ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_fqdn_includes("abc", NULL, ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_fqdn_includes("", "", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_includes("", "abc", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_fqdn_includes("abc", "abc", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_includes("abc", "abcd", ",");
+  assert_int_equal(result, 0);
+
+  result = rebrick_util_fqdn_includes("abc.com", "abc.com", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_includes("abc.com,def.com", "abc.com", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_includes("com,def.com", "abc.com", ",");
+  assert_int_equal(result, 1);
+
+  result = rebrick_util_fqdn_includes("com2,def.com", "abc.com", ",");
+  assert_int_equal(result, 0);
+}
+
 int test_rebrick_util(void) {
 
   const struct CMUnitTest tests[] = {
@@ -264,6 +348,9 @@ int test_rebrick_util(void) {
       cmocka_unit_test(test_rebrick_util_to_uint32_t),
       cmocka_unit_test(test_rebrick_util_fill_random),
       cmocka_unit_test(test_rebrick_util_fqdn_endswith),
+      cmocka_unit_test(test_rebrick_util_str_includes),
+      cmocka_unit_test(test_rebrick_util_fqdn_includes),
+
   };
 
   return cmocka_run_group_tests(tests, setup, teardown);

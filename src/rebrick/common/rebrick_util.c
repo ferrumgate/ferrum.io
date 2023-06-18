@@ -38,6 +38,56 @@ int rebrick_util_fqdn_endswith(const char *domainname, const char *search) {
   }
   return 0;
 }
+// search abc in ,ab,abd,abc,
+int rebrick_util_str_includes(const char *src, const char *search, const char *splitter) {
+  if (!src || !search)
+    return 0;
+  if (*src == 0 && *search == 0)
+    return 1;
+  if (*src == 0 || *search == 0)
+    return 0;
+
+  char *dup_search = strdup(search);
+  char *backup_dup_search = dup_search;
+  char *search_token = strsep(&dup_search, splitter);
+  while (search_token) {
+    char *dup_src = strdup(src);
+    char *backup_dup_src = dup_src; // backit up for delete
+    char *src_token = strsep(&dup_src, splitter);
+    while (src_token) {
+      if (!strcmp(search_token, src_token)) {
+        rebrick_free(backup_dup_src);
+        rebrick_free(backup_dup_search);
+        return 1;
+      }
+      src_token = strsep(&dup_src, splitter);
+    }
+    rebrick_free(backup_dup_src);
+    search_token = strsep(&dup_search, splitter);
+  }
+  rebrick_free(backup_dup_search);
+  return 0;
+}
+int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter) {
+  if (!src || !search)
+    return 0;
+  if (*src == 0 && *search == 0)
+    return 1;
+  if (*src == 0 || *search == 0)
+    return 0;
+  while (*search) {
+    int32_t result = rebrick_util_str_includes(src, search, splitter);
+    if (result)
+      return result;
+    search++;
+    while (*search && *search != '.')
+      break;
+    if (*search)
+      search++;
+  }
+
+  return 0;
+}
 
 rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linked_item_t *previous) {
   rebrick_linked_item_t *item = new1(rebrick_linked_item_t);

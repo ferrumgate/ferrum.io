@@ -258,7 +258,9 @@ int32_t ferrum_redis_destroy(ferrum_redis_t *redis) {
 }
 
 int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, const char *fmt, ...) {
-
+  if (redis->is_mock_error) {
+    return FERRUM_ERR_REDIS;
+  }
   ferrum_log_debug("sending command\n");
   if (!redis->is_connected) {
 
@@ -302,6 +304,35 @@ int32_t ferrum_redis_cmd_new2(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type
     return result;
   }
   tmp->callback.arg2 = callback_data2;
+  *cmd = tmp;
+  return FERRUM_SUCCESS;
+}
+int32_t ferrum_redis_cmd_new3(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1, void *callback_data2, void *callback_data3) {
+
+  ferrum_redis_cmd_t *tmp;
+  int32_t result = ferrum_redis_cmd_new2(&tmp, id, type, callback, callback_data1,
+                                         callback_data2);
+  if (result) {
+    ferrum_log_error("redis cmd create new3 failed with error: %d\n", result);
+    return result;
+  }
+  tmp->callback.arg3 = callback_data3;
+  *cmd = tmp;
+  return FERRUM_SUCCESS;
+}
+int32_t ferrum_redis_cmd_new4(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1, void *callback_data2,
+                              void *callback_data3, void *callback_data4) {
+
+  ferrum_redis_cmd_t *tmp;
+  int32_t result = ferrum_redis_cmd_new3(&tmp, id, type, callback, callback_data1,
+                                         callback_data2, callback_data3);
+  if (result) {
+    ferrum_log_error("redis cmd create new3 failed with error: %d\n", result);
+    return result;
+  }
+  tmp->callback.arg4 = callback_data4;
   *cmd = tmp;
   return FERRUM_SUCCESS;
 }

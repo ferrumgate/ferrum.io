@@ -414,3 +414,31 @@
    ...
 }
 
+{
+   protocol-dns proble-15
+   Memcheck:Cond
+   fun:__strlen_sse2
+   fun:__vfprintf_internal
+   fun:buffered_vfprintf
+   fun:__vfprintf_internal
+   fun:rebrick_log_info2
+   fun:rebrick_udpsocket_write
+   fun:send_backend_directly
+   ...
+}
+{
+   protocol-dns proble-16
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:_IO_file_write@@GLIBC_2.2.5
+   fun:new_do_write
+   fun:_IO_new_file_xsputn
+   fun:_IO_file_xsputn@@GLIBC_2.2.5
+   fun:buffered_vfprintf
+   fun:__vfprintf_internal
+   fun:rebrick_log_info2
+   fun:rebrick_udpsocket_write
+   fun:send_backend_directly
+   ...
+}

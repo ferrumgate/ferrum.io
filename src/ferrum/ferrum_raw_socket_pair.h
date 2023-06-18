@@ -10,10 +10,9 @@ struct ferrum_protocol;
 
 typedef struct ferrum_raw_udpsocket_pair {
   base_object();
-  int32_t mark;
+  uint32_t mark;
   int64_t last_used_time;
-  char userId[FERRUM_ID_STR_LEN];
-  char groupId[FERRUM_USER_MAX_GROUP_COUNT][FERRUM_ID_STR_LEN];
+
   /**
    * @brief last policy result is allowed
    */
@@ -43,7 +42,7 @@ typedef struct ferrum_raw_udpsocket_pair {
 typedef struct ferrum_raw_tcpsocket_pair {
   base_object();
   void *key;
-  int32_t mark;
+  uint32_t mark;
   int64_t last_used_time;
 
   // last policy result is allowed

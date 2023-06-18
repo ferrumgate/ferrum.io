@@ -103,6 +103,8 @@ int32_t ferrum_lmdb_put(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_key_t *key, ferru
 int32_t ferrum_lmdb_get(ferrum_lmdb_t *lmdb, ferrum_lmdb_entry_key_t *key, ferrum_lmdb_entry_value_t *value) {
   int32_t result;
   lmdb->root->parent_trx = NULL;
+  if (lmdb->mock_error) // for test cases, we need mock behave
+    return FERRUM_ERR_LMDB;
   if ((result = mdb_txn_begin(lmdb->root->env, lmdb->root->parent_trx, MDB_RDONLY, &lmdb->trx))) {
     ferrum_log_error("lmdb trx begin failed with error: %s\n", mdb_strerror(result));
 

@@ -75,7 +75,7 @@ int32_t ferrum_authz_db_get_service_user_data(const ferrum_authz_db_t *authz_db,
     return FERRUM_SUCCESS;
   }
   new4(ferrum_authz_db_service_user_row_t, authz_row);
-  authz_row->rows = new_array(struct authz_service_user_data, 16);
+  authz_row->rows = new_array(ferrum_authz_service_user_data_t, 16);
   if_is_null_then_die(authz_row->rows, "malloc problem\n");
   authz_row->rows_len = 0;
   authz_row->rows_len_real = 16;
@@ -87,12 +87,12 @@ int32_t ferrum_authz_db_get_service_user_data(const ferrum_authz_db_t *authz_db,
 
     // realloc array
     if (i == authz_row->rows_len_real) {
-      authz_row->rows = rebrick_realloc(authz_row->rows, sizeof(struct authz_service_user_data) * (authz_row->rows_len_real + 16));
+      authz_row->rows = rebrick_realloc(authz_row->rows, sizeof(ferrum_authz_service_user_data_t) * (authz_row->rows_len_real + 16));
       if_is_null_then_die(authz_row->rows, "malloc problem\n");
       authz_row->rows_len_real += 16;
     }
     // important
-    fill_zero(authz_row->rows + i, sizeof(struct authz_service_user_data));
+    fill_zero(authz_row->rows + i, sizeof(ferrum_authz_service_user_data_t));
     toml_datum_t user_or_group_ids = toml_string_in(tmp, "userOrgroupIds");
     if (user_or_group_ids.ok) {
       size_t len = strlen(user_or_group_ids.u.s);

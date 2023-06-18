@@ -94,6 +94,10 @@
 #define rebrick_free(x) free(x)
 #define rebrick_realloc(x, y) realloc(x, y)
 #define rebrick_calloc(x, y) calloc(x, y)
+#define rebrick_free_if_not_null_and_set_null(x) \
+  if (x)                                         \
+    free(x);                                     \
+  x = NULL
 
 #define new1(x) rebrick_malloc(sizeof(x))
 

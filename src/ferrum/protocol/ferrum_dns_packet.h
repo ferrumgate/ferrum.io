@@ -40,7 +40,32 @@ typedef struct ferrum_dns_packet {
   rebrick_sockaddr_t source;
   rebrick_sockaddr_t destination;
 
+  struct {
+    char *authz_id;
+    unsigned int is_backend_sended : 1;
+    unsigned int is_backend_received : 1;
+
+    struct ferrum_redis_dns_query *redis_query_list;
+    int32_t redis_query_list_len;
+    int32_t is_redis_query_error;
+    int32_t is_redis_query_not_found;
+
+  } state;
+
 } ferrum_dns_packet_t;
+
+typedef struct ferrum_redis_dns_query {
+  const char *query;
+  unsigned int is_key_sended : 1;
+  unsigned int is_key_received : 1;
+  unsigned int is_key_timeout : 1;
+  unsigned int is_key_exists : 1;
+  unsigned int is_error : 1;
+  unsigned int is_lists_sended : 1;
+  unsigned int is_lists_timeout : 1;
+  unsigned int is_lists_received : 1;
+
+} ferrum_redis_dns_query_t;
 
 int32_t ferrum_dns_packet_destroy(ferrum_dns_packet_t *dns);
 uint32_t ferrum_dns_packet_crc(ferrum_dns_packet_t *dns);

@@ -49,10 +49,7 @@ static int remove_recursive(const char *const path) {
 
 static void test_ferrum_track_db_new_destroy(void **start) {
   unused(start);
-  const char *folder = "/tmp/test41";
-  setenv("TRACK_DB_FOLDER", folder, 1);
-  remove_recursive(folder);
-  mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
   ferrum_config_t *config;
   int32_t result = ferrum_config_new(&config);
   assert_int_equal(result, FERRUM_SUCCESS);

@@ -93,6 +93,18 @@ int rebrick_util_str_endswith(const char *domainname, const char *search);
  */
 int rebrick_util_fqdn_endswith(const char *domainname, const char *search);
 
+/**
+ * @brief string includes in like ,abc,def, search ,abc,
+ * @return  1 for success, 0 for not found
+ */
+int rebrick_util_str_includes(const char *src, const char *search, const char *splitter);
+
+/**
+ * @brief string includes in like ,abc,def, search ,abc,
+ * @return  1 for success, 0 for not found
+ */
+int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter);
+
 void rebrick_util_str_tolower(char *str);
 
 // gets time in micro seconds

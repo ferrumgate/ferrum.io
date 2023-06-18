@@ -6,13 +6,13 @@
 #include "ferrum_lmdb.h"
 #include "../rebrick/lib/toml.h"
 
-struct authz_service_user_data {
+typedef struct ferrum_authz_service_user_data {
   char *user_or_group_ids;
   char *authz_id;
-};
+} ferrum_authz_service_user_data_t;
 
 typedef struct ferrum_authz_db_service_user_row {
-  struct authz_service_user_data *rows;
+  ferrum_authz_service_user_data_t *rows;
   size_t rows_len;
   size_t rows_len_real;
   int64_t update_time;

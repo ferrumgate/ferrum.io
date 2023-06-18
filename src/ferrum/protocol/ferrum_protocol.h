@@ -51,6 +51,11 @@ typedef struct ferrum_protocol {
     int64_t time;
     int32_t random;
   } log;
+  struct {
+    char *user_id;
+    char *group_ids;
+    int64_t last_check;
+  } identity;
 
   void *data;
 } ferrum_protocol_t;

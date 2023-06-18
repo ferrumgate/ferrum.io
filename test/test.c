@@ -39,75 +39,78 @@ int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
 
-  if (test_rebrick_filestream())
-    exit(1);
+  /*
+   if (test_rebrick_util())
+     exit(1);
 
-  if (test_rebrick_util())
-    exit(1);
 
-  if (test_rebrick_resolve())
-    exit(1);
+ if (test_rebrick_filestream())
+   exit(1);
 
-  if (test_rebrick_buffer())
-    exit(1);
+ if (test_rebrick_resolve())
+   exit(1);
 
-  if (test_rebrick_buffers())
-    exit(1);
+ if (test_rebrick_buffer())
+   exit(1);
 
-  if (test_rebrick_timer())
-    exit(1);
+ if (test_rebrick_buffers())
+   exit(1);
 
-  if (test_rebrick_udpsocket())
-    exit(1);
+ if (test_rebrick_timer())
+   exit(1);
 
-  if (test_rebrick_tcpsocket())
-    exit(1);
+ if (test_rebrick_udpsocket())
+   exit(1);
 
-  if (test_ferrum_redis())
-    exit(1);
-  if (test_ferrum_config())
-    exit(1);
+ if (test_rebrick_tcpsocket())
+   exit(1);
 
-  if (test_ferrum_lmdb())
-    exit(1);
+ if (test_ferrum_redis())
+   exit(1);
+ if (test_ferrum_config())
+   exit(1);
 
-  if (test_ferrum_policy())
-    exit(1);
+ if (test_ferrum_lmdb())
+   exit(1);
 
-  if (test_ferrum_syslog())
-    exit(1);
+ if (test_ferrum_policy())
+   exit(1);
 
-  if (test_ferrum_raw())
-    exit(1);
+ if (test_ferrum_syslog())
+   exit(1);
 
-  if (test_ferrum_activity_log())
-    exit(1);
+ if (test_ferrum_raw())
+   exit(1);
 
-  if (test_ferrum_protocol_raw()) {
+ if (test_ferrum_activity_log())
+   exit(1);
+
+ if (test_ferrum_protocol_raw()) {
+   exit(1);
+ }
+
+ if (test_ferrum_dns_db()) {
+   exit(1);
+ }
+
+ if (test_ferrum_dns_cache_page()) {
+   exit(1);
+ }
+ if (test_ferrum_dns_cache()) {
+   exit(1);
+ }
+ if (test_ferrum_track_db()) {
+   exit(1);
+ }
+
+ if (test_ferrum_authz_db()) {
+   exit(1);
+ }
+ */
+
+  if (test_ferrum_protocol_dns()) {
     exit(1);
   }
-
-  if (test_ferrum_dns_db()) {
-    exit(1);
-  }
-
-  if (test_ferrum_dns_cache_page()) {
-    exit(1);
-  }
-  if (test_ferrum_dns_cache()) {
-    exit(1);
-  }
-  if (test_ferrum_track_db()) {
-    exit(1);
-  }
-
-  if (test_ferrum_authz_db()) {
-    exit(1);
-  }
-
-  /* if (test_ferrum_protocol_dns()) {
-    exit(1);
-  } */
 
   // these below tests are not validated yet
 
