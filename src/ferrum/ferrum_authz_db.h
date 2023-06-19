@@ -25,6 +25,7 @@ typedef struct ferrum_authz_db {
   private_ ferrum_lmdb_t *lmdb;
   private_ ferrum_redis_t *redis;
   private_ ferrum_config_t *config;
+  int32_t mock_error;
 
 } ferrum_authz_db_t;
 

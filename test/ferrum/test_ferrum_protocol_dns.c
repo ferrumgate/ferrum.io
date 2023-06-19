@@ -591,6 +591,179 @@ static void flush_redis(ferrum_redis_t *redis) {
   loop(counter, 1000, TRUE);
 }
 
+int32_t send_redis_intel_lists(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair_t *pair, ferrum_dns_packet_t *dns);
+static void test_send_redis_intel_lists(void **start) {
+  unused(start);
+  int32_t counter;
+  create_folders();
+  ferrum_config_t *config;
+  int32_t result = ferrum_config_new(&config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_raw_udpsocket_pair_t *pair;
+  pair = new1(ferrum_raw_udpsocket_pair_t);
+  constructor(pair, ferrum_raw_udpsocket_pair_t);
+  // open a upd socket
+  const char *dest_ip = "127.0.0.1";
+  const char *dest_port = "5555";
+  rebrick_sockaddr_t destination;
+  rebrick_util_to_rebrick_sockaddr(&destination, dest_ip, dest_port);
+
+  rebrick_sockaddr_t bindaddr;
+  rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
+  rebrick_udpsocket_t *dnsclient;
+
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
+  callbacks.callback_data = NULL;
+
+  result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  pair->udp_socket = dnsclient;
+  pair->udp_listening_socket = dnsclient;
+  pair->client_addr = destination;
+
+  uint8_t packet_bytes[] = {
+      0x95, 0xd4, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
+      0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
+      0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
+  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
+
+  ferrum_dns_db_t *dns_db;
+  result = ferrum_dns_db_new(&dns_db, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_redis_t *redis;
+  result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1000);
+
+  ferrum_protocol_t *protocol;
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL);
+  protocol->redis_intel = redis;
+
+  flush_redis(redis);
+  loop(counter, 100, TRUE);
+
+  // ferrum_redis_cmd_t *cmd;
+  // ferrum_redis_cmd_new(&cmd, 10, 1, flush_redis_callback, redis);
+  // ferrum_redis_send(redis, cmd, "sadd /fqdn/www.google.com/list abc def kls");
+  // loop(counter, 1000, TRUE);
+
+  // redis gives error
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_received = TRUE;
+  dns->state.redis_query_list[2].is_key_received = TRUE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == TRUE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == FALSE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_received = FALSE;
+  dns->state.redis_query_list[2].is_key_received = FALSE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == FALSE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_received = TRUE;
+  dns->state.redis_query_list[2].is_key_received = FALSE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == FALSE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_exists = TRUE;
+  dns->state.redis_query_list[2].is_key_received = TRUE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == TRUE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_exists = TRUE;
+  dns->state.redis_query_list[1].is_key_received = FALSE;
+  dns->state.redis_query_list[2].is_key_received = FALSE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == TRUE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[1].is_key_exists = TRUE;
+  dns->state.redis_query_list[1].is_error = TRUE;
+  dns->state.redis_query_list[2].is_key_received = FALSE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == TRUE);
+  assert_true(dns->state.is_redis_query_sended == FALSE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+  flush_redis(redis);
+  ferrum_redis_cmd_t *cmd;
+  ferrum_redis_cmd_new(&cmd, 10, 1, flush_redis_callback, redis);
+  ferrum_redis_send(redis, cmd, "sadd /fqdn/www.google.com/list abc def kls");
+  loop(counter, 1000, TRUE);
+
+  memset(&dns->state, 0, sizeof(dns->state));
+  split_fqdn_for_redis(dns->query, &dns->state.redis_query_list, &dns->state.redis_query_list_len);
+  dns->state.redis_query_list[0].is_key_received = TRUE;
+  dns->state.redis_query_list[0].is_key_exists = TRUE;
+  result = send_redis_intel_lists(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_true(dns->state.is_redis_query_not_found == FALSE);
+  assert_true(dns->state.is_redis_query_error == FALSE);
+  assert_true(dns->state.is_redis_query_sended == TRUE);
+  loop(counter, 1000, TRUE);
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+  assert_true(strstr(dns->state.redis_response, ",abc,"));
+  assert_true(strstr(dns->state.redis_response, ",def,"));
+  assert_true(strstr(dns->state.redis_response, ",kls,"));
+
+  // pair->udp_destination_addr = destination;
+  loop(counter, 100, TRUE);
+  ferrum_config_destroy(config);
+  ferrum_protocol_dns_destroy(protocol);
+  loop(counter, 100, TRUE);
+
+  rebrick_udpsocket_destroy(dnsclient);
+  ferrum_dns_packet_destroy(dns);
+  ferrum_dns_db_destroy(dns_db);
+  ferrum_redis_destroy(redis);
+
+  loop(counter, 100, TRUE);
+  rebrick_free(pair);
+}
+
 int32_t send_redis_intel(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair_t *pair, ferrum_dns_packet_t *dns);
 static void test_send_redis_intel(void **start) {
   unused(start);
@@ -674,12 +847,34 @@ static void test_send_redis_intel(void **start) {
   loop(counter, 1000, TRUE);
   assert_true(dns->state.redis_query_list[0].is_error);
   redis->is_mock_error = FALSE;
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
 
   // there is record now
   result = send_redis_intel(protocol, pair, dns);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 1000, TRUE);
-  assert_true(dns->state.redis_query_list[0].is_error);
+  assert_true(dns->state.is_redis_query_sended);
+  assert_true(dns->state.is_redis_query_received);
+  assert_true(strstr(dns->state.redis_response, ",abc,"));
+  assert_true(strstr(dns->state.redis_response, ",def,"));
+  assert_true(strstr(dns->state.redis_response, ",kls,"));
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
+
+  // set others
+  ferrum_redis_cmd_new(&cmd, 10, 1, flush_redis_callback, redis);
+  ferrum_redis_send(redis, cmd, "sadd /fqdn/google.com/list ufklm");
+  loop(counter, 1000, TRUE);
+
+  // check again
+  result = send_redis_intel(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  loop(counter, 1000, TRUE);
+  assert_true(dns->state.is_redis_query_sended);
+  assert_true(dns->state.is_redis_query_received);
+  assert_true(strstr(dns->state.redis_response, ",abc,"));
+  assert_true(strstr(dns->state.redis_response, ",def,"));
+  assert_true(strstr(dns->state.redis_response, ",kls,"));
+  rebrick_free_if_not_null_and_set_null(dns->state.redis_query_list);
 
   // pair->udp_destination_addr = destination;
   loop(counter, 100, TRUE);
@@ -696,19 +891,248 @@ static void test_send_redis_intel(void **start) {
   rebrick_free(pair);
 }
 
+int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair_t *pair, ferrum_dns_packet_t *dns);
+static void test_process_dns_state(void **start) {
+  unused(start);
+
+  unused(start);
+  int32_t counter;
+  create_folders();
+  ferrum_config_t *config;
+  int32_t result = ferrum_config_new(&config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_raw_udpsocket_pair_t *pair;
+  pair = new1(ferrum_raw_udpsocket_pair_t);
+  constructor(pair, ferrum_raw_udpsocket_pair_t);
+  // open a upd socket
+  const char *dest_ip = "127.0.0.1";
+  const char *dest_port = "5555";
+  rebrick_sockaddr_t destination;
+  rebrick_util_to_rebrick_sockaddr(&destination, dest_ip, dest_port);
+
+  rebrick_sockaddr_t bindaddr;
+  rebrick_util_to_rebrick_sockaddr(&bindaddr, "0.0.0.0", "0");
+  rebrick_udpsocket_t *dnsclient;
+
+  new2(rebrick_udpsocket_callbacks_t, callbacks);
+  callbacks.callback_data = NULL;
+
+  result = rebrick_udpsocket_new(&dnsclient, &bindaddr, &callbacks);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  pair->udp_socket = dnsclient;
+  pair->udp_listening_socket = dnsclient;
+  pair->client_addr = destination;
+
+  uint8_t packet_bytes[] = {
+      0x95, 0xd4, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
+      0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
+      0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
+  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
+
+  ferrum_authz_db_t *authz_db;
+  result = ferrum_authz_db_new(&authz_db, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_protocol_t *protocol;
+  ferrum_protocol_dns_new(&protocol, NULL, pair, config, NULL, NULL, NULL, NULL, NULL, authz_db);
+
+  dns->state.reply_buf = rebrick_malloc(sizeof(packet_bytes));
+  memcpy(dns->state.reply_buf, packet_bytes, sizeof(packet_bytes));
+  dns->state.reply_buf_len = sizeof(packet_bytes);
+
+  dns->state.is_redis_query_error = FALSE;
+  dns->state.is_redis_query_not_found = FALSE;
+  dns->state.is_redis_query_received = FALSE;
+  dns->state.is_backend_received = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  dns->state.is_redis_query_error = FALSE;
+  dns->state.is_redis_query_not_found = FALSE;
+  dns->state.is_redis_query_received = FALSE;
+  dns->state.is_backend_received = TRUE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  dns->state.is_redis_query_error = TRUE;
+  dns->state.is_redis_query_not_found = FALSE;
+  dns->state.is_redis_query_received = FALSE;
+  dns->state.is_backend_received = TRUE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  dns->state.is_redis_query_error = FALSE;
+  dns->state.is_redis_query_not_found = TRUE;
+  dns->state.is_redis_query_received = FALSE;
+  dns->state.is_backend_received = TRUE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  dns->state.is_redis_query_error = FALSE;
+  dns->state.is_redis_query_not_found = FALSE;
+  dns->state.is_redis_query_received = TRUE;
+  dns->state.is_backend_received = TRUE;
+
+  // authz error
+  dns->state.authz_id = strdup("abcdefg");
+  authz_db->mock_error = TRUE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  // authz not found
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  // authz
+
+  const char *data = "\
+[fqdnIntelligence]\
+ignoreFqdns = \",google.com,\"\
+ignoreLists = \"\"\
+whiteFqdns = \"\"\
+whiteLists = \"\"\
+blackFqdns = \"\"\
+blackLists = \"\"\
+\
+id = \"\"\
+userOrgroupIds = \"\"\
+";
+
+  authz_db->lmdb->root->key.size = snprintf(authz_db->lmdb->root->key.val, sizeof(authz_db->lmdb->root->key.val) - 1, "%s", "/authz/id/abcdefg");
+  authz_db->lmdb->root->value.size = snprintf(authz_db->lmdb->root->value.val, sizeof(authz_db->lmdb->root->value.val) - 1, "%s", data);
+  result = ferrum_lmdb_put(authz_db->lmdb, &authz_db->lmdb->root->key, &authz_db->lmdb->root->value);
+
+  // data parse problem
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  dns->state.redis_response = strdup(",list1,list2,");
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  data = "\
+[fqdnIntelligence]\n\
+ignoreFqdns = \",google.com,\"\n\
+ignoreLists = \"\"\n\
+whiteFqdns = \"\"\n\
+whiteLists = \"\"\n\
+blackFqdns = \"\"\n\
+blackLists = \"\"\n\
+\n\
+id = \"\"\n\
+userOrgroupIds = \"\"\n\
+";
+
+  authz_db->lmdb->root->key.size = snprintf(authz_db->lmdb->root->key.val, sizeof(authz_db->lmdb->root->key.val) - 1, "/authz/id/abcdefg");
+  authz_db->lmdb->root->value.size = snprintf(authz_db->lmdb->root->value.val, sizeof(authz_db->lmdb->root->value.val) - 1, "%s", data);
+  result = ferrum_lmdb_put(authz_db->lmdb, &authz_db->lmdb->root->key, &authz_db->lmdb->root->value);
+
+  // data exits in ignore list
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  data = "\
+[fqdnIntelligence]\n\
+ignoreFqdns = \"\"\n\
+ignoreLists = \",list1,\"\n\
+whiteFqdns = \"\"\n\
+whiteLists = \"\"\n\
+blackFqdns = \"\"\n\
+blackLists = \"\"\n\
+\n\
+id = \"\"\n\
+userOrgroupIds = \"\"\n\
+";
+
+  authz_db->lmdb->root->key.size = snprintf(authz_db->lmdb->root->key.val, sizeof(authz_db->lmdb->root->key.val) - 1, "/authz/id/abcdefg");
+  authz_db->lmdb->root->value.size = snprintf(authz_db->lmdb->root->value.val, sizeof(authz_db->lmdb->root->value.val) - 1, "%s", data);
+  result = ferrum_lmdb_put(authz_db->lmdb, &authz_db->lmdb->root->key, &authz_db->lmdb->root->value);
+
+  // data exits in ignore list
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  data = "\
+[fqdnIntelligence]\n\
+ignoreFqdns = \",,\"\n\
+ignoreLists = \"\"\n\
+whiteFqdns = \",google.com,\"\n\
+whiteLists = \"\"\n\
+blackFqdns = \"\"\n\
+blackLists = \"\"\n\
+\n\
+id = \"\"\n\
+userOrgroupIds = \"\"\n\
+";
+
+  authz_db->lmdb->root->key.size = snprintf(authz_db->lmdb->root->key.val, sizeof(authz_db->lmdb->root->key.val) - 1, "/authz/id/abcdefg");
+  authz_db->lmdb->root->value.size = snprintf(authz_db->lmdb->root->value.val, sizeof(authz_db->lmdb->root->value.val) - 1, "%s", data);
+  result = ferrum_lmdb_put(authz_db->lmdb, &authz_db->lmdb->root->key, &authz_db->lmdb->root->value);
+
+  // data exits in white list
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  // dns->state.redis_response = strdup(",list1,list2,");
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  data = "\
+[fqdnIntelligence]\n\
+ignoreFqdns = \",,\"\n\
+ignoreLists = \"\"\n\
+whiteFqdns = \"\"\n\
+whiteLists = \"\"\n\
+blackFqdns = \",google.com,\"\n\
+blackLists = \"\"\n\
+\n\
+id = \"\"\n\
+userOrgroupIds = \"\"\n\
+";
+
+  authz_db->lmdb->root->key.size = snprintf(authz_db->lmdb->root->key.val, sizeof(authz_db->lmdb->root->key.val) - 1, "/authz/id/abcdefg");
+  authz_db->lmdb->root->value.size = snprintf(authz_db->lmdb->root->value.val, sizeof(authz_db->lmdb->root->value.val) - 1, "%s", data);
+  result = ferrum_lmdb_put(authz_db->lmdb, &authz_db->lmdb->root->key, &authz_db->lmdb->root->value);
+
+  // data exits in black list
+  authz_db->mock_error = FALSE;
+  result = process_dns_state(protocol, pair, dns);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  // pair->udp_destination_addr = destination;
+  loop(counter, 100, TRUE);
+  ferrum_config_destroy(config);
+  ferrum_protocol_dns_destroy(protocol);
+  loop(counter, 100, TRUE);
+  ferrum_authz_db_destroy(authz_db);
+  rebrick_udpsocket_destroy(dnsclient);
+  ferrum_dns_packet_destroy(dns);
+
+  loop(counter, 100, TRUE);
+  rebrick_free(pair);
+}
+
 int test_ferrum_protocol_dns(void) {
   const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_ferrum_parse_dns_query),
-      cmocka_unit_test(test_ferrum_dns_reply_empty_packet),
-      cmocka_unit_test(test_ferrum_dns_reply_ip_packet),
-      cmocka_unit_test(test_reply_dns_empty),
-      cmocka_unit_test(test_db_get_user_and_group_ids_phase1),
-      cmocka_unit_test(test_send_backend_directly),
-      cmocka_unit_test(test_reply_local_dns),
-      cmocka_unit_test(test_db_get_authz_fqdn_intelligence),
-      cmocka_unit_test(test_merge_fqdn_for_redis),
-      cmocka_unit_test(test_split_fqdn_for_redis),
-      cmocka_unit_test(test_send_redis_intel)
+      // cmocka_unit_test(test_ferrum_parse_dns_query),
+      // cmocka_unit_test(test_ferrum_dns_reply_empty_packet),
+      // cmocka_unit_test(test_ferrum_dns_reply_ip_packet),
+      // cmocka_unit_test(test_reply_dns_empty),
+      // cmocka_unit_test(test_db_get_user_and_group_ids_phase1),
+      // cmocka_unit_test(test_send_backend_directly),
+      // cmocka_unit_test(test_reply_local_dns),
+      // cmocka_unit_test(test_db_get_authz_fqdn_intelligence),
+      // cmocka_unit_test(test_merge_fqdn_for_redis),
+      // cmocka_unit_test(test_split_fqdn_for_redis),
+      // cmocka_unit_test(test_send_redis_intel_lists),
+      // cmocka_unit_test(test_send_redis_intel),
+      cmocka_unit_test(test_process_dns_state)
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

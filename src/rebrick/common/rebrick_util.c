@@ -39,7 +39,8 @@ int rebrick_util_fqdn_endswith(const char *domainname, const char *search) {
   return 0;
 }
 // search abc in ,ab,abd,abc,
-int rebrick_util_str_includes(const char *src, const char *search, const char *splitter) {
+int rebrick_util_str_includes(const char *src, const char *search, const char *splitter, char **founded) {
+  *founded = NULL;
   if (!src || !search)
     return 0;
   if (*src == 0 && *search == 0)
@@ -56,6 +57,12 @@ int rebrick_util_str_includes(const char *src, const char *search, const char *s
     char *src_token = strsep(&dup_src, splitter);
     while (src_token) {
       if (!strcmp(search_token, src_token)) {
+        size_t len = strlen(src_token);
+        if (len) {
+          *founded = rebrick_malloc(len + 1);
+          fill_zero(*founded, len + 1);
+          strncpy(*founded, src_token, len);
+        }
         rebrick_free(backup_dup_src);
         rebrick_free(backup_dup_search);
         return 1;
@@ -68,7 +75,8 @@ int rebrick_util_str_includes(const char *src, const char *search, const char *s
   rebrick_free(backup_dup_search);
   return 0;
 }
-int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter) {
+int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter, char **founded) {
+  *founded = NULL;
   if (!src || !search)
     return 0;
   if (*src == 0 && *search == 0)
@@ -76,7 +84,7 @@ int rebrick_util_fqdn_includes(const char *src, const char *search, const char *
   if (*src == 0 || *search == 0)
     return 0;
   while (*search) {
-    int32_t result = rebrick_util_str_includes(src, search, splitter);
+    int32_t result = rebrick_util_str_includes(src, search, splitter, founded);
     if (result)
       return result;
     search++;

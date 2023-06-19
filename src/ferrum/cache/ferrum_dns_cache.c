@@ -306,7 +306,7 @@ int32_t ferrum_dns_cache_get_pageslist(ferrum_dns_cache_t *cache, ferrum_list_it
 int32_t ferrum_dns_cache_find(ferrum_dns_cache_t *cache, ferrum_dns_packet_t *refdns, ferrum_dns_cache_founded_t **founded) {
 
   int32_t result;
-  if (!cache || !refdns || !founded) {
+  if (!cache || !refdns || !founded || !refdns->query) {
     ferrum_log_fatal("cache or refdns or founded is null\n");
     return REBRICK_ERR_BAD_ARGUMENT;
   }

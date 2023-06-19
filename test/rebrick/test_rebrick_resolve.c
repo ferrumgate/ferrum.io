@@ -24,7 +24,7 @@ static int teardown(void **state) {
 }
 
 rebrick_sockaddr_t last_resolved_addr;
-int32_t resolved;
+static int32_t resolved;
 static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr, void *data) {
   unused(data);
   char current_time_str[32] = {0};

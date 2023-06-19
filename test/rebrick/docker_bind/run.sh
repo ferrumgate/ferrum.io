@@ -1,4 +1,4 @@
-docker stop bind
+docker stop bind || true
 
 docker run --rm -d \
   --name=bind \

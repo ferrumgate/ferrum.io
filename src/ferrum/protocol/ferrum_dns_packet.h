@@ -46,9 +46,14 @@ typedef struct ferrum_dns_packet {
     unsigned int is_backend_received : 1;
 
     struct ferrum_redis_dns_query *redis_query_list;
-    int32_t redis_query_list_len;
-    int32_t is_redis_query_error;
-    int32_t is_redis_query_not_found;
+    size_t redis_query_list_len;
+    unsigned int is_redis_query_error : 1;
+    unsigned int is_redis_query_not_found : 1;
+    unsigned int is_redis_query_sended : 1;
+    unsigned int is_redis_query_received : 1;
+    char *redis_response;
+    uint8_t *reply_buf;
+    size_t reply_buf_len;
 
   } state;
 

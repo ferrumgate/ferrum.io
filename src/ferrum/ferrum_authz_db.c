@@ -48,6 +48,8 @@ int32_t ferrum_authz_db_service_user_row_destroy(ferrum_authz_db_service_user_ro
 int32_t ferrum_authz_db_get_service_user_data(const ferrum_authz_db_t *authz_db, const char *service_id, ferrum_authz_db_service_user_row_t **row) {
 
   *row = NULL;
+  if (authz_db->mock_error)
+    return FERRUM_ERR_AUTHZ_DB;
   ferrum_lmdb_t *lmdb = authz_db->lmdb;
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authz/service/id/%s/user/list", service_id);
   int32_t result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
@@ -118,6 +120,9 @@ int32_t ferrum_authz_db_get_service_user_data(const ferrum_authz_db_t *authz_db,
 }
 
 int32_t ferrum_authz_db_get_service_user_update_time(const ferrum_authz_db_t *authz_db, const char *service_id, int64_t *update_time) {
+  *update_time = 0;
+  if (authz_db->mock_error)
+    return FERRUM_ERR_AUTHZ_DB;
   ferrum_lmdb_t *lmdb = authz_db->lmdb;
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authz/service/id/%s/user/list/updateTime", service_id);
   int32_t result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
@@ -147,6 +152,9 @@ int32_t ferrum_authz_db_authz_row_destroy(ferrum_authz_db_authz_row_t *row) {
 }
 
 int32_t ferrum_authz_db_get_authz_update_time(const ferrum_authz_db_t *authz_db, const char *authz_id, int64_t *update_time) {
+  *update_time = 0;
+  if (authz_db->mock_error)
+    return FERRUM_ERR_AUTHZ_DB;
   ferrum_lmdb_t *lmdb = authz_db->lmdb;
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authz/id/%s/updateTime", authz_id);
   int32_t result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
@@ -165,6 +173,9 @@ int32_t ferrum_authz_db_get_authz_update_time(const ferrum_authz_db_t *authz_db,
 }
 
 int32_t ferrum_authz_db_get_authz_data(const ferrum_authz_db_t *authz_db, const char *authz_id, ferrum_authz_db_authz_row_t **row) {
+  *row = NULL;
+  if (authz_db->mock_error)
+    return FERRUM_ERR_AUTHZ_DB;
   ferrum_lmdb_t *lmdb = authz_db->lmdb;
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/authz/id/%s", authz_id);
   int32_t result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);

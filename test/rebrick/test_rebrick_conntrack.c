@@ -34,7 +34,9 @@ static void test_rebrick_conntrack_get(void **start) {
   unused(start);
   new2(rebrick_conntrack_t, track);
   struct sockaddr_in peer;
+  fill_zero(&peer, sizeof(struct sockaddr_in));
   struct sockaddr_in local;
+  fill_zero(&local, sizeof(struct sockaddr_in));
   int32_t result = rebrick_conntrack_get(cast(&peer, struct sockaddr *), cast(&local, struct sockaddr *), 0, &track);
   assert_int_not_equal(result, REBRICK_SUCCESS);
 }

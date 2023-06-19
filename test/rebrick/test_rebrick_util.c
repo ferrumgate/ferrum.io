@@ -253,86 +253,124 @@ static void test_rebrick_util_fqdn_endswith(void **start) {
 
 static void test_rebrick_util_str_includes(void **start) {
   unused(start);
-
-  int32_t result = rebrick_util_str_includes(NULL, NULL, ",");
+  char *founded;
+  int32_t result = rebrick_util_str_includes(NULL, NULL, ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("abc", NULL, ",");
+  result = rebrick_util_str_includes("abc", NULL, ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("", "", ",");
+  result = rebrick_util_str_includes("", "", ",", &founded);
   assert_int_equal(result, 1);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("abc", "ab", ",");
+  result = rebrick_util_str_includes("abc", "ab", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("abc", "abc", ",");
+  result = rebrick_util_str_includes("abc", "abc", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc");
+  rebrick_free(founded);
 
-  result = rebrick_util_str_includes("abc", "abcd", ",");
+  result = rebrick_util_str_includes("abc", "abcd", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("abc,def", "abc", ",");
+  result = rebrick_util_str_includes("abc,def", "abc", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc");
+  rebrick_free(founded);
 
-  result = rebrick_util_str_includes("dabc,def", "abc", ",");
+  result = rebrick_util_str_includes("dabc,def", "abc", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes(",abc,def,", "abc", ",");
+  result = rebrick_util_str_includes(",abc,def,", "abc", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc");
+  rebrick_free(founded);
 
-  result = rebrick_util_str_includes(",def,abc", "abc", ",");
+  result = rebrick_util_str_includes(",def,abc", "abc", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc");
+  rebrick_free(founded);
 
-  result = rebrick_util_str_includes(",def,abc,eg", "ab,eg", ",");
+  result = rebrick_util_str_includes(",def,abc,eg", "ab,eg", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "eg");
+  rebrick_free(founded);
 
-  result = rebrick_util_str_includes(",def,abc,eg", "ab,egc", ",");
+  result = rebrick_util_str_includes(",def,abc,eg", "ab,egc", ",", &founded);
   assert_int_equal(result, 0);
-  result = rebrick_util_str_includes(",def,abc,eg", "", ",");
-  assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes("", "ab,de", ",");
+  result = rebrick_util_str_includes(",def,abc,eg", "", ",", &founded);
   assert_int_equal(result, 0);
-  result = rebrick_util_str_includes(",,,,", ",,", ",");
+  assert_null(founded);
+
+  result = rebrick_util_str_includes("", "ab,de", ",", &founded);
+  assert_int_equal(result, 0);
+  assert_null(founded);
+
+  result = rebrick_util_str_includes(",,,,", ",,", ",", &founded);
   assert_int_equal(result, 1);
+  assert_null(founded);
 
-  result = rebrick_util_str_includes(",ab,,,", "def", ",");
+  result = rebrick_util_str_includes(",ab,,,", "def", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 }
 
 static void test_rebrick_util_fqdn_includes(void **start) {
   unused(start);
 
-  int32_t result = rebrick_util_fqdn_includes(NULL, NULL, ",");
+  char *founded;
+  int32_t result = rebrick_util_fqdn_includes(NULL, NULL, ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_fqdn_includes("abc", NULL, ",");
+  result = rebrick_util_fqdn_includes("abc", NULL, ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_fqdn_includes("", "", ",");
+  result = rebrick_util_fqdn_includes("", "", ",", &founded);
   assert_int_equal(result, 1);
+  assert_null(founded);
 
-  result = rebrick_util_fqdn_includes("", "abc", ",");
+  result = rebrick_util_fqdn_includes("", "abc", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_fqdn_includes("abc", "abc", ",");
+  result = rebrick_util_fqdn_includes("abc", "abc", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc");
+  rebrick_free(founded);
 
-  result = rebrick_util_fqdn_includes("abc", "abcd", ",");
+  result = rebrick_util_fqdn_includes("abc", "abcd", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 
-  result = rebrick_util_fqdn_includes("abc.com", "abc.com", ",");
+  result = rebrick_util_fqdn_includes("abc.com", "abc.com", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc.com");
+  rebrick_free(founded);
 
-  result = rebrick_util_fqdn_includes("abc.com,def.com", "abc.com", ",");
+  result = rebrick_util_fqdn_includes("abc.com,def.com", "abc.com", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "abc.com");
+  rebrick_free(founded);
 
-  result = rebrick_util_fqdn_includes("com,def.com", "abc.com", ",");
+  result = rebrick_util_fqdn_includes("com,def.com", "abc.com", ",", &founded);
   assert_int_equal(result, 1);
+  assert_string_equal(founded, "com");
+  rebrick_free(founded);
 
-  result = rebrick_util_fqdn_includes("com2,def.com", "abc.com", ",");
+  result = rebrick_util_fqdn_includes("com2,def.com", "abc.com", ",", &founded);
   assert_int_equal(result, 0);
+  assert_null(founded);
 }
 
 int test_rebrick_util(void) {

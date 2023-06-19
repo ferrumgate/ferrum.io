@@ -32,6 +32,23 @@
         "ferrum_dns_packet.h": "c",
         "type_traits": "c",
         "ferrum_track_db.h": "c",
-        "ferrum_authz_db.h": "c"
+        "ferrum_authz_db.h": "c",
+        "array": "c",
+        "atomic": "c",
+        "*.tcc": "c",
+        "chrono": "c",
+        "cmath": "c",
+        "functional": "c",
+        "iterator": "c",
+        "memory_resource": "c",
+        "algorithm": "c",
+        "random": "c",
+        "limits": "c",
+        "ostream": "c",
+        "ratio": "c",
+        "streambuf": "c",
+        "string_view": "c",
+        "tuple": "c",
+        "utility": "c"
     }
 }

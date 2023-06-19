@@ -150,7 +150,7 @@ int main() {
   }
 
   ferrum_redis_t *redis_intel;
-  result = ferrum_redis_new(&redis_intel, config->redis_intel.addr_str, config->redis_intel.port_int, config->redis_intel.pass, 5000, 500);
+  result = ferrum_redis_new(&redis_intel, config->redis_intel.addr_str, config->redis_intel.port_int, config->redis_intel.pass, 5000, 300);
   if (result) {
     ferrum_log_fatal("redis intel create failed:%d\n", result);
     rebrick_kill_current_process(result);

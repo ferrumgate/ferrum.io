@@ -16,6 +16,6 @@ typedef struct ferrum_dns_db {
 
 int32_t ferrum_dns_db_new(ferrum_dns_db_t **dns, ferrum_config_t *config);
 int32_t ferrum_dns_db_destroy(ferrum_dns_db_t *dns);
-int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char fqdn[FERRUM_DNS_MAX_FQDN_LEN], char ip[REBRICK_IP_STR_LEN]);
+int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char *fqdn, char ip[REBRICK_IP_STR_LEN]);
 
 #endif

@@ -100,14 +100,16 @@ int32_t rebrick_resolve_sync(const char *domain, rebrick_resolve_type_t type,
     // rebrick_log_error("%s resolve failed:%s for type:%s\n", type == A ? "A" : "AAAA", domain, gai_strerror(res));
     return REBRICK_ERR_RESOLV;
   }
+  size_t tcounter = 0;
   for (tmp = result; tmp != NULL; tmp = tmp->ai_next)
-    (*len)++;
-  rebrick_sockaddr_t *ptraddr = new_array(rebrick_sockaddr_t, *len);
+    tcounter++;
+  rebrick_sockaddr_t *ptraddr = new_array(rebrick_sockaddr_t, tcounter);
   size_t counter = 0;
   for (tmp = result; tmp != NULL; tmp = tmp->ai_next) {
     rebrick_util_addr_to_rebrick_addr(tmp->ai_addr, ptraddr + (counter++));
   }
   freeaddrinfo(result);
   *addr = ptraddr;
+  *len = tcounter;
   return REBRICK_SUCCESS;
 }
