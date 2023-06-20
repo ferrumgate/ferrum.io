@@ -56,6 +56,7 @@ typedef struct ferrum_dns_packet {
     size_t reply_buf_len;
 
   } state;
+  size_t ref_count;
 
 } ferrum_dns_packet_t;
 
@@ -71,6 +72,12 @@ typedef struct ferrum_redis_dns_query {
   unsigned int is_lists_received : 1;
 
 } ferrum_redis_dns_query_t;
+
+#define ferrum_dns_packet_new(x) \
+  new4(ferrum_dns_packet_t, x)   \
+      x->ref_count++;
+
+#define ferrum_dns_packet_ref_increment(x) x->ref_count++
 
 int32_t ferrum_dns_packet_destroy(ferrum_dns_packet_t *dns);
 uint32_t ferrum_dns_packet_crc(ferrum_dns_packet_t *dns);

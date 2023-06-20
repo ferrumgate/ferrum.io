@@ -46,3 +46,31 @@ void ferrum_write_activity_log_raw(const ferrum_syslog_t *syslog, char *logid, c
                         c_ip, c_port, is_tcp ? "tcp" : "udp", d_ip, d_port);
   ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
 }
+
+void ferrum_write_activity_log_dns(const ferrum_syslog_t *syslog, const char *logid, const char *protocol,
+                                   const rebrick_sockaddr_t *client,
+                                   const char *client_ip, const char *client_port, int32_t is_tcp,
+                                   const rebrick_sockaddr_t *dest, char *dest_ip, char *dest_port,
+                                   enum ferrum_activity_log_dns_type dnstype,
+                                   const char *query,
+                                   enum ferrum_dns_status status,
+                                   const char *category_id,
+                                   const char *authz_id,
+                                   const char *list_id) {
+  unused(syslog);
+  unused(logid);
+  unused(protocol);
+  unused(client);
+  unused(client_ip);
+  unused(client_port);
+  unused(is_tcp);
+  unused(dest);
+  unused(dest_ip);
+  unused(dest_port);
+  unused(dnstype);
+  unused(query);
+  unused(status);
+  unused(category_id);
+  unused(authz_id);
+  unused(list_id);
+}

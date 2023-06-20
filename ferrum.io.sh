@@ -83,12 +83,36 @@ if [ ! -z "$INSTANCE_ID" ]; then
 fi
 echo "instance id $OPT_INSTANCE_ID"
 
+OPT_DB_FOLDER=""
+if [ ! -z "$DB_FOLDER" ]; then
+    OPT_DB_FOLDER=$DB_FOLDER
+fi
+echo "db folder $OPT_DB_FOLDER"
+if [ ! -z "$OPT_DB_FOLDER" ]; then
+    echo "db folder $OPT_DB_FOLDER"
+    mkdir -p $OPT_DB_FOLDER
+fi
+
 OPT_POLICY_DB_FOLDER="/var/lib/ferrumgate/policy"
 if [ ! -z "$POLICY_DB_FOLDER" ]; then
     OPT_POLICY_DB_FOLDER=$POLICY_DB_FOLDER
 fi
 echo "policy db folder $OPT_POLICY_DB_FOLDER"
 mkdir -p $OPT_POLICY_DB_FOLDER
+
+OPT_DNS_TRACK_FOLDER="/var/lib/ferrumgate/track"
+if [ ! -z "$DNS_DB_FOLDER" ]; then
+    OPT_DNS_TRACK_FOLDER=$TRACK_DB_FOLDER
+fi
+echo "dns db folder $OPT_DNS_TRACK_FOLDER"
+mkdir -p $OPT_DNS_TRACK_FOLDER
+
+OPT_AUTHZ_TRACK_FOLDER="/var/lib/ferrumgate/authz"
+if [ ! -z "$DNS_DB_FOLDER" ]; then
+    OPT_AUTHZ_TRACK_FOLDER=$AUTHZ_DB_FOLDER
+fi
+echo "dns db folder $OPT_AUTHZ_TRACK_FOLDER"
+mkdir -p $OPT_AUTHZ_TRACK_FOLDER
 
 OPT_DNS_DB_FOLDER="/var/lib/ferrumgate/dns"
 if [ ! -z "$DNS_DB_FOLDER" ]; then
@@ -131,7 +155,11 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     SERVICE_ID=$OPT_SERVICE_ID \
     INSTANCE_ID=$OPT_INSTANCE_ID \
     SOCKET_WRITE_BUF_SIZE=$OPT_SOCKET_WRITE_BUF_SIZE \
-    POLICY_DB_FOLDER=$OPT_POLICY_DB_FOLDER ./src/ferrum.io
+    DB_FOLDER=$OPT_DB_FOLDER \
+    POLICY_DB_FOLDER=$OPT_POLICY_DB_FOLDER \
+    DNS_DB_FOLDER=$OPT_DNS_DB_FOLDER \
+    TRACK_DB_FOLDER=$OPT_TRACH_DB_FOLDER \
+    AUTHZ_DB_FOLDER=$OPT_AUTHZ_DB_FOLDER ./src/ferrum.io
 
 if ls $CORE_FOLDER/*core* 1>/dev/null 2>&1; then
     folder=$(((RANDOM % 1000000) + 1))

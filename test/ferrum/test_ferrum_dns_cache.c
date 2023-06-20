@@ -50,7 +50,7 @@ static void dns_cache_page_add_item() {
   rebrick_sockaddr_t client;
   rebrick_util_ip_port_to_addr("192.168.1.100", "8080", &client);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
 
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
@@ -69,7 +69,7 @@ static void dns_cache_page_add_item() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket2->source = client;
@@ -87,7 +87,7 @@ static void dns_cache_page_add_item() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket3 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket3);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket3);
   assert_int_equal(result, 0);
   dnspacket3->source = client;
@@ -135,8 +135,7 @@ static void dns_cache_page_find_item_and_remove() {
   rebrick_sockaddr_t client;
   rebrick_util_ip_port_to_addr("192.168.1.100", "8080", &client);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
-  constructor(dnspacket, ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -150,8 +149,7 @@ static void dns_cache_page_find_item_and_remove() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
-  constructor(dnspacket2, ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -165,8 +163,7 @@ static void dns_cache_page_find_item_and_remove() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket3 = new1(ferrum_dns_packet_t);
-  constructor(dnspacket3, ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket3);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket3);
   assert_int_equal(result, 0);
   dnspacket3->source = client;
@@ -209,7 +206,7 @@ static void dns_cache_page_find_item_and_remove() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket4 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket4);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket4);
   assert_int_equal(result, 0);
   free(testdata);
@@ -222,7 +219,7 @@ static void dns_cache_page_find_item_and_remove() {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket5 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket5);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket5);
   assert_int_equal(result, 0);
   dnspacket5->source = client;
@@ -276,7 +273,7 @@ static void qcache_object_create(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -291,7 +288,7 @@ static void qcache_object_create(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata2, &datalen2);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata2), datalen2, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket2->source = client;
@@ -339,7 +336,7 @@ static void qcache_object_create_multipage(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -354,7 +351,7 @@ static void qcache_object_create_multipage(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata2, &datalen2);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata2), datalen2, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket2->source = client;
@@ -405,7 +402,7 @@ static void qcache_object_find_remove(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -422,7 +419,7 @@ static void qcache_object_find_remove(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata2, &datalen2);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata2), datalen2, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket2->source = client;
@@ -453,7 +450,7 @@ static void qcache_object_find_remove(void **start) {
   if (result)
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata2, &datalen2);
 
-  ferrum_dns_packet_t *dnspacket3 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket3);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata2), datalen2, dnspacket3);
   dnspacket3->source = server;
   free(testdata2);
@@ -531,7 +528,7 @@ void qcache_remove_timedoutdata(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -561,7 +558,7 @@ void qcache_remove_timedoutdata(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket2 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket2);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket2);
   assert_int_equal(result, 0);
   dnspacket2->source = client;
@@ -591,7 +588,7 @@ void qcache_remove_timedoutdata(void **start) {
     result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket3 = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket3);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket3);
   assert_int_equal(result, 0);
   dnspacket3->source = client;
@@ -612,7 +609,7 @@ void qcache_remove_timedoutdata(void **start) {
       result = rebrick_util_file_read_allbytes("./data/dnspacket2.packet", &testdata, &datalen);
     assert_int_equal(result, 0);
 
-    ferrum_dns_packet_t *dnspacket4 = new1(ferrum_dns_packet_t);
+    ferrum_dns_packet_new(dnspacket4);
     result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket4);
     assert_int_equal(result, 0);
     dnspacket4->source = client;
@@ -651,7 +648,7 @@ __attribute__((unused)) static void qcache_object_performance_test(void **start)
     result = rebrick_util_file_read_allbytes("./data/dnspacket1.packet", &testdata, &datalen);
   assert_int_equal(result, 0);
 
-  ferrum_dns_packet_t *dnspacket = new1(ferrum_dns_packet_t);
+  ferrum_dns_packet_new(dnspacket);
   result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, dnspacket);
   assert_int_equal(result, 0);
   dnspacket->source = client;
@@ -674,7 +671,7 @@ __attribute__((unused)) static void qcache_object_performance_test(void **start)
   ferrum_dns_packet_t **dnslist = rebrick_malloc(sizeof(ferrum_dns_packet_t *) * TEST_SIZE);
   memset(dnslist, 0, sizeof(ferrum_dns_packet_t *) * TEST_SIZE);
   for (i = 0; i < TEST_SIZE; ++i) {
-    ferrum_dns_packet_t *ptr = new1(ferrum_dns_packet_t);
+    ferrum_dns_packet_new(ptr);
     dnslist[i] = ptr;
 
     result = ferrum_dns_packet_from(cast_to_uint8ptr(testdata), datalen, ptr);

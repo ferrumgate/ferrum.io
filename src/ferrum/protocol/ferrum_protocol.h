@@ -54,6 +54,8 @@ typedef struct ferrum_protocol {
   struct {
     char *user_id;
     char *group_ids;
+    char tun_id[FERRUM_ID_BIG_STR_LEN];
+    uint32_t client_id;
     int64_t last_check;
   } identity;
 

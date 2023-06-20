@@ -2,10 +2,11 @@
 int32_t ferrum_dns_db_new(ferrum_dns_db_t **dns, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, config->dns_db_folder, "dns", 3, 1073741824);
+  const char *db_folder = config->db_folder[0] ? config->db_folder : config->dns_db_folder;
+  result = ferrum_lmdb_new(&lmdb, db_folder, "dns", 24, 1073741824);
   if (result)
     return result;
-  ferrum_log_info("dns lmdb folder:%s\n", config->dns_db_folder);
+  ferrum_log_info("dns lmdb folder:%s\n", db_folder);
 
   ferrum_dns_db_t *tmp = new1(ferrum_dns_db_t);
   if (!tmp) {

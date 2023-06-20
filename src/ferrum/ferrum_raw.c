@@ -272,6 +272,9 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     ferrum_tcp_socket_pair_free(pair);
     return;
   }
+  // we need in protocol codes
+  pair->protocol->identity.client_id = presult.client_id;
+  strncpy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
 
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
@@ -279,7 +282,8 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   destination->data1 = pair;
 
   // event log, policy is allowed, log and continue
-  ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
+  if (!strcmp(pair->protocol->config->protocol_type, "raw")) // only raw protocol logs
+    ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
 }
 
 static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {

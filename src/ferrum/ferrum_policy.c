@@ -3,9 +3,11 @@
 int32_t ferrum_policy_new(ferrum_policy_t **policy, ferrum_config_t *config) {
   int32_t result;
   ferrum_lmdb_t *lmdb;
-  result = ferrum_lmdb_new(&lmdb, config->db_folder[0] ? config->db_folder : config->policy_db_folder, "policy", 24, 1073741824);
+  const char *db_folder = config->db_folder[0] ? config->db_folder : config->policy_db_folder;
+  result = ferrum_lmdb_new(&lmdb, db_folder, "policy", 24, 1073741824);
   if (result)
     return result;
+  ferrum_log_info("policy lmdb folder:%s\n", db_folder);
 
   ferrum_policy_t *tmp = new1(ferrum_policy_t);
   if (!tmp) {

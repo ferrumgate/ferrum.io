@@ -38,8 +38,8 @@ extern int test_ferrum_authz_db();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
-  /*
-    if (test_rebrick_util())
+
+  /*   if (test_rebrick_util())
       exit(1);
 
     if (test_rebrick_filestream())
@@ -105,7 +105,7 @@ int main() {
     if (test_ferrum_authz_db()) {
       exit(1);
     }
-  */
+   */
   if (test_ferrum_protocol_dns()) {
     exit(1);
   }

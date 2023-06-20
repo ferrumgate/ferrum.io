@@ -39,7 +39,8 @@ OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcp
 			../src/rebrick/http/rebrick_http2socket.o  ../src/rebrick/http/rebrick_websocket.o \
 			../src/rebrick/file/rebrick_filestream.o ../src/rebrick/netfilter/rebrick_conntrack.o
 
-OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis.o \
+
+OBJSTESTLIB_FERRUM = ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis.o \
 					./ferrum/test_ferrum_config.o ../src/ferrum/ferrum_config.o \
 					./ferrum/test_ferrum_raw.o ../src/ferrum/ferrum_raw.o \
 					./ferrum/test_ferrum_policy.o ../src/ferrum/ferrum_policy.o \
@@ -52,6 +53,11 @@ OBJSTEST_FERRUM = test.o ./ferrum/test_ferrum_redis.o ../src/ferrum/ferrum_redis
 					./ferrum/test_ferrum_dns_cache.o ../src/ferrum/cache/ferrum_dns_cache.o \
 					./ferrum/test_ferrum_track_db.o ../src/ferrum/ferrum_track_db.o \
 					./ferrum/test_ferrum_authz_db.o ../src/ferrum/ferrum_authz_db.o
+
+
+OBJSTEST_FERRUM = test.o 
+
+OBJSTESTLMDB_FERRUM = testlmdb.o 
 					
 
 
@@ -85,8 +91,14 @@ checkvalgrind:
 buildtest:
 	@cd $(TEST) && make TEST=TRUE -f ../Makefile test
 
-test : $(OBJSTEST_REBRICK) $(OBJSTEST_FERRUM)
-	$(CC) -o ferrum.io.test  $(OBJSTEST_REBRICK) $(OBJSTEST_FERRUM) $(LDFLAGSTEST)
+
+lmdb:
+	@cd $(TEST) && make TEST=TRUE -f ../Makefile testlmdb
+testlmdb : $(OBJSTEST_REBRICK) $(OBJSTESTLIB_FERRUM) $(OBJSTESTLMDB_FERRUM)
+	$(CC) -o ferrum.io.lmdb  $(OBJSTEST_REBRICK) $(OBJSTESTLIB_FERRUM) $(OBJSTESTLMDB_FERRUM) $(LDFLAGSTEST)
+
+test : $(OBJSTEST_REBRICK) $(OBJSTESTLIB_FERRUM) $(OBJSTEST_FERRUM)
+	$(CC) -o ferrum.io.test  $(OBJSTEST_REBRICK) $(OBJSTESTLIB_FERRUM) $(OBJSTEST_FERRUM) $(LDFLAGSTEST)
 testrun: test
 	LD_LIBRARY_PATH=$(shell pwd)/../external/libs/lib  SSLKEYLOGFILE=/home/hframed/ssl-key.log  ./ferrum.io.test
 testrunvalgrind: test

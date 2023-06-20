@@ -48,7 +48,7 @@ static void test_ferrum_parse_dns_query(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, 55, dns);
   assert_int_equal(dns->query_id, 0x95d4);
   assert_int_equal(dns->query_class, LDNS_RR_CLASS_IN);
@@ -338,7 +338,7 @@ static void test_send_backend_directly(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
   ferrum_protocol_t *protocol;
@@ -400,7 +400,7 @@ static void test_reply_local_dns(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
   ferrum_dns_db_t *dns_db;
@@ -631,7 +631,7 @@ static void test_send_redis_intel_lists(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
   ferrum_dns_db_t *dns_db;
@@ -804,7 +804,7 @@ static void test_send_redis_intel(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
   ferrum_dns_db_t *dns_db;
@@ -933,7 +933,7 @@ static void test_process_dns_state(void **start) {
       0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
       0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
   ferrum_authz_db_t *authz_db;

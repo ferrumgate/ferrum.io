@@ -49,6 +49,7 @@
         "streambuf": "c",
         "string_view": "c",
         "tuple": "c",
-        "utility": "c"
+        "utility": "c",
+        "ferrum_lmdb.h": "c"
     }
 }
