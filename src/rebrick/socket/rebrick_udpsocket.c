@@ -28,8 +28,8 @@ static void on_send(uv_udp_send_t *req, int status) {
 }
 int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_sockaddr_t *dstaddr, uint8_t *buffer, size_t len, rebrick_clean_func_t func) {
 
-  char dst_ip[REBRICK_IP_STR_LEN];
-  char dst_port[REBRICK_PORT_STR_LEN];
+  char dst_ip[REBRICK_IP_STR_LEN] = {0};
+  char dst_port[REBRICK_PORT_STR_LEN] = {0};
   int32_t result;
   if (uv_is_closing(cast(&socket->handle.udp, uv_handle_t *))) {
     return REBRICK_ERR_IO_CLOSING;

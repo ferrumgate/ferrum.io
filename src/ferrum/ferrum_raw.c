@@ -656,7 +656,8 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     rebrick_log_debug("socket_count %d\n", raw->socket_count);
 
     // event log and continue
-    ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
+    if (!strcmp(raw->config->protocol_type, "raw"))
+      ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
 
   } else {
     pair->last_used_time = rebrick_util_micro_time();

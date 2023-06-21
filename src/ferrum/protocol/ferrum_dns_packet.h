@@ -44,6 +44,7 @@ typedef struct ferrum_dns_packet {
     char *authz_id;
     unsigned int is_backend_sended : 1;
     unsigned int is_backend_received : 1;
+    unsigned int is_client_replied : 1;
 
     struct ferrum_redis_dns_query *redis_query_list;
     size_t redis_query_list_len;

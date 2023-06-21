@@ -504,11 +504,28 @@ int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
   unused(current_time_str);
   if (!url || !addr)
     return REBRICK_ERR_BAD_ARGUMENT;
+
+  rebrick_linked_item_t *ptrlist = rebrick_util_create_linked_items(url, ":");
+  size_t ptrlistcount = rebrick_util_linked_item_count(ptrlist);
+  // check if host is ip
+  if (ptrlistcount) {
+    char port[16] = {0};
+    if (ptrlistcount > 1)
+      snprintf(port, sizeof(port) - 1, "%s", rebrick_util_linked_item_next(ptrlist, 1)->data);
+    else
+      snprintf(port, sizeof(port) - 1, "%d", defaultport);
+    rebrick_sockaddr_t tmp;
+    int32_t result = rebrick_util_ip_port_to_addr(cast_to_const_charptr(ptrlist->data), port, &tmp);
+    if (!result) {
+      memcpy(addr, &tmp, sizeof(rebrick_sockaddr_t));
+      rebrick_util_linked_item_destroy(ptrlist);
+      return REBRICK_SUCCESS;
+    }
+  }
+
   rebrick_sockaddr_t *addrlist;
   size_t addrlist_len;
   fill_zero(addr, sizeof(rebrick_sockaddr_t));
-  rebrick_linked_item_t *ptrlist = rebrick_util_create_linked_items(url, ":");
-  size_t ptrlistcount = rebrick_util_linked_item_count(ptrlist);
   int32_t resolved_type = AAAA;
   if (ptrlistcount) {
     int32_t result = rebrick_resolve_sync(cast_to_const_charptr(ptrlist->data),

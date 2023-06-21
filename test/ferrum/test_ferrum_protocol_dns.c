@@ -940,8 +940,12 @@ static void test_process_dns_state(void **start) {
   result = ferrum_authz_db_new(&authz_db, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_syslog_t *syslog;
+  result = ferrum_syslog_new(&syslog, config);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, pair, config, NULL, NULL, NULL, NULL, NULL, authz_db);
+  ferrum_protocol_dns_new(&protocol, NULL, pair, config, NULL, syslog, NULL, NULL, NULL, authz_db);
 
   dns->state.reply_buf = rebrick_malloc(sizeof(packet_bytes));
   memcpy(dns->state.reply_buf, packet_bytes, sizeof(packet_bytes));
@@ -1113,6 +1117,7 @@ userOrgroupIds = \"\"\n\
   ferrum_authz_db_destroy(authz_db);
   rebrick_udpsocket_destroy(dnsclient);
   ferrum_dns_packet_destroy(dns);
+  ferrum_syslog_destroy(syslog);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);

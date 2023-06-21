@@ -526,20 +526,7 @@
    ...
 }
 
-{
-   syslog-write proble-15
-   Memcheck:Param
-   sendmsg(mmsg[0].msg_hdr.msg_name)
-   fun:syscall
-   fun:uv__sendmmsg
-   fun:uv__udp_sendmmsg
-   fun:uv__udp_sendmsg
-   fun:uv__udp_send
-   fun:uv_udp_send
-   fun:rebrick_udpsocket_write
-   fun:ferrum_syslog_write
-   ...
-}
+
 
 {
    ferrum_protocol_dns-16
@@ -606,6 +593,21 @@
    fun:__tz_convert
    fun:ctime_r
    fun:rebrick_util_time_r
+   ...
+}
+
+{
+   syslog-write proble-15
+   Memcheck:Param
+   sendmsg(mmsg[0].msg_hdr.msg_name)
+   fun:syscall
+   fun:uv__sendmmsg
+   fun:uv__udp_sendmmsg
+   fun:uv__udp_sendmsg
+   fun:uv__udp_send
+   fun:uv_udp_send
+   fun:rebrick_udpsocket_write
+   fun:ferrum_syslog_write
    ...
 }
 

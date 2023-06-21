@@ -78,7 +78,7 @@
                 },
                 {
                     "name": "SYSLOG_HOST",
-                    "value": "localhost:9292"
+                    "value": "172.0.0.1:9292"
                 },
                 {
                     "name": "DISABLE_POLICY",
