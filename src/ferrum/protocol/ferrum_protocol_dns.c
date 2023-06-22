@@ -708,6 +708,7 @@ int32_t send_redis_intel(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair_
     if (result) {
       ferrum_log_error("redis cmd create failed %d\n", result);
       q->is_error = TRUE;
+      dns->state.is_redis_query_error = TRUE;
       continue;
     }
     char cmd_str[1024] = {0};
@@ -717,6 +718,7 @@ int32_t send_redis_intel(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair_
       ferrum_log_error("redis key search send failed\n", result);
       ferrum_redis_cmd_destroy(cmd);
       q->is_error = TRUE;
+      dns->state.is_redis_query_error = TRUE;
       continue;
     }
     q->is_key_sended = TRUE;
@@ -985,6 +987,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
 
   result = send_redis_intel(protocol, pair, dns); // dont care if fails
   if (result) {                                   // sending redis and backend failed
+    ferrum_log_debug("fqdn %s redis failed\n");
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_dns_packet_destroy(dns);
     return result;
