@@ -33,6 +33,7 @@ extern int test_ferrum_protocol_dns();
 extern int test_ferrum_dns_db();
 extern int test_ferrum_dns_cache_page();
 extern int test_ferrum_dns_cache();
+extern int test_ferrum_cache();
 extern int test_ferrum_track_db();
 extern int test_ferrum_authz_db();
 int main() {
@@ -97,6 +98,10 @@ int main() {
   }
 
   if (test_ferrum_dns_cache()) {
+    exit(1);
+  }
+
+  if (test_ferrum_cache()) {
     exit(1);
   }
 

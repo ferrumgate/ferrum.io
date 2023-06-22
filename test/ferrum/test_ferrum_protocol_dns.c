@@ -64,7 +64,7 @@ int32_t ferrum_dns_reply_empty_packet(ferrum_dns_packet_t *dns, ldns_pkt_rcode r
 static void test_ferrum_dns_reply_empty_packet(void **start) {
   unused(start);
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
 
   dns->query_id = 0xc550;
   dns->query_class = LDNS_RR_CLASS_IN;
@@ -110,7 +110,7 @@ int32_t ferrum_dns_reply_ip_packet(ferrum_dns_packet_t *dns, const char *ip, uin
 static void test_ferrum_dns_reply_ip_packet(void **start) {
   unused(start);
 
-  new4(ferrum_dns_packet_t, dns);
+  ferrum_dns_packet_new(dns);
   dns->query_id = 0xc550;
   dns->query_class = LDNS_RR_CLASS_IN;
   dns->query_type = LDNS_RR_TYPE_A;
@@ -174,7 +174,8 @@ static void test_reply_dns_empty(void **start) {
   rebrick_udpsocket_new(&socket, &bind, &callback);
   pair.udp_listening_socket = socket;
   loop(counter, 100, TRUE);
-  new4(ferrum_dns_packet_t, dns);
+
+  ferrum_dns_packet_new(dns);
 
   dns->query_id = 0xc550;
   dns->query_class = LDNS_RR_CLASS_IN;
@@ -246,8 +247,12 @@ static void test_db_get_user_and_group_ids_phase1(void **start) {
   result = ferrum_track_db_new(&track_db, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, NULL, track_db, authz_db);
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, NULL, track_db, authz_db, cache);
   track_db->lmdb->mock_error = TRUE;
   ferrum_lmdb_t *lmdb1;
   result = ferrum_lmdb_new(&lmdb1, folder, "track", 0, 0);
@@ -295,6 +300,7 @@ static void test_db_get_user_and_group_ids_phase1(void **start) {
   ferrum_track_db_destroy(track_db);
   ferrum_lmdb_destroy(lmdb1);
   ferrum_lmdb_destroy(lmdb2);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
 }
@@ -341,8 +347,12 @@ static void test_send_backend_directly(void **start) {
   ferrum_dns_packet_new(dns);
   ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), dns);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, NULL, NULL, NULL);
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, NULL, NULL, NULL, cache);
 
   loop(counter, 100, TRUE);
   result = send_backend_directly(protocol, pair, dns, packet_bytes, sizeof(packet_bytes));
@@ -355,6 +365,7 @@ static void test_send_backend_directly(void **start) {
 
   rebrick_udpsocket_destroy(dnsclient);
   ferrum_dns_packet_destroy(dns);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);
@@ -407,8 +418,12 @@ static void test_reply_local_dns(void **start) {
   result = ferrum_dns_db_new(&dns_db, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL);
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL, cache);
 
   loop(counter, 100, TRUE);
   // AAAA
@@ -460,6 +475,7 @@ static void test_reply_local_dns(void **start) {
   rebrick_udpsocket_destroy(dnsclient);
   ferrum_dns_packet_destroy(dns);
   ferrum_dns_db_destroy(dns_db);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);
@@ -641,8 +657,12 @@ static void test_send_redis_intel_lists(void **start) {
   ferrum_redis_t *redis;
   result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1000);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL);
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL, cache);
   protocol->redis_intel = redis;
 
   flush_redis(redis);
@@ -759,6 +779,7 @@ static void test_send_redis_intel_lists(void **start) {
   ferrum_dns_packet_destroy(dns);
   ferrum_dns_db_destroy(dns_db);
   ferrum_redis_destroy(redis);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);
@@ -814,8 +835,12 @@ static void test_send_redis_intel(void **start) {
   ferrum_redis_t *redis;
   result = ferrum_redis_new(&redis, "localhost", 6379, NULL, 1000, 1000);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL);
+  ferrum_protocol_dns_new(&protocol, NULL, NULL, config, NULL, NULL, NULL, dns_db, NULL, NULL, cache);
   protocol->redis_intel = redis;
 
   flush_redis(redis);
@@ -886,6 +911,7 @@ static void test_send_redis_intel(void **start) {
   ferrum_dns_packet_destroy(dns);
   ferrum_dns_db_destroy(dns_db);
   ferrum_redis_destroy(redis);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);
@@ -944,8 +970,12 @@ static void test_process_dns_state(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_protocol_t *protocol;
-  ferrum_protocol_dns_new(&protocol, NULL, pair, config, NULL, syslog, NULL, NULL, NULL, authz_db);
+  ferrum_protocol_dns_new(&protocol, NULL, pair, config, NULL, syslog, NULL, NULL, NULL, authz_db, cache);
 
   dns->state.reply_buf = rebrick_malloc(sizeof(packet_bytes));
   memcpy(dns->state.reply_buf, packet_bytes, sizeof(packet_bytes));
@@ -1118,6 +1148,7 @@ userOrgroupIds = \"\"\n\
   rebrick_udpsocket_destroy(dnsclient);
   ferrum_dns_packet_destroy(dns);
   ferrum_syslog_destroy(syslog);
+  ferrum_cache_destroy(cache);
 
   loop(counter, 100, TRUE);
   rebrick_free(pair);
@@ -1125,18 +1156,18 @@ userOrgroupIds = \"\"\n\
 
 int test_ferrum_protocol_dns(void) {
   const struct CMUnitTest tests[] = {
-      // cmocka_unit_test(test_ferrum_parse_dns_query),
-      // cmocka_unit_test(test_ferrum_dns_reply_empty_packet),
-      // cmocka_unit_test(test_ferrum_dns_reply_ip_packet),
-      // cmocka_unit_test(test_reply_dns_empty),
-      // cmocka_unit_test(test_db_get_user_and_group_ids_phase1),
-      // cmocka_unit_test(test_send_backend_directly),
-      // cmocka_unit_test(test_reply_local_dns),
-      // cmocka_unit_test(test_db_get_authz_fqdn_intelligence),
-      // cmocka_unit_test(test_merge_fqdn_for_redis),
-      // cmocka_unit_test(test_split_fqdn_for_redis),
-      // cmocka_unit_test(test_send_redis_intel_lists),
-      // cmocka_unit_test(test_send_redis_intel),
+      cmocka_unit_test(test_ferrum_parse_dns_query),
+      cmocka_unit_test(test_ferrum_dns_reply_empty_packet),
+      cmocka_unit_test(test_ferrum_dns_reply_ip_packet),
+      cmocka_unit_test(test_reply_dns_empty),
+      cmocka_unit_test(test_db_get_user_and_group_ids_phase1),
+      cmocka_unit_test(test_send_backend_directly),
+      cmocka_unit_test(test_reply_local_dns),
+      cmocka_unit_test(test_db_get_authz_fqdn_intelligence),
+      cmocka_unit_test(test_merge_fqdn_for_redis),
+      cmocka_unit_test(test_split_fqdn_for_redis),
+      cmocka_unit_test(test_send_redis_intel_lists),
+      cmocka_unit_test(test_send_redis_intel),
       cmocka_unit_test(test_process_dns_state)
 
   };

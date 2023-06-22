@@ -15,6 +15,7 @@ typedef struct holder {
   ferrum_track_db_t *track_db;
   ferrum_authz_db_t *authz_db;
   ferrum_raw_t *raw;
+  ferrum_cache_t *cache;
   // uv_signal_t sigpipe;
 } holder_t;
 
@@ -65,6 +66,10 @@ void signal_cb(uv_signal_t *handle, int signum) {
   if (holder->syslog) {
     ferrum_log_debug("destroying ferrum syslog\n");
     ferrum_syslog_destroy(holder->syslog);
+  }
+  if (holder->cache) {
+    ferrum_log_debug("destroying ferrum syslog\n");
+    ferrum_cache_destroy(holder->cache);
   }
 
   if (holder->config) {
@@ -184,6 +189,17 @@ int main() {
     rebrick_kill_current_process(result);
   }
 
+  ferrum_cache_t *cache;
+  if (!strcmp(config->protocol_type, "dns")) {
+    result = ferrum_cache_new(&cache, 5000); // start dns
+  } else {
+    result = ferrum_cache_new(&cache, 0);
+  }
+  if (result) {
+    ferrum_log_fatal("cache create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
   holder_t holder = {
       .config = config,
       .policy = policy,
@@ -191,13 +207,14 @@ int main() {
       .dns_db = dns_db,
       .redis_intel = redis_intel,
       .authz_db = authz_db,
-      .track_db = track_db
+      .track_db = track_db,
+      .cache = cache
 
   };
 
   if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
     ferrum_raw_t *raw = NULL;
-    result = ferrum_raw_new(&raw, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, rebrick_conntrack_get);
+    result = ferrum_raw_new(&raw, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, cache, rebrick_conntrack_get);
     if (result) {
       ferrum_log_fatal("raw create failed:%d\n", result);
       rebrick_kill_current_process(result);

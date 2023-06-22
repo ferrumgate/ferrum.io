@@ -4,12 +4,6 @@
 #define FERRUM_FQDN_CATEGORY_BLACK_LIST "cAhXVPaFm1NVSJxF"
 #define FERRUM_FQDN_CATEGORY_UNKNOWN "w9FTQWw5e56Txcld"
 
-typedef struct {
-  ferrum_dns_cache_t *cache;
-  rebrick_timer_t *cache_cleaner;
-
-} ferrum_dns_data_t;
-
 #define cast_to_dns_data(x) ((ferrum_dns_data_t *)(x))
 #define cast_to_dns_data_var(x, y) ferrum_dns_data_t *y = (ferrum_dns_data_t *)(x)
 
@@ -998,8 +992,8 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   // add to cache, everything is going on well
   dns->source = pair->client_addr;
   dns->destination = pair->udp_destination_addr;
-  cast_to_dns_data_var(protocol->data, data);
-  result = ferrum_dns_cache_add(data->cache, dns);
+
+  result = ferrum_dns_cache_add(protocol->cache->dns, dns);
   if (result) {
     ferrum_dns_packet_destroy(dns);
   }
@@ -1056,9 +1050,8 @@ static int32_t process_output_udp(ferrum_protocol_t *protocol, const uint8_t *bu
   rdns->source = pair->udp_destination_addr;
   rdns->destination = pair->client_addr;
 
-  cast_to_dns_data_var(protocol->data, data);
   ferrum_dns_cache_founded_t *cache_item;
-  result = ferrum_dns_cache_find(data->cache, rdns, &cache_item);
+  result = ferrum_dns_cache_find(protocol->cache->dns, rdns, &cache_item);
   if (result) {
     rebrick_log_error("dns query cache failed %s %d\n", rdns->query, result);
     ferrum_dns_packet_destroy(rdns);
@@ -1069,7 +1062,7 @@ static int32_t process_output_udp(ferrum_protocol_t *protocol, const uint8_t *bu
   if (!cache_item->dns) { // query dns data not founded
     rebrick_log_debug("dns query cache not found %s %d\n", rdns->query, result);
     ferrum_dns_packet_destroy(rdns);
-    ferrum_dns_cache_remove_founded(data->cache, cache_item);
+    ferrum_dns_cache_remove_founded(protocol->cache->dns, cache_item);
     // TODO log
     send_client_directly(protocol, buffer, len);
     return FERRUM_SUCCESS;
@@ -1084,7 +1077,7 @@ static int32_t process_output_udp(ferrum_protocol_t *protocol, const uint8_t *bu
   memcpy(qdns->state.reply_buf, buffer, len);
   result = process_dns_state(protocol, pair, qdns);
 
-  ferrum_dns_cache_remove(data->cache, cache_item);
+  ferrum_dns_cache_remove(protocol->cache->dns, cache_item);
   ferrum_dns_packet_destroy(rdns);
   // dont care result
 
@@ -1131,26 +1124,11 @@ static int32_t process_output_tcp(ferrum_protocol_t *protocol, const uint8_t *bu
 
   return FERRUM_SUCCESS;
 }
-static int32_t dns_cache_clean(void *callback) {
-  unused(callback);
-  ferrum_protocol_t *dns = cast(callback, ferrum_protocol_t *);
-  cast_to_dns_data_var(dns->data, dns_data);
-  ferrum_log_debug("cleaning dns cache\n");
-  ferrum_dns_cache_clear_timedoutdata(dns_data->cache);
-  return FERRUM_SUCCESS;
-}
 
 int32_t ferrum_protocol_dns_destroy(ferrum_protocol_t *protocol) {
   unused(protocol);
   if (protocol) {
-    cast_to_dns_data_var(protocol->data, dns_data);
-    if (dns_data) {
-      if (dns_data->cache)
-        ferrum_dns_cache_destroy(dns_data->cache);
-      if (dns_data->cache_cleaner)
-        rebrick_timer_destroy(dns_data->cache_cleaner);
-      rebrick_free(protocol->data);
-    }
+
     if (protocol->identity.user_id)
       rebrick_free(protocol->identity.user_id);
     if (protocol->identity.group_ids)
@@ -1169,7 +1147,8 @@ int32_t ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
                                 const ferrum_redis_t *redis_intel,
                                 const ferrum_dns_db_t *dns_db,
                                 const ferrum_track_db_t *track_db,
-                                const ferrum_authz_db_t *authz_db) {
+                                const ferrum_authz_db_t *authz_db,
+                                const ferrum_cache_t *cache) {
   ferrum_protocol_t *tmp = new1(ferrum_protocol_t);
   constructor(tmp, ferrum_protocol_t);
   tmp->config = config;
@@ -1179,6 +1158,7 @@ int32_t ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
   tmp->dns_db = dns_db;
   tmp->track_db = track_db;
   tmp->authz_db = authz_db;
+  tmp->cache = cache;
   tmp->pair.tcp = tcp_pair;
   tmp->pair.udp = udp_pair;
 
@@ -1187,27 +1167,6 @@ int32_t ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
   tmp->process_input_udp = process_input_udp;
   tmp->process_output_udp = process_output_udp;
   tmp->destroy = ferrum_protocol_dns_destroy;
-
-  tmp->data = new1(ferrum_dns_data_t);
-  if_is_null_then_die(tmp->data, "malloc problem\n");
-
-  ferrum_dns_cache_t *cache;
-  int32_t result = ferrum_dns_cache_new(&cache, 5000);
-  if (result) {
-    ferrum_log_error("dns cache create failed with error:%d\n", result);
-    ferrum_protocol_dns_destroy(tmp);
-    return result;
-  }
-  cast_to_dns_data(tmp->data)->cache = cache;
-
-  rebrick_timer_t *cache_cleaner;
-  result = rebrick_timer_new(&cache_cleaner, dns_cache_clean, tmp, 7000, TRUE);
-  if (result) {
-    ferrum_log_error("dns cache timer create failed with error:%d\n", result);
-    ferrum_protocol_dns_destroy(tmp);
-    return result;
-  }
-  cast_to_dns_data(tmp->data)->cache_cleaner = cache_cleaner;
 
   *protocol = tmp;
   return FERRUM_SUCCESS;

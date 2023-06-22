@@ -13,7 +13,8 @@ ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
                         const ferrum_redis_t *redis,
                         const ferrum_dns_db_t *dns_db,
                         const ferrum_track_db_t *track_db,
-                        const ferrum_authz_db_t *authz_db);
+                        const ferrum_authz_db_t *authz_db,
+                        const ferrum_cache_t *cache);
 
 int32_t ferrum_protocol_dns_destroy(ferrum_protocol_t *protocol);
 
