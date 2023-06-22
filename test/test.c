@@ -65,6 +65,7 @@ int main() {
 
   if (test_ferrum_redis())
     exit(1);
+
   if (test_ferrum_config())
     exit(1);
 
@@ -98,6 +99,7 @@ int main() {
   if (test_ferrum_dns_cache()) {
     exit(1);
   }
+
   if (test_ferrum_track_db()) {
     exit(1);
   }

@@ -123,7 +123,8 @@ userOrgroupIds=\"abc\""
     sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
     id=\"ttyy\"
     [fqdnIntelligence]
-    ignoreFqdns=\",ferrumgate.com,\"
+    ignoreFqdns=\",ferrumgate2.com,\"
+    ignoreLists=\",abc,\"
     "
 
     dig +tries=1 +timeout=3 "www.ferrumgate.com" @$HOST -p$PORT
@@ -146,3 +147,76 @@ userOrgroupIds=\"abc\""
 # dns test 2
 
 sudo hping3 $HOST -p $PORT --udp -V -d 15 --flood // 3 seconds
+
+- add redis fqdn list
+
+    docker exec -ti $redis /bin/bash
+
+    add redis
+
+        sadd /fqdn/ferrumgate.com/list abc def
+
+    cd /tmp/top1m
+
+add user
+sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns track put /track/id/0/data "userId=\"abc\"
+groupIds=\",def,ghi,\""
+
+add service
+    sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/service/id/mysqlservice/user/list "[[rules]]
+id=\"ttyy\"
+userOrgroupIds=\"abc\""
+
+ ignore fqdn list
+  sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    ignoreFqdns=\",ferrumgate.com,\"
+"
+dig <www.ferrumgate.com> @$HOST -p$PORT
+
+  white fqdn list
+  sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    whiteFqdns=\",ferrumgate.com,\"
+"
+dig <www.ferrumgate.com> @$HOST -p$PORT
+
+ black fqdn list
+    sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    blackFqdns=\",ferrumgate.com,\"
+"
+dig <www.ferrumgate.com> @$HOST -p$PORT
+
+ ignore list
+    sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    ignoreLists=\",abc,\"
+"
+dig "www.ferrumgate.com" @$HOST -p$PORT
+
+ white list
+    sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    whiteLists=\",abc,\"
+"
+dig "www.ferrumgate.com" @$HOST -p$PORT
+
+black list
+    sudo LD_LIBRARY_PATH=$(pwd)/external/libs/lib  ./test/ferrum.io.lmdb /tmp/dns authz put /authz/id/ttyy "
+    id=\"ttyy\"
+    [fqdnIntelligence]
+    blackLists=\",abc,\"
+"
+dig "www.ferrumgate.com" @$HOST -p$PORT
+
+run dns
+for query in $(cat top1.list); do echo $query; dig +short $query +timeout=5 @192.168.88.250 -p5656;sleep 1; done
+
+add redis category info
+for fqdn in $(cat top1m.list); do ((counter=counter+1)); if [ $(expr $counter % 2) -eq 0 ]; then redis-cli sadd /fqdn/$fqdn/list abc def; echo $counter; fi; done

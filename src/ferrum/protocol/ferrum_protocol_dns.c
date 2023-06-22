@@ -377,6 +377,7 @@ int split_fqdn_for_redis(const char *fqdn, ferrum_redis_dns_query_t **dest, size
 
     if (counter == total) {
       rquery = rebrick_realloc(rquery, sizeof(ferrum_redis_dns_query_t) * (total + 8));
+      memset(rquery + total, 0, sizeof(ferrum_redis_dns_query_t) * 8);
       total += 8;
     }
     rquery[counter].query = fqdn;
@@ -471,8 +472,8 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
       }
       char *founded;
       if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded) ||
-          rebrick_util_fqdn_includes(lists, dns->state.redis_response, ",", &founded)) {
-        ferrum_log_debug("fqdn %s found in ignore fqdns authz:%s \n", dns->query, dns->state.authz_id);
+          rebrick_util_str_includes(lists, dns->state.redis_response, ",", &founded)) {
+        ferrum_log_debug("fqdn %s found in ignore authz:%s fqdns:%s lists:%s redis:%s \n", dns->query, dns->state.authz_id, fqdns, lists, dns->state.redis_response);
         rebrick_free_if_not_null_and_set_null(fqdns);
         rebrick_free_if_not_null_and_set_null(lists);
         rebrick_free_if_not_null_and_set_null(founded);
@@ -486,7 +487,7 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
       rebrick_free_if_not_null_and_set_null(lists);
       result = db_get_authz_fqdn_intelligence(authz->content, "white", &fqdns, &lists);
       if (result) {
-        ferrum_log_debug("fqdn ignore list parse failed authz:%s error:%d\n", dns->state.authz_id, result);
+        ferrum_log_debug("fqdn white list parse failed authz:%s error:%d\n", dns->state.authz_id, result);
         ferrum_authz_db_authz_row_destroy(authz);
         write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
         result = send_client_directly(protocol, dns->state.reply_buf, dns->state.reply_buf_len);
@@ -494,8 +495,8 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
       }
 
       if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded) ||
-          rebrick_util_fqdn_includes(lists, dns->state.redis_response, ",", &founded)) {
-        ferrum_log_debug("fqdn %s found in white fqdns authz:%s \n", dns->query, dns->state.authz_id);
+          rebrick_util_str_includes(lists, dns->state.redis_response, ",", &founded)) {
+        ferrum_log_debug("fqdn %s found in white authz:%s fqdns:%s lists:%s redis:%s \n", dns->query, dns->state.authz_id, fqdns, lists, dns->state.redis_response);
         rebrick_free_if_not_null_and_set_null(fqdns);
         rebrick_free_if_not_null_and_set_null(lists);
         write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ALLOW, FERRUM_FQDN_CATEGORY_WHITE_LIST, founded);
@@ -517,8 +518,8 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
       }
 
       if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded) ||
-          rebrick_util_fqdn_includes(lists, dns->state.redis_response, ",", &founded)) {
-        ferrum_log_debug("fqdn %s found in black fqdns authz:%s \n", dns->query, dns->state.authz_id);
+          rebrick_util_str_includes(lists, dns->state.redis_response, ",", &founded)) {
+        ferrum_log_debug("fqdn %s found in black authz:%s fqdns:%s lists:%s redis:%s \n", dns->query, dns->state.authz_id, fqdns, lists, dns->state.redis_response);
         rebrick_free_if_not_null_and_set_null(fqdns);
         rebrick_free_if_not_null_and_set_null(lists);
         write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_DENY, FERRUM_FQDN_CATEGORY_BLACK_LIST, founded);
@@ -526,6 +527,7 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
         // TODO send client blockpage ip
         rebrick_free_if_not_null_and_set_null(founded);
         ferrum_authz_db_authz_row_destroy(authz);
+        ferrum_log_debug("fqdn %s will be denied authz: %s \n", dns->query, dns->state.authz_id);
         result = reply_dns_ip(pair, dns, "0.0.0.0", 300);
         return result;
       }
@@ -570,11 +572,13 @@ void redis_callback_lists(redisAsyncContext *context, void *_reply, void *_privd
     for (size_t i = 0; i < reply->elements; ++i) {
       size_t len = strlen(reply->element[i]->str);
       if (!packet->state.redis_response) {
-        packet->state.redis_response = rebrick_malloc(len + 3);
+        rebrick_malloc2(packet->state.redis_response, len + 3);
         snprintf(packet->state.redis_response + pos, len + 3, ",%s,", reply->element[i]->str);
         pos += len + 2;
       } else {
         packet->state.redis_response = rebrick_realloc(packet->state.redis_response, pos + len + 2);
+        if_is_null_then_die(packet->state.redis_response, "malloc problem\n");
+        memset(packet->state.redis_response + pos, 0, len + 2);
         snprintf(packet->state.redis_response + pos, len + 2, "%s,", reply->element[i]->str);
         pos += len + 1;
       }
@@ -900,10 +904,10 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_dns_packet_destroy(dns);
     return result;
   }
-
-  char *ignore_fqdns = NULL;
-  char *ignore_lists = NULL;
-  result = db_get_authz_fqdn_intelligence(authz->content, "ignore", &ignore_fqdns, &ignore_lists);
+  // ignore lists
+  char *fqdns = NULL;
+  char *lists = NULL;
+  result = db_get_authz_fqdn_intelligence(authz->content, "ignore", &fqdns, &lists);
   if (result) { // test 10x
     ferrum_log_debug("fqdn ignore list parse failed authz:%s error:%d\n", dns->state.authz_id, result);
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
@@ -912,22 +916,79 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_dns_packet_destroy(dns);
     return result;
   }
-  ferrum_authz_db_authz_row_destroy(authz);
 
   char *founded;
-  if (rebrick_util_fqdn_includes(ignore_fqdns, dns->query, ",", &founded)) { // #test 11x
+  if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded)) { // #test 11x
     ferrum_log_debug("fqdn %s found in ignore list authz:%s \n", dns->query, dns->state.authz_id);
-    rebrick_free_if_not_null_and_set_null(ignore_fqdns);
-    rebrick_free_if_not_null_and_set_null(ignore_lists);
+    rebrick_free_if_not_null_and_set_null(fqdns);
+    rebrick_free_if_not_null_and_set_null(lists);
     rebrick_free_if_not_null_and_set_null(founded);
     // dont log
+    ferrum_authz_db_authz_row_destroy(authz);
+    result = send_backend_directly(protocol, pair, dns, buffer, len);
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+  // ferrum_authz_db_authz_row_destroy(authz);
+  rebrick_free_if_not_null_and_set_null(fqdns);
+  rebrick_free_if_not_null_and_set_null(lists);
+
+  // white lists
+  result = db_get_authz_fqdn_intelligence(authz->content, "white", &fqdns, &lists);
+  if (result) {
+    ferrum_log_debug("fqdn ignore list parse failed authz:%s error:%d\n", dns->state.authz_id, result);
+    write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
+    ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_dns_packet_destroy(dns);
     return result;
   }
 
-  rebrick_free_if_not_null_and_set_null(ignore_fqdns);
-  rebrick_free_if_not_null_and_set_null(ignore_lists);
+  if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded)) {
+    ferrum_log_debug("fqdn %s found in white list authz:%s \n", dns->query, dns->state.authz_id);
+    rebrick_free_if_not_null_and_set_null(fqdns);
+    rebrick_free_if_not_null_and_set_null(lists);
+    write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ALLOW, FERRUM_FQDN_CATEGORY_WHITE_LIST, NULL);
+    rebrick_free_if_not_null_and_set_null(founded);
+    // dont log
+    ferrum_authz_db_authz_row_destroy(authz);
+    result = send_backend_directly(protocol, pair, dns, buffer, len);
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+  // ferrum_authz_db_authz_row_destroy(authz);
+  rebrick_free_if_not_null_and_set_null(fqdns);
+  rebrick_free_if_not_null_and_set_null(lists);
+
+  // black lists
+  result = db_get_authz_fqdn_intelligence(authz->content, "black", &fqdns, &lists);
+  if (result) {
+    ferrum_log_debug("fqdn black list parse failed authz:%s error:%d\n", dns->state.authz_id, result);
+    write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
+    ferrum_authz_db_authz_row_destroy(authz);
+    result = send_backend_directly(protocol, pair, dns, buffer, len);
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+
+  if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded)) {
+    ferrum_log_debug("fqdn %s found in black list authz:%s \n", dns->query, dns->state.authz_id);
+    rebrick_free_if_not_null_and_set_null(fqdns);
+    rebrick_free_if_not_null_and_set_null(lists);
+    write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_DENY, FERRUM_FQDN_CATEGORY_BLACK_LIST, NULL);
+    rebrick_free_if_not_null_and_set_null(founded);
+    // dont log
+    ferrum_authz_db_authz_row_destroy(authz);
+    ferrum_log_debug("fqdn %s will be denied authz: %s \n", dns->query, dns->state.authz_id);
+    result = reply_dns_ip(pair, dns, "0.0.0.0", 300);
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+
+  ferrum_authz_db_authz_row_destroy(authz); // important
+  rebrick_free_if_not_null_and_set_null(fqdns);
+  rebrick_free_if_not_null_and_set_null(lists);
+
   result = send_redis_intel(protocol, pair, dns); // dont care if fails
   if (result) {                                   // sending redis and backend failed
     result = send_backend_directly(protocol, pair, dns, buffer, len);
@@ -1140,7 +1201,7 @@ int32_t ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
   cast_to_dns_data(tmp->data)->cache = cache;
 
   rebrick_timer_t *cache_cleaner;
-  result = rebrick_timer_new(&cache_cleaner, dns_cache_clean, tmp, 10000, TRUE);
+  result = rebrick_timer_new(&cache_cleaner, dns_cache_clean, tmp, 7000, TRUE);
   if (result) {
     ferrum_log_error("dns cache timer create failed with error:%d\n", result);
     ferrum_protocol_dns_destroy(tmp);

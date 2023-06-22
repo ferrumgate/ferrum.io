@@ -52,10 +52,20 @@ int rebrick_util_str_includes(const char *src, const char *search, const char *s
   char *backup_dup_search = dup_search;
   char *search_token = strsep(&dup_search, splitter);
   while (search_token) {
+    while (search_token && !search_token[0]) {
+      search_token = strsep(&dup_search, splitter);
+    }
+    if (!search_token)
+      break;
     char *dup_src = strdup(src);
     char *backup_dup_src = dup_src; // backit up for delete
     char *src_token = strsep(&dup_src, splitter);
     while (src_token) {
+      while (src_token && !src_token[0]) {
+        src_token = strsep(&dup_src, splitter);
+      }
+      if (!src_token)
+        break;
       if (!strcmp(search_token, src_token)) {
         size_t len = strlen(src_token);
         if (len) {

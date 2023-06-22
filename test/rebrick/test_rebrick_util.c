@@ -316,10 +316,18 @@ static void test_rebrick_util_str_includes(void **start) {
   assert_null(founded);
 
   result = rebrick_util_str_includes(",,,,", ",,", ",", &founded);
-  assert_int_equal(result, 1);
+  assert_int_equal(result, 0);
   assert_null(founded);
 
   result = rebrick_util_str_includes(",ab,,,", "def", ",", &founded);
+  assert_int_equal(result, 0);
+  assert_null(founded);
+
+  result = rebrick_util_str_includes(",adef,", ",def,", ",", &founded);
+  assert_int_equal(result, 0);
+  assert_null(founded);
+
+  result = rebrick_util_str_includes(",abc,def,hal,", ",adef,", ",", &founded);
   assert_int_equal(result, 0);
   assert_null(founded);
 }
@@ -369,6 +377,9 @@ static void test_rebrick_util_fqdn_includes(void **start) {
   rebrick_free(founded);
 
   result = rebrick_util_fqdn_includes("com2,def.com", "abc.com", ",", &founded);
+  assert_int_equal(result, 0);
+  assert_null(founded);
+  result = rebrick_util_fqdn_includes("com2,www.abc.com", "abc.com", ",", &founded);
   assert_int_equal(result, 0);
   assert_null(founded);
 }
