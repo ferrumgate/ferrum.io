@@ -28,6 +28,7 @@ int32_t ferrum_cache_new(ferrum_cache_t **cache, int32_t create_dns_timeout) {
       return result;
     }
     tmp->dns_cleaner = cache_cleaner;
+    ferrum_log_info("dns cache created\n");
   }
   *cache = tmp;
   return FERRUM_SUCCESS;

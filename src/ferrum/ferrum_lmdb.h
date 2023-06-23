@@ -28,7 +28,7 @@ typedef struct ferrum_lmdb_root {
   ferrum_lmdb_entry_value_t value;
 } ferrum_lmdb_root_t;
 
-extern ferrum_lmdb_root_t *lmdb_root;
+// extern ferrum_lmdb_root_t *lmdb_root;
 typedef struct ferrum_lmdb {
   base_object();
   MDB_dbi dbi;

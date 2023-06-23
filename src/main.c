@@ -188,6 +188,7 @@ int main() {
     ferrum_log_fatal("authz create failed:%d\n", result);
     rebrick_kill_current_process(result);
   }
+  ferrum_log_info("service protocol type %s\n", config->protocol_type);
 
   ferrum_cache_t *cache;
   if (!strcmp(config->protocol_type, "dns")) {

@@ -2,9 +2,11 @@
 ulimit -c unlimited
 
 echo "starting server"
-mkdir -p core
-CORE_FOLDER=$(dirname $(cat /proc/sys/kernel/core_pattern))
-echo $CORE_FOLDER
+#mkdir -p /ferrum.io/core
+#echo '/ferrum.io/core/core.%e.%p' | tee /proc/sys/kernel/core_pattern
+#CORE_FOLDER=$(dirname $(cat /proc/sys/kernel/core_pattern))
+#echo $CORE_FOLDER
+#sysctl -w kernel.core_pattern=/ferrum.io/core/core-%e.%p.%h.%t
 
 echo "***************ip address**************"
 ip a
@@ -86,12 +88,9 @@ echo "instance id $OPT_INSTANCE_ID"
 OPT_DB_FOLDER=""
 if [ ! -z "$DB_FOLDER" ]; then
     OPT_DB_FOLDER=$DB_FOLDER
-fi
-echo "db folder $OPT_DB_FOLDER"
-if [ ! -z "$OPT_DB_FOLDER" ]; then
-    echo "db folder $OPT_DB_FOLDER"
     mkdir -p $OPT_DB_FOLDER
 fi
+echo "db folder $OPT_DB_FOLDER"
 
 OPT_POLICY_DB_FOLDER="/var/lib/ferrumgate/policy"
 if [ ! -z "$POLICY_DB_FOLDER" ]; then
@@ -100,19 +99,19 @@ fi
 echo "policy db folder $OPT_POLICY_DB_FOLDER"
 mkdir -p $OPT_POLICY_DB_FOLDER
 
-OPT_DNS_TRACK_FOLDER="/var/lib/ferrumgate/track"
-if [ ! -z "$DNS_DB_FOLDER" ]; then
-    OPT_DNS_TRACK_FOLDER=$TRACK_DB_FOLDER
+OPT_TRACK_DB_FOLDER="/var/lib/ferrumgate/track"
+if [ ! -z "$TRACK_DB_FOLDER" ]; then
+    OPT_TRACK_DB_FOLDER=$TRACK_DB_FOLDER
 fi
-echo "dns db folder $OPT_DNS_TRACK_FOLDER"
-mkdir -p $OPT_DNS_TRACK_FOLDER
+echo "track db folder $OPT_TRACK_DB_FOLDER"
+mkdir -p $OPT_TRACK_DB_FOLDER
 
-OPT_AUTHZ_TRACK_FOLDER="/var/lib/ferrumgate/authz"
-if [ ! -z "$DNS_DB_FOLDER" ]; then
-    OPT_AUTHZ_TRACK_FOLDER=$AUTHZ_DB_FOLDER
+OPT_AUTHZ_DB_FOLDER="/var/lib/ferrumgate/authz"
+if [ ! -z "$AUTHZ_DB_FOLDER" ]; then
+    OPT_AUTHZ_DB_FOLDER=$AUTHZ_DB_FOLDER
 fi
-echo "dns db folder $OPT_AUTHZ_TRACK_FOLDER"
-mkdir -p $OPT_AUTHZ_TRACK_FOLDER
+echo "authz db folder $OPT_AUTHZ_DB_FOLDER"
+mkdir -p $OPT_AUTHZ_DB_FOLDER
 
 OPT_DNS_DB_FOLDER="/var/lib/ferrumgate/dns"
 if [ ! -z "$DNS_DB_FOLDER" ]; then
@@ -158,14 +157,13 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     DB_FOLDER=$OPT_DB_FOLDER \
     POLICY_DB_FOLDER=$OPT_POLICY_DB_FOLDER \
     DNS_DB_FOLDER=$OPT_DNS_DB_FOLDER \
-    TRACK_DB_FOLDER=$OPT_TRACH_DB_FOLDER \
+    TRACK_DB_FOLDER=$OPT_TRACK_DB_FOLDER \
     AUTHZ_DB_FOLDER=$OPT_AUTHZ_DB_FOLDER ./src/ferrum.io
 
-if ls $CORE_FOLDER/*core* 1>/dev/null 2>&1; then
+if ls core* 1>/dev/null 2>&1; then
     folder=$(((RANDOM % 1000000) + 1))
-    mkdir -p /var/lib/ferrum/ferrum.io/$folder
-    cp -r /ferrum.io/* /var/lib/ferrum/ferrum.io/$folder
-    cp $CORE_FOLDER/*core* /var/lib/ferrum/ferrum.io/$folder
+    mkdir -p /var/lib/ferrumgate/core/$folder
+    cp -r /ferrum.io/* /var/lib/ferrumgate/core/$folder
 fi
 
 echo "finished server"

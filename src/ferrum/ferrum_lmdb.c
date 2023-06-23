@@ -1,6 +1,6 @@
 #include "ferrum_lmdb.h"
 
-ferrum_lmdb_root_t *lmdb_root = NULL;
+static ferrum_lmdb_root_t *lmdb_root = NULL;
 
 int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbname, size_t maxdb, size_t maxsize) {
   int32_t result;

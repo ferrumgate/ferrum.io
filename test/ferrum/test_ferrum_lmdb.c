@@ -128,6 +128,58 @@ static void ferrum_object_put_get_del_get(void **start) {
   ferrum_lmdb_destroy(lmdb);
 }
 
+static void ferrum_object_put_get_del_get_multiple(void **start) {
+  unused(start);
+  unused(start);
+  char current_time_str[32] = {0};
+  unused(current_time_str);
+
+  const char *folder = "/tmp/test60";
+  remove_recursive(folder);
+  mkdir(folder, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+  ferrum_lmdb_t *lmdb;
+  int32_t result = ferrum_lmdb_new(&lmdb, folder, "ferrumgate", 0, 0);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_lmdb_t *lmdb2;
+  result = ferrum_lmdb_new(&lmdb2, folder, "ferrumgate", 0, 0);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  ferrum_lmdb_t *lmdb3;
+  result = ferrum_lmdb_new(&lmdb3, folder, "test", 0, 0);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  // save data
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/test/%d", 1);
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "ferrum");
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+
+  // get again
+  lmdb->root->value.size = 0;
+  memset(lmdb->root->value.val, 0, sizeof(lmdb->root->value.val));
+  result = ferrum_lmdb_get(lmdb, &lmdb->root->key, &lmdb->root->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_string_equal(lmdb->root->value.val, "ferrum");
+
+  // get again
+  lmdb2->root->value.size = 0;
+  memset(lmdb2->root->value.val, 0, sizeof(lmdb2->root->value.val));
+  result = ferrum_lmdb_get(lmdb2, &lmdb2->root->key, &lmdb2->root->value);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  assert_string_equal(lmdb2->root->value.val, "ferrum");
+
+  // get not found
+  lmdb3->root->key.size = snprintf(lmdb3->root->key.val, sizeof(lmdb3->root->key.val) - 1, "/test/%d", 2);
+  result = ferrum_lmdb_get(lmdb3, &lmdb3->root->key, &lmdb3->root->value);
+  assert_int_equal(result, FERRUM_ERR_LMDB_ROW_NOT_FOUND);
+
+  ferrum_lmdb_destroy(lmdb);
+  ferrum_lmdb_destroy(lmdb2);
+  ferrum_lmdb_destroy(lmdb3);
+}
+
 static void ferrum_object_list_all(void **start) {
   unused(start);
   unused(start);
