@@ -18,7 +18,7 @@ if [ -z $IMAGE_NAME ]; then
 fi
 
 echo $IMAGE_NAME is building
-docker build -f ./dockerfile -t $IMAGE_NAME .
+docker build --no-cache --progress=plain -f ./dockerfile -t $IMAGE_NAME .
 
 echo "$IMAGE_NAME:$version builded"
 docker tag $IMAGE_NAME registry.ferrumgate.zero/ferrumgate/$IMAGE_NAME:$version

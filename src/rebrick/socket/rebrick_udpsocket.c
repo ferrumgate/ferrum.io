@@ -51,7 +51,7 @@ int32_t rebrick_udpsocket_write(rebrick_udpsocket_t *socket, const rebrick_socka
     rebrick_free(request);
     return REBRICK_ERR_UV + result;
   }
-  rebrick_log_debug("data sended  len:%zu to server  %s port:%s\n", len, dst_ip, dst_port);
+  rebrick_log_debug("data sended len:%zu to server %s port:%s\n", len, dst_ip, dst_port);
   return REBRICK_SUCCESS;
 }
 

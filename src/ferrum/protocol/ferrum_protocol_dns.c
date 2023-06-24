@@ -285,7 +285,7 @@ int32_t db_get_user_and_group_ids(ferrum_protocol_t *protocol, uint32_t mark) {
   if (now - protocol->identity.last_check < 5 * 1000 * 1000)
     return FERRUM_SUCCESS;
 
-  ferrum_track_db_row_t *track;
+  ferrum_track_db_row_t *track = NULL;
   int32_t result = ferrum_track_db_get_data(protocol->track_db, mark, &track);
   if (result) {
     ferrum_log_error("track db get data failed with error:%d\n", result);
@@ -464,7 +464,7 @@ int32_t process_dns_state(ferrum_protocol_t *protocol, ferrum_raw_udpsocket_pair
         result = send_client_directly(protocol, dns->state.reply_buf, dns->state.reply_buf_len);
         return result;
       }
-      char *founded;
+      char *founded = NULL;
       if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded) ||
           rebrick_util_str_includes(lists, dns->state.redis_response, ",", &founded)) {
         ferrum_log_debug("fqdn %s found in ignore authz:%s fqdns:%s lists:%s redis:%s \n", dns->query, dns->state.authz_id, fqdns, lists, dns->state.redis_response);
@@ -801,10 +801,12 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_dns_packet_destroy(dns);
     return FERRUM_ERR_DNS_BAD_PACKET;
   }
+  ferrum_log_debug("dns packet received %s\n", dns->query);
 
   // check if query ends with our root domain
   // no log #test2
   if (rebrick_util_fqdn_endswith(dns->query, protocol->config->root_fqdn)) {
+    ferrum_log_debug("dns ends with root fqdn %s\n", protocol->config->root_fqdn);
     result = reply_local_dns(protocol, pair, dns);
     ferrum_dns_packet_destroy(dns);
     return result;
@@ -812,6 +814,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
 
   // we dont care queries out ot AAAA and A, #test3
   if (dns->query_type != LDNS_RR_TYPE_AAAA && dns->query_type != LDNS_RR_TYPE_A) {
+    ferrum_log_debug("dns query is not A or AAAA\n");
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_dns_packet_destroy(dns);
     return result;
@@ -828,12 +831,14 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   }
   if (!protocol->identity.user_id && !protocol->identity.group_ids) // we dont know user and group,interesting situation, #test5
   {
+    ferrum_log_debug("user id and group id is null\n");
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_INVALID, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_dns_packet_destroy(dns);
     return result;
   }
   // we know user and groups now
+  ferrum_log_debug("user id is %s\n", protocol->identity.user_id);
 
   // find service related authz users and groups
   ferrum_authz_db_service_user_row_t *authz_users = NULL;
@@ -854,11 +859,12 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_dns_packet_destroy(dns);
     return result;
   }
+
   // find match rule
   const char *authz_id = NULL;
   for (size_t i = 0; i < authz_users->rows_len; ++i) {
     ferrum_authz_service_user_data_t *udata = authz_users->rows + i;
-    char *founded;
+    char *founded = NULL;
     if (udata->user_or_group_ids &&
         (!strcmp(udata->user_or_group_ids, ",,") ||
          rebrick_util_str_includes(udata->user_or_group_ids, protocol->identity.user_id, ",", &founded) ||
@@ -878,6 +884,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     return result;
   }
   dns->state.authz_id = strdup(authz_id);
+  ferrum_log_debug("authz rule id is %s\n", authz_id);
   // dont use authz_id anymore
   ferrum_authz_db_service_user_row_destroy(authz_users);
 
@@ -913,7 +920,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     return result;
   }
 
-  char *founded;
+  char *founded = NULL;
   if (rebrick_util_fqdn_includes(fqdns, dns->query, ",", &founded)) { // #test 11x
     ferrum_log_debug("fqdn %s found in ignore list authz:%s \n", dns->query, dns->state.authz_id);
     rebrick_free_if_not_null_and_set_null(fqdns);
@@ -998,7 +1005,9 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
 
   result = ferrum_dns_cache_add(protocol->cache->dns, dns);
   if (result) {
+    result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_dns_packet_destroy(dns);
+    return result;
   }
   result = send_backend_directly(protocol, pair, dns, buffer, len);
   // dont care result;

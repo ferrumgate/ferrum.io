@@ -77,6 +77,10 @@
                     "value": "/tmp/dns"
                 },
                 {
+                    "name": "POLICY_DB_FOLDER",
+                    "value": "/tmp/dns2"
+                },
+                {
                     "name": "SYSLOG_HOST",
                     "value": "172.0.0.1:9292"
                 },

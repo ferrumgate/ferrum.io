@@ -5,6 +5,7 @@ docker run --net=host \
     -ti \
     -e LOG_LEVEL=debug \
     -e REDIS_HOST=$IP \
+    -e REDIS_INTEL_HOST=$IP \
     -e RAW_DESTINATION_HOST=$IP \
     -e RAW_DESTINATION_UDP_PORT=5555 \
     -e RAW_DESTINATION_TCP_PORT=80 \
@@ -20,4 +21,4 @@ docker run --net=host \
     -e PROTOCOL_TYPE=dns \
     --cap-add=NET_ADMIN \
     -v /tmp/ferrum.io:/var/lib/ferrumgate \
-    ferrum.io:latest
+    ferrum.io:latest #-v /tmp/ferrum.io:/var/lib/ferrumgate \
