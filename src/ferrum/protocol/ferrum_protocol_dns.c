@@ -405,7 +405,7 @@ static inline void write_activity_log(ferrum_protocol_t *protocol, ferrum_raw_ud
   ferrum_write_activity_log_dns(protocol->syslog, log_id, protocol->config->protocol_type,
                                 &pair->client_addr, pair->client_ip, pair->client_port, 0,
                                 &pair->udp_destination_addr, pair->udp_destination_ip, pair->udp_destination_port,
-                                pair->mark, dns->state.authz_id, protocol->identity.user_id, protocol->identity.tun_id,
+                                pair->mark, dns->state.authz_id, protocol->identity.user_id_first, protocol->identity.tun_id,
                                 dns->query_type == LDNS_RR_TYPE_A ? FERRUM_ACTIVITY_DNS_A : FERRUM_ACTIVITY_DNS_AAAA,
                                 dns->query, status, category, list_id);
 

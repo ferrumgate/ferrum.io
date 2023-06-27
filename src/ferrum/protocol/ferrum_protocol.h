@@ -54,8 +54,12 @@ typedef struct ferrum_protocol {
     int32_t random;
   } log;
   struct {
+    // authz calculated user id that contains ,
     char *user_id;
+    // authz calculated group ids that contains ,
     char *group_ids;
+    // user id from policy result
+    char user_id_first[FERRUM_ID_STR_LEN];
     char tun_id[FERRUM_ID_BIG_STR_LEN];
     uint32_t client_id;
     int64_t last_check;

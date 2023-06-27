@@ -120,14 +120,19 @@ void ferrum_write_activity_log_dns(const ferrum_syslog_t *syslog, const char *lo
     rebrick_util_addr_to_port_string(dest, dport_str); // dont need to check resutl
     d_port = dport_str;
   }
+  char *encoded = NULL;
+  if (query && query[0])
+    encoded = b64_encode(cast_to_const_uint8ptr(query), strlen(query));
   // list id can be NULL, be carefull
-  size_t len = snprintf(log, sizeof(log) - 1, ",%s,1,0,%s,%" PRId64 ",%u,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", logid, protocol, now, mark_id, 0,
+  size_t len = snprintf(log, sizeof(log) - 1, ",%s,1,0,%s,%" PRId64 ",%u,%d,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+                        logid, protocol, now, mark_id, 0,
                         0, syslog->config->gateway_id, syslog->config->service_id,
                         authz_id, user_id, tun_id,
                         c_ip, c_port, is_tcp ? "tcp" : "udp", d_ip, d_port,
                         ferrum_activity_log_dns_type_to_str(dnstype),
-                        query,
+                        encoded ? encoded : "",
                         ferrum_dns_status_to_str(status),
                         category_id);
+  rebrick_free_if_not_null_and_set_null(encoded);
   ferrum_syslog_write(syslog, cast_to_uint8ptr(log), len);
 }

@@ -276,6 +276,7 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   // we need in protocol codes
   pair->protocol->identity.client_id = presult.client_id;
   strncpy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+  strncpy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
 
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
@@ -655,6 +656,11 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     DL_APPEND(raw->lfu.udp_list, pair);
     raw->socket_count++;
     rebrick_log_debug("socket_count %d\n", raw->socket_count);
+
+    // we need for loggin
+    pair->protocol->identity.client_id = presult.client_id;
+    strncpy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+    strncpy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
 
     // event log and continue
     if (!strcmp(raw->config->protocol_type, "raw"))

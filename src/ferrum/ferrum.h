@@ -2,6 +2,7 @@
 #define __FERRUM_H__
 
 #include "../rebrick/rebrick.h"
+#include "../rebrick/lib/b64/b64.h"
 
 #define FERRUM_VERSION "1.4.0"
 

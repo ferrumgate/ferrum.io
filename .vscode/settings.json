@@ -50,6 +50,9 @@
         "string_view": "c",
         "tuple": "c",
         "utility": "c",
-        "ferrum_lmdb.h": "c"
+        "ferrum_lmdb.h": "c",
+        "rebrick.h": "c",
+        "rebrick_timer.h": "c",
+        "rebrick_common.h": "c"
     }
 }

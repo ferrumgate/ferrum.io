@@ -148,7 +148,7 @@ userOrgroupIds=\"abc\""
 
 # dns test business
 
-sudo hping3 $HOST -p $PORT --udp -V -d 15 --flood // 3 seconds
+sudo hping3 $HOST -p $PORT --udp -V -d 15 --flood # 3 seconds
 
 - add redis fqdn list
 
@@ -231,4 +231,7 @@ run dns
 for query in $(cat top1.list); do echo $query; dig +short $query +timeout=5 @192.168.88.250 -p5656;sleep 1; done
 
 add redis category info
+docker exec -ti $redis /bin/bash
+cd /tmp/top1m
+
 for fqdn in $(cat top1m.list); do ((counter=counter+1)); if [ $(expr $counter % 2) -eq 0 ]; then redis-cli sadd /fqdn/$fqdn/list abc def; echo $counter; fi; done
