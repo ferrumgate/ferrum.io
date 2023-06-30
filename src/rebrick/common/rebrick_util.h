@@ -218,3 +218,9 @@ int32_t rebrick_util_to_int32_t(char *val, int32_t *to);
 int32_t rebrick_util_to_int16_t(char *val, int16_t *to);
 int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to);
 int32_t rebrick_util_to_size_t(char *val, size_t *to);
+
+/**
+ * @brief copy string with z counter chars and append 0 to the end
+ *
+ */
+#define string_copy(target, source, counter) snprintf(target, counter + 1, "%s", source)

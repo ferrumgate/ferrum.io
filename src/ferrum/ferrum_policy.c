@@ -80,15 +80,15 @@ int32_t ferrum_policy_execute(const ferrum_policy_t *policy, uint32_t client_id,
       break;
     case 2:
       if (*token)
-        strncpy(presult->policy_id, token, sizeof(presult->policy_id) - 1);
+        string_copy(presult->policy_id, token, sizeof(presult->policy_id) - 1);
       break;
     case 3:
       if (*token)
-        strncpy(presult->tun_id, token, sizeof(presult->tun_id) - 1);
+        string_copy(presult->tun_id, token, sizeof(presult->tun_id) - 1);
       break;
     case 4:
       if (*token)
-        strncpy(presult->user_id, token, sizeof(presult->user_id) - 1);
+        string_copy(presult->user_id, token, sizeof(presult->user_id) - 1);
       break;
     default:
       break;

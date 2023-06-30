@@ -338,7 +338,7 @@ static void local_on_connection_accept_callback(rebrick_socket_t *serversocket, 
   tlsclient->tls->ref = tlsclient;
   // valgrind overlap diyor
   if (tlsclient != tlsserver)
-    strncpy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
+    string_copy(tlsclient->sni_pattern_or_name, tlsserver->sni_pattern_or_name, REBRICK_TLS_SNI_MAX_LEN - 1);
   tlsclient->override_on_client_connect = tlsserver->override_on_client_connect;
   // tlsclient->override_on_client_close = tlsserver->override_on_client_close;
   tlsclient->override_on_read = tlsserver->override_on_read;
@@ -757,7 +757,7 @@ int32_t rebrick_tlssocket_change_context(rebrick_tlssocket_t *socket, const char
     if (!context)
       return result;
   }
-  strncpy(socket->sni, servername, REBRICK_TLS_SNI_MAX_LEN - 1);
+  string_copy(socket->sni, servername, REBRICK_TLS_SNI_MAX_LEN - 1);
   socket->tls_context = context;
   SSL_set_SSL_CTX(socket->tls->ssl, context->tls_ctx);
   /// call sni callback

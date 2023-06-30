@@ -178,10 +178,10 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
     rebrick_kill_current_process(REBRICK_ERR_MALLOC);
   }
   constructor(tmp, ferrum_redis_t);
-  strncpy(tmp->host, host, REBRICK_HOST_STR_LEN - 1);
+  string_copy(tmp->host, host, REBRICK_HOST_STR_LEN - 1);
   tmp->port = port;
   if (pass && pass[0])
-    strncpy(tmp->pass, pass, REBRICK_PASS_STR_LEN);
+    string_copy(tmp->pass, pass, REBRICK_PASS_STR_LEN - 1);
 
   redisAsyncContext *rcontext = createContext(host, port, query_timeout_ms);
   if (!rcontext) {
@@ -209,7 +209,7 @@ int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
   tmp->subscribe.cmd.callback.arg1 = callbackdata ? callbackdata : tmp;
   tmp->subscribe.cmd.id = 1;
   tmp->subscribe.cmd.type = 1;
-  strncpy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
+  string_copy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
   tmp->subscribe.isActived = TRUE;
   return FERRUM_SUCCESS;
 }
@@ -232,8 +232,8 @@ int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host,
   tmp->stream.cmd_internal.callback.arg1 = callbackdata ? callbackdata : tmp;
   tmp->stream.cmd_internal.id = 1;
   tmp->stream.cmd_internal.type = 1;
-  strncpy(tmp->stream.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
-  strncpy(tmp->stream.pos, "0", sizeof(tmp->stream.pos) - 1);
+  string_copy(tmp->stream.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
+  string_copy(tmp->stream.pos, "0", sizeof(tmp->stream.pos) - 1);
   tmp->stream.isActived = TRUE;
   return FERRUM_SUCCESS;
 }

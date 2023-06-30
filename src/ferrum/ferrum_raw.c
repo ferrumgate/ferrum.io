@@ -260,8 +260,8 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   pair->last_used_time = rebrick_util_micro_time();
   pair->policy_last_allow_time = rebrick_util_micro_time();
   pair->client_addr = client_addr;
-  strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
-  strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
+  string_copy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+  string_copy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
   memcpy(&pair->policy_result, &presult, sizeof(presult));
 
   result = ferrum_protocol_create(&pair->protocol, NULL, pair, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db, raw->cache);
@@ -275,8 +275,8 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   }
   // we need in protocol codes
   pair->protocol->identity.client_id = presult.client_id;
-  strncpy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
-  strncpy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
+  string_copy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+  string_copy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
 
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
@@ -630,11 +630,11 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair = new1(ferrum_raw_udpsocket_pair_t);
     constructor(pair, ferrum_raw_udpsocket_pair_t);
     pair->client_addr = client_addr;
-    strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
-    strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
+    string_copy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+    string_copy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
     memcpy(&pair->udp_destination_addr, &raw->listen.udp_destination_addr, sizeof(pair->udp_destination_addr));
-    strncpy(pair->udp_destination_ip, raw->listen.udp_destination_ip, sizeof(pair->udp_destination_ip) - 1);
-    strncpy(pair->udp_destination_port, raw->listen.udp_destination_port, sizeof(pair->udp_destination_port) - 1);
+    string_copy(pair->udp_destination_ip, raw->listen.udp_destination_ip, sizeof(pair->udp_destination_ip) - 1);
+    string_copy(pair->udp_destination_port, raw->listen.udp_destination_port, sizeof(pair->udp_destination_port) - 1);
 
     pair->last_used_time = rebrick_util_micro_time();
     pair->policy_last_allow_time = rebrick_util_micro_time();
@@ -659,8 +659,8 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
 
     // we need for loggin
     pair->protocol->identity.client_id = presult.client_id;
-    strncpy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
-    strncpy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
+    string_copy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+    string_copy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
 
     // event log and continue
     if (!strcmp(raw->config->protocol_type, "raw"))

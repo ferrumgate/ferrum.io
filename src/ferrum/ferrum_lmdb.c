@@ -16,7 +16,7 @@ int32_t ferrum_lmdb_new(ferrum_lmdb_t **lmdb, const char *path, const char *dbna
     }
 
     constructor(tmp_root, ferrum_lmdb_root_t);
-    strncpy(tmp_root->path, path, sizeof(tmp_root->path) - 1);
+    string_copy(tmp_root->path, path, sizeof(tmp_root->path) - 1);
     // open env
     if ((result = mdb_env_create(&tmp_root->env))) {
       ferrum_log_error("lmdb path %s could not open :%s\n", path, mdb_strerror(result));

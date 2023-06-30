@@ -29,7 +29,7 @@ int32_t rebrick_filestream_new(rebrick_filestream_t **stream, const char *path, 
 
   rebrick_filestream_t *file = new1(rebrick_filestream_t);
   constructor(file, rebrick_filestream_t);
-  strncpy(file->path, path, PATH_MAX - 1);
+  string_copy(file->path, path, PATH_MAX - 1);
 
   file->on_open = callbacks ? callbacks->on_open : NULL;
   file->on_error = callbacks ? callbacks->on_error : NULL;

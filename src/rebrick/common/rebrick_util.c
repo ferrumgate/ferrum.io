@@ -71,7 +71,7 @@ int rebrick_util_str_includes(const char *src, const char *search, const char *s
         if (len) {
           *founded = rebrick_malloc(len + 1);
           fill_zero(*founded, len + 1);
-          strncpy(*founded, src_token, len);
+          string_copy(*founded, src_token, len);
         }
         rebrick_free(backup_dup_src);
         rebrick_free(backup_dup_search);

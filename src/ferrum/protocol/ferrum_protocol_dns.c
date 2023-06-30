@@ -117,7 +117,7 @@ int32_t ferrum_dns_packet_from(const uint8_t *buffer, size_t len, ferrum_dns_pac
   if_is_null_then_die(dns->query, "malloc problem\n");
   memset(dns->query, 0, fqdn_len + 1);
   if (fqdn_len)
-    strncpy(dns->query, fqdn, fqdn_len);
+    string_copy(dns->query, fqdn, fqdn_len);
 
   if (dns->query[0] != '.') {
     // size_t slen = strlen(dns->query);
