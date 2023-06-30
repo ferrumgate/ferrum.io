@@ -94,12 +94,14 @@ int rebrick_util_fqdn_includes(const char *src, const char *search, const char *
   if (*src == 0 || *search == 0)
     return 0;
   while (*search) {
+    // rebrick_log_debug("search src: %s  search: %s\n", src, search);
     int32_t result = rebrick_util_str_includes(src, search, splitter, founded);
     if (result)
       return result;
     search++;
-    while (*search && *search != '.')
-      break;
+    while (*search && *search != '.') {
+      search++;
+    }
     if (*search)
       search++;
   }
@@ -485,7 +487,8 @@ int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t 
   if_is_null_then_die(temp, "malloc problem\n");
 
   fill_zero(temp, filelen + 1);
-  fread(temp, filelen, 1, fileptr);
+  size_t readed = fread(temp, filelen, 1, fileptr);
+  unused(readed);
   fclose(fileptr);
   *buffer = temp;
   *len = filelen;

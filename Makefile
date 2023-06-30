@@ -1,4 +1,4 @@
-CFLAGS = -fPIC -Wall -W -O0 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_FNV  -I$(shell pwd)/../external/libs/include
+CFLAGS = -fPIC -Wall -W -O3 -g -ggdb -std=gnu17 -DHASH_FUNCTION=HASH_FNV  -I$(shell pwd)/../external/libs/include
 #LDFLAGS = -shared  -o librebrick.so.1.0.0 -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2
 LDFLAGS = -L$(shell pwd)/../external/libs/lib -luv -lssl -lcrypto -lnghttp2 -lhiredis -llmdb -lnetfilter_conntrack -lnfnetlink -lldns
 
