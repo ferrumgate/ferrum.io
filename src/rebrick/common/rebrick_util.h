@@ -93,6 +93,18 @@ int rebrick_util_str_endswith(const char *domainname, const char *search);
  */
 int rebrick_util_fqdn_endswith(const char *domainname, const char *search);
 
+/**
+ * @brief string includes in like ,abc,def, search ,abc,
+ * @return  1 for success, 0 for not found
+ */
+int rebrick_util_str_includes(const char *src, const char *search, const char *splitter, char **founded);
+
+/**
+ * @brief string includes in like ,abc,def, search ,abc,
+ * @return  1 for success, 0 for not found
+ */
+int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter, char **founded);
+
 void rebrick_util_str_tolower(char *str);
 
 // gets time in micro seconds
@@ -206,3 +218,9 @@ int32_t rebrick_util_to_int32_t(char *val, int32_t *to);
 int32_t rebrick_util_to_int16_t(char *val, int16_t *to);
 int32_t rebrick_util_to_uint32_t(char *val, uint32_t *to);
 int32_t rebrick_util_to_size_t(char *val, size_t *to);
+
+/**
+ * @brief copy string with z counter chars and append 0 to the end
+ *
+ */
+#define string_copy(target, source, counter) snprintf(target, counter + 1, "%s", source)

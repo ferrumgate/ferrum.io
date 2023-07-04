@@ -11,11 +11,15 @@ static int32_t ferrum_protocol_create(ferrum_protocol_t **protocol,
                                       ferrum_raw_udpsocket_pair_t *udp,
                                       ferrum_raw_tcpsocket_pair_t *tcp,
                                       const ferrum_config_t *config,
-                                      const ferrum_syslog_t *syslog,
                                       const ferrum_policy_t *policy,
-                                      const ferrum_dns_t *dns) {
+                                      const ferrum_syslog_t *syslog,
+                                      const ferrum_redis_t *redis_intel,
+                                      const ferrum_dns_db_t *dns_db,
+                                      const ferrum_track_db_t *track_db,
+                                      const ferrum_authz_db_t *authz_db,
+                                      const ferrum_cache_t *cache) {
   if (!strcmp(config->protocol_type, "dns"))
-    return ferrum_protocol_dns_new(protocol, tcp, udp, config, policy, syslog, dns);
+    return ferrum_protocol_dns_new(protocol, tcp, udp, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, cache);
   else if (!strcmp(config->protocol_type, "raw"))
     return ferrum_protocol_raw_new(protocol, tcp, udp, config, policy, syslog);
 
@@ -256,11 +260,11 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   pair->last_used_time = rebrick_util_micro_time();
   pair->policy_last_allow_time = rebrick_util_micro_time();
   pair->client_addr = client_addr;
-  strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
-  strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
+  string_copy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+  string_copy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
   memcpy(&pair->policy_result, &presult, sizeof(presult));
 
-  result = ferrum_protocol_create(&pair->protocol, NULL, pair, raw->config, raw->syslog, raw->policy, raw->dns);
+  result = ferrum_protocol_create(&pair->protocol, NULL, pair, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db, raw->cache);
   if (result) {
     rebrick_log_error("protocol create failed %s:%s\n", ip_str, port_str);
     ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
@@ -269,6 +273,10 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
     ferrum_tcp_socket_pair_free(pair);
     return;
   }
+  // we need in protocol codes
+  pair->protocol->identity.client_id = presult.client_id;
+  string_copy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+  string_copy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
 
   // socket_pair_id++;
   HASH_ADD(hh, raw->socket_pairs.tcp, key, sizeof(void *), pair);
@@ -276,7 +284,8 @@ static void on_tcp_client_connect(rebrick_socket_t *server_socket, void *callbac
   destination->data1 = pair;
 
   // event log, policy is allowed, log and continue
-  ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
+  if (!strcmp(pair->protocol->config->protocol_type, "raw")) // only raw protocol logs
+    ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, TRUE, &raw->listen.tcp_destination_addr, raw->listen.tcp_destination_ip, raw->listen.tcp_destination_port);
 }
 
 static void on_tcp_client_error(rebrick_socket_t *socket, void *callbackdata, int32_t error) {
@@ -621,11 +630,11 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair = new1(ferrum_raw_udpsocket_pair_t);
     constructor(pair, ferrum_raw_udpsocket_pair_t);
     pair->client_addr = client_addr;
-    strncpy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
-    strncpy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
+    string_copy(pair->client_ip, ip_str, sizeof(pair->client_ip) - 1);
+    string_copy(pair->client_port, port_str, sizeof(pair->client_port) - 1);
     memcpy(&pair->udp_destination_addr, &raw->listen.udp_destination_addr, sizeof(pair->udp_destination_addr));
-    strncpy(pair->udp_destination_ip, raw->listen.udp_destination_ip, sizeof(pair->udp_destination_ip) - 1);
-    strncpy(pair->udp_destination_port, raw->listen.udp_destination_port, sizeof(pair->udp_destination_port) - 1);
+    string_copy(pair->udp_destination_ip, raw->listen.udp_destination_ip, sizeof(pair->udp_destination_ip) - 1);
+    string_copy(pair->udp_destination_port, raw->listen.udp_destination_port, sizeof(pair->udp_destination_port) - 1);
 
     pair->last_used_time = rebrick_util_micro_time();
     pair->policy_last_allow_time = rebrick_util_micro_time();
@@ -634,7 +643,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     pair->udp_listening_socket = raw->listen.udp;
     memcpy(&pair->policy_result, &presult, sizeof(presult));
 
-    result = ferrum_protocol_create(&pair->protocol, pair, NULL, raw->config, raw->syslog, raw->policy, raw->dns);
+    result = ferrum_protocol_create(&pair->protocol, pair, NULL, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db, raw->cache);
     if (result) {
       rebrick_log_error("protocol create failed %s:%s\n", ip_str, port_str);
       ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
@@ -648,8 +657,14 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     raw->socket_count++;
     rebrick_log_debug("socket_count %d\n", raw->socket_count);
 
+    // we need for loggin
+    pair->protocol->identity.client_id = presult.client_id;
+    string_copy(pair->protocol->identity.tun_id, presult.tun_id, sizeof(pair->protocol->identity.tun_id) - 1);
+    string_copy(pair->protocol->identity.user_id_first, presult.user_id, sizeof(pair->protocol->identity.user_id_first) - 1);
+
     // event log and continue
-    ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
+    if (!strcmp(raw->config->protocol_type, "raw"))
+      ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
 
   } else {
     pair->last_used_time = rebrick_util_micro_time();
@@ -760,8 +775,13 @@ int32_t udp_tracker_callback_t(void *callbackdata) {
 }
 
 int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
-                       const ferrum_policy_t *policy, const ferrum_syslog_t *syslog,
-                       const ferrum_dns_t *dns,
+                       const ferrum_policy_t *policy,
+                       const ferrum_syslog_t *syslog,
+                       const ferrum_redis_t *redis_intel,
+                       const ferrum_dns_db_t *dns_db,
+                       const ferrum_track_db_t *track_db,
+                       const ferrum_authz_db_t *authz_db,
+                       const ferrum_cache_t *cache,
                        rebrick_conntrack_get_func_t conntrack) {
 
   ferrum_raw_t *tmp = new1(ferrum_raw_t);
@@ -822,7 +842,11 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
   tmp->conntrack_get = conntrack;
   tmp->policy = policy;
   tmp->syslog = syslog;
-  tmp->dns = dns;
+  tmp->dns_db = dns_db;
+  tmp->authz_db = authz_db;
+  tmp->track_db = track_db;
+  tmp->redis_intel = redis_intel;
+  tmp->cache = cache;
   result = rebrick_timer_new(&tmp->udp_tracker, udp_tracker_callback_t, tmp, 3000, TRUE);
   if (result) {
     ferrum_log_fatal("creating udp tracker timer failed with error:%d\n", result);

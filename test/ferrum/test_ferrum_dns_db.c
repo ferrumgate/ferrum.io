@@ -1,4 +1,4 @@
-#include "./ferrum/ferrum_dns.h"
+#include "./ferrum/ferrum_dns_db.h"
 #include "../rebrick/server_client/tcpecho.h"
 #include "../rebrick/server_client/udpecho.h"
 #include "cmocka.h"
@@ -60,7 +60,7 @@ static int remove_recursive(const char *const path) {
   return remove(path);
 }
 
-static void test_ferrum_dns_new_destroy(void **start) {
+static void test_ferrum_dns_db_new_destroy(void **start) {
   unused(start);
   const char *folder = "/tmp/test40";
   setenv("DNS_DB_FOLDER", folder, 1);
@@ -69,15 +69,15 @@ static void test_ferrum_dns_new_destroy(void **start) {
   ferrum_config_t *config;
   int32_t result = ferrum_config_new(&config);
   assert_int_equal(result, FERRUM_SUCCESS);
-  ferrum_dns_t *dns;
+  ferrum_dns_db_t *dns;
 
-  result = ferrum_dns_new(&dns, config);
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
   ferrum_config_destroy(config);
 }
 
-static void test_ferrum_dns_find_local_a(void **start) {
+static void test_ferrum_dns_db_find_local_a(void **start) {
   unused(start);
 
   ferrum_lmdb_t *lmdb;
@@ -89,40 +89,40 @@ static void test_ferrum_dns_find_local_a(void **start) {
   ferrum_config_t *config;
   int32_t result = ferrum_config_new(&config);
   assert_int_equal(result, FERRUM_SUCCESS);
-  ferrum_dns_t *dns;
+  ferrum_dns_db_t *dns;
 
-  result = ferrum_dns_new(&dns, config);
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   result = ferrum_lmdb_new(&lmdb, folder, "dns", 0, 0);
   assert_int_equal(result, FERRUM_SUCCESS);
 
   char ip[REBRICK_IP_STR_LEN] = {0};
-  result = ferrum_dns_find_local_a(dns, "ferrumgate.com", ip);
+  result = ferrum_dns_db_find_local_a(dns, "ferrumgate.com", ip);
   assert_int_equal(result, FERRUM_SUCCESS);
   assert_string_equal(ip, "");
 
   // save data
-  lmdb->key.size = snprintf(lmdb->key.val, sizeof(lmdb->key.val) - 1, "/local/dns/ferrumgate.com/a");
+  lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/local/dns/ferrumgate.com/a");
 
-  lmdb->value.size = snprintf(lmdb->value.val, sizeof(lmdb->value.val) - 1, "192.168.1.1");
+  lmdb->root->value.size = snprintf(lmdb->root->value.val, sizeof(lmdb->root->value.val) - 1, "192.168.1.1");
 
-  result = ferrum_lmdb_put(lmdb, &lmdb->key, &lmdb->value);
+  result = ferrum_lmdb_put(lmdb, &lmdb->root->key, &lmdb->root->value);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  result = ferrum_dns_find_local_a(dns, "ferrumgate.com", ip);
+  result = ferrum_dns_db_find_local_a(dns, "ferrumgate.com", ip);
   assert_int_equal(result, FERRUM_SUCCESS);
   assert_string_equal(ip, "192.168.1.1");
 
   ferrum_lmdb_destroy(lmdb);
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
   ferrum_config_destroy(config);
 }
 
-int test_ferrum_dns(void) {
+int test_ferrum_dns_db(void) {
   const struct CMUnitTest tests[] = {
-      cmocka_unit_test(test_ferrum_dns_new_destroy),
-      cmocka_unit_test(test_ferrum_dns_find_local_a),
+      cmocka_unit_test(test_ferrum_dns_db_new_destroy),
+      cmocka_unit_test(test_ferrum_dns_db_find_local_a),
   };
   return cmocka_run_group_tests(tests, setup, teardown);
 }

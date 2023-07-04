@@ -298,7 +298,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
   if (private_file)
     snprintf(ctx->prv_file, REBRICK_TLS_FILE_MAX_LEN, "%s", private_file);
 
-  strncpy(ctx->key, key, REBRICK_TLS_KEY_LEN - 1);
+  string_copy(ctx->key, key, REBRICK_TLS_KEY_LEN - 1);
   SSL_CTX_set_verify(ctx->tls_ctx, ssl_verify, NULL);
   SSL_CTX_set_options(ctx->tls_ctx, options);
   SSL_CTX_set_session_cache_mode(ctx->tls_ctx, session_mode);
@@ -310,7 +310,7 @@ int32_t rebrick_tls_context_new(rebrick_tls_context_t **context, const char *key
   hash = new1(struct rebrick_tls_context_hashitem);
   constructor(hash, struct rebrick_tls_context_hashitem);
   hash->ctx = ctx;
-  strncpy(hash->key, ctx->key, REBRICK_TLS_KEY_LEN - 1);
+  string_copy(hash->key, ctx->key, REBRICK_TLS_KEY_LEN - 1);
 
   HASH_ADD_STR(ctx_map, key, hash);
   rebrick_log_debug("%s ssl context created\n", key);

@@ -39,13 +39,13 @@ int32_t ferrum_syslog_new(ferrum_syslog_t **syslog, ferrum_config_t *config) {
   tmp->dest_port = 9191; // default
 
   char conf_syslog[REBRICK_IP_PORT_STR_LEN];
-  strncpy(conf_syslog, config->syslog_host, sizeof(conf_syslog));
+  string_copy(conf_syslog, config->syslog_host, sizeof(conf_syslog) - 1);
   char *conf_tmp = strtok(conf_syslog, ":");
   int32_t counter = 0;
   while (conf_tmp) {
     switch (counter) {
     case 0:
-      strncpy(tmp->dest_host, conf_tmp, sizeof(tmp->dest_host));
+      string_copy(tmp->dest_host, conf_tmp, sizeof(tmp->dest_host) - 1);
       break;
     case 1:
       result = rebrick_util_to_int16_t(conf_tmp, &tmp->dest_port);

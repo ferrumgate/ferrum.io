@@ -53,6 +53,7 @@ static void ferrum_config_object_redis_ip_port() {
   assert_true(strcmp(config->redis.addr_str, "[127.0.0.1]:[1234]") == 0 || strcmp(config->redis.addr_str, "[::1]:[1234]") == 0);
   assert_true(strcmp(config->redis.ip, "127.0.0.1") == 0 || strcmp(config->redis.ip, "::1") == 0);
   assert_true(strcmp(config->redis.port, "1234") == 0);
+  assert_true(config->redis.port_int == 1234);
   assert_string_equal(config->redis.pass, "pass1");
 
   ferrum_config_destroy(config);
@@ -100,6 +101,47 @@ static void ferrum_config_object_policy_db_folder() {
   assert_string_equal(config->policy_db_folder, "/var/tmp/ferrumgate");
   ferrum_config_destroy(config);
   setenv("POLICY_DB_FOLDER", "", 1);
+}
+static void ferrum_config_object_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("DB_FOLDER", "", 1);
+}
+
+static void ferrum_config_object_track_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("TRACK_DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->track_db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("TRACK_DB_FOLDER", "", 1);
+}
+
+static void ferrum_config_object_authz_db_folder() {
+  ferrum_config_t *config = NULL;
+  int32_t result;
+  setenv("AUTHZ_DB_FOLDER", "/var/tmp/ferrumgate", 1);
+
+  result = ferrum_config_new(&config);
+  assert_true(result >= 0);
+  assert_non_null(config);
+
+  assert_string_equal(config->authz_db_folder, "/var/tmp/ferrumgate");
+  ferrum_config_destroy(config);
+  setenv("AUTHZ_DB_FOLDER", "", 1);
 }
 
 static void ferrum_config_object_syslog_host() {

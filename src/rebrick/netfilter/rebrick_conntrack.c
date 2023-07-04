@@ -38,7 +38,7 @@ int rebrick_conntrack_get(const struct sockaddr *peer_addr, const struct sockadd
       if (nfct_query(h, NFCT_Q_GET, ct) == -1) {
         static int warned = 0;
         if (!warned) {
-          rebrick_log_error("Conntrack connection mark retrieval failed: %s\n", strerror(errno));
+          rebrick_log_error("conntrack connection mark retrieval failed: %s\n", strerror(errno));
           warned = 1;
         }
       }

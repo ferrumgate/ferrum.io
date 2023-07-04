@@ -83,7 +83,7 @@ cp lmdb.0.9.90.zip $TMPFOLDER
 cd $TMPFOLDER
 unzip lmdb.0.9.90.zip
 cd lmdb/libraries/liblmdb
-make
+make MDB_MAXKEYSIZE=1023
 make install prefix=$DESTFOLDER
 #
 

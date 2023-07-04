@@ -42,6 +42,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis.addr, tmp->redis.ip);
   rebrick_util_addr_to_port_string(&tmp->redis.addr, tmp->redis.port);
+  rebrick_util_to_int32_t(tmp->redis.port, &tmp->redis.port_int);
 
   size_t redis_pass_size = sizeof(tmp->redis.pass);
   uv_os_getenv("REDIS_PASS", tmp->redis.pass, &redis_pass_size);
@@ -66,9 +67,35 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
 
   rebrick_util_addr_to_ip_string(&tmp->redis_local.addr, tmp->redis_local.ip);
   rebrick_util_addr_to_port_string(&tmp->redis_local.addr, tmp->redis_local.port);
+  rebrick_util_to_int32_t(tmp->redis_local.port, &tmp->redis_local.port_int);
 
   size_t redis_local_pass_size = sizeof(tmp->redis_local.pass);
   uv_os_getenv("REDIS_PASS", tmp->redis_local.pass, &redis_local_pass_size);
+
+  /////////////////////// fill redis intel server   ///////////////////
+
+  char redis_intel_host[REBRICK_MAX_ENV_LEN] = {0};
+  size_t redis_intel_host_size = sizeof(redis_intel_host);
+  uv_os_getenv("REDIS_INTEL_HOST", redis_intel_host, &redis_intel_host_size);
+
+  if (!redis_intel_host[0])
+    strncpy(redis_intel_host, "localhost", REBRICK_HOST_STR_LEN);
+
+  result = rebrick_util_resolve_sync(redis_intel_host, &tmp->redis_intel.addr, 6379);
+  if (result) {
+    rebrick_log_fatal("%s resolution failed with error:%d\n", redis_intel_host, result);
+    rebrick_kill_current_process(result);
+  }
+
+  rebrick_util_addr_to_string(&tmp->redis_intel.addr, tmp->redis_intel.addr_str);
+  rebrick_log_warn("redis intel host:port is %s\n", tmp->redis_intel.addr_str);
+
+  rebrick_util_addr_to_ip_string(&tmp->redis_intel.addr, tmp->redis_intel.ip);
+  rebrick_util_addr_to_port_string(&tmp->redis_intel.addr, tmp->redis_intel.port);
+  rebrick_util_to_int32_t(tmp->redis_intel.port, &tmp->redis_intel.port_int);
+
+  size_t redis_intel_pass_size = sizeof(tmp->redis_intel.pass);
+  uv_os_getenv("REDIS_INTEL_PASS", tmp->redis_intel.pass, &redis_intel_pass_size);
 
   /////////////////////// listen raw   ///////////////////
   char raw_dest_host[REBRICK_MAX_ENV_LEN] = {0};
@@ -137,12 +164,33 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
     tmp->is_policy_disabled = TRUE;
 
   /////////////////////// lmdb folder ///////////////////
+  strncpy(tmp->db_folder, "", sizeof(tmp->db_folder));
+  char db_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t db_folder_size = sizeof(db_folder);
+  uv_os_getenv("DB_FOLDER", db_folder, &db_folder_size);
+  if (db_folder[0])
+    strncpy(tmp->db_folder, db_folder, sizeof(tmp->db_folder));
+
   strncpy(tmp->policy_db_folder, "/var/lib/ferrumgate/policy", sizeof(tmp->policy_db_folder));
   char policy_db_folder[REBRICK_MAX_ENV_LEN] = {0};
   size_t policy_db_folder_size = sizeof(policy_db_folder);
   uv_os_getenv("POLICY_DB_FOLDER", policy_db_folder, &policy_db_folder_size);
   if (policy_db_folder[0])
-    strncpy(tmp->policy_db_folder, policy_db_folder, sizeof(tmp->policy_db_folder) - 1);
+    strncpy(tmp->policy_db_folder, policy_db_folder, sizeof(tmp->policy_db_folder));
+
+  strncpy(tmp->track_db_folder, "/var/lib/ferrumgate/track", sizeof(tmp->track_db_folder));
+  char track_db_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t track_db_folder_size = sizeof(track_db_folder);
+  uv_os_getenv("TRACK_DB_FOLDER", track_db_folder, &track_db_folder_size);
+  if (track_db_folder[0])
+    strncpy(tmp->track_db_folder, track_db_folder, sizeof(tmp->track_db_folder));
+
+  strncpy(tmp->authz_db_folder, "/var/lib/ferrumgate/authz", sizeof(tmp->authz_db_folder));
+  char authz_db_folder[REBRICK_MAX_ENV_LEN] = {0};
+  size_t authz_db_folder_size = sizeof(authz_db_folder);
+  uv_os_getenv("AUTHZ_DB_FOLDER", authz_db_folder, &authz_db_folder_size);
+  if (authz_db_folder[0])
+    strncpy(tmp->authz_db_folder, authz_db_folder, sizeof(tmp->authz_db_folder));
 
   /////////////////////// syslog host port ///////////////////
   strncpy(tmp->syslog_host, "localhost:9191", sizeof(tmp->syslog_host));
@@ -150,7 +198,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t syslog_host_size = sizeof(syslog_host);
   uv_os_getenv("SYSLOG_HOST", syslog_host, &syslog_host_size);
   if (syslog_host[0])
-    strncpy(tmp->syslog_host, syslog_host, sizeof(tmp->syslog_host) - 1);
+    strncpy(tmp->syslog_host, syslog_host, sizeof(tmp->syslog_host));
 
   rebrick_log_warn("syslog host:port is %s\n", tmp->syslog_host);
 
@@ -168,7 +216,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t protocol_type_size = sizeof(protocol_type);
   uv_os_getenv("PROTOCOL_TYPE", protocol_type, &protocol_type_size);
   if (protocol_type[0])
-    strncpy(tmp->protocol_type, protocol_type, sizeof(tmp->protocol_type) - 1);
+    strncpy(tmp->protocol_type, protocol_type, sizeof(tmp->protocol_type));
 
   /////////////////////// root fqdn  ///////////////////
   strncpy(tmp->root_fqdn, "ferrumgate.zero", sizeof(tmp->root_fqdn));
@@ -176,7 +224,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t root_fqdn_size = sizeof(root_fqdn);
   uv_os_getenv("ROOT_FQDN", root_fqdn, &root_fqdn_size);
   if (root_fqdn[0])
-    strncpy(tmp->root_fqdn, root_fqdn, sizeof(tmp->root_fqdn) - 1);
+    strncpy(tmp->root_fqdn, root_fqdn, sizeof(tmp->root_fqdn));
 
   /////////////////////// lmdb dns folder ///////////////////
   strncpy(tmp->dns_db_folder, "/var/lib/ferrumgate/dns", sizeof(tmp->dns_db_folder));
@@ -184,7 +232,7 @@ int32_t ferrum_config_new(ferrum_config_t **config) {
   size_t dns_db_folder_size = sizeof(dns_db_folder);
   uv_os_getenv("DNS_DB_FOLDER", dns_db_folder, &dns_db_folder_size);
   if (dns_db_folder[0])
-    strncpy(tmp->dns_db_folder, dns_db_folder, sizeof(tmp->dns_db_folder) - 1);
+    strncpy(tmp->dns_db_folder, dns_db_folder, sizeof(tmp->dns_db_folder));
 
   *config = tmp;
   return FERRUM_SUCCESS;

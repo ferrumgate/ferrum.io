@@ -38,6 +38,76 @@ int rebrick_util_fqdn_endswith(const char *domainname, const char *search) {
   }
   return 0;
 }
+// search abc in ,ab,abd,abc,
+int rebrick_util_str_includes(const char *src, const char *search, const char *splitter, char **founded) {
+  *founded = NULL;
+  if (!src || !search)
+    return 0;
+  if (*src == 0 && *search == 0)
+    return 1;
+  if (*src == 0 || *search == 0)
+    return 0;
+
+  char *dup_search = strdup(search);
+  char *backup_dup_search = dup_search;
+  char *search_token = strsep(&dup_search, splitter);
+  while (search_token) {
+    while (search_token && !search_token[0]) {
+      search_token = strsep(&dup_search, splitter);
+    }
+    if (!search_token)
+      break;
+    char *dup_src = strdup(src);
+    char *backup_dup_src = dup_src; // backit up for delete
+    char *src_token = strsep(&dup_src, splitter);
+    while (src_token) {
+      while (src_token && !src_token[0]) {
+        src_token = strsep(&dup_src, splitter);
+      }
+      if (!src_token)
+        break;
+      if (!strcmp(search_token, src_token)) {
+        size_t len = strlen(src_token);
+        if (len) {
+          *founded = rebrick_malloc(len + 1);
+          fill_zero(*founded, len + 1);
+          string_copy(*founded, src_token, len);
+        }
+        rebrick_free(backup_dup_src);
+        rebrick_free(backup_dup_search);
+        return 1;
+      }
+      src_token = strsep(&dup_src, splitter);
+    }
+    rebrick_free(backup_dup_src);
+    search_token = strsep(&dup_search, splitter);
+  }
+  rebrick_free(backup_dup_search);
+  return 0;
+}
+int rebrick_util_fqdn_includes(const char *src, const char *search, const char *splitter, char **founded) {
+  *founded = NULL;
+  if (!src || !search)
+    return 0;
+  if (*src == 0 && *search == 0)
+    return 1;
+  if (*src == 0 || *search == 0)
+    return 0;
+  while (*search) {
+    // rebrick_log_debug("search src: %s  search: %s\n", src, search);
+    int32_t result = rebrick_util_str_includes(src, search, splitter, founded);
+    if (result)
+      return result;
+    search++;
+    while (*search && *search != '.') {
+      search++;
+    }
+    if (*search)
+      search++;
+  }
+
+  return 0;
+}
 
 rebrick_linked_item_t *rebrick_util_linked_item_create(size_t len, rebrick_linked_item_t *previous) {
   rebrick_linked_item_t *item = new1(rebrick_linked_item_t);
@@ -417,7 +487,8 @@ int32_t rebrick_util_file_read_allbytes(const char *file, char **buffer, size_t 
   if_is_null_then_die(temp, "malloc problem\n");
 
   fill_zero(temp, filelen + 1);
-  fread(temp, filelen, 1, fileptr);
+  size_t readed = fread(temp, filelen, 1, fileptr);
+  unused(readed);
   fclose(fileptr);
   *buffer = temp;
   *len = filelen;
@@ -446,11 +517,28 @@ int32_t rebrick_util_resolve_sync(const char *url, rebrick_sockaddr_t *addr,
   unused(current_time_str);
   if (!url || !addr)
     return REBRICK_ERR_BAD_ARGUMENT;
+
+  rebrick_linked_item_t *ptrlist = rebrick_util_create_linked_items(url, ":");
+  size_t ptrlistcount = rebrick_util_linked_item_count(ptrlist);
+  // check if host is ip
+  if (ptrlistcount) {
+    char port[16] = {0};
+    if (ptrlistcount > 1)
+      snprintf(port, sizeof(port) - 1, "%s", rebrick_util_linked_item_next(ptrlist, 1)->data);
+    else
+      snprintf(port, sizeof(port) - 1, "%d", defaultport);
+    rebrick_sockaddr_t tmp;
+    int32_t result = rebrick_util_ip_port_to_addr(cast_to_const_charptr(ptrlist->data), port, &tmp);
+    if (!result) {
+      memcpy(addr, &tmp, sizeof(rebrick_sockaddr_t));
+      rebrick_util_linked_item_destroy(ptrlist);
+      return REBRICK_SUCCESS;
+    }
+  }
+
   rebrick_sockaddr_t *addrlist;
   size_t addrlist_len;
   fill_zero(addr, sizeof(rebrick_sockaddr_t));
-  rebrick_linked_item_t *ptrlist = rebrick_util_create_linked_items(url, ":");
-  size_t ptrlistcount = rebrick_util_linked_item_count(ptrlist);
   int32_t resolved_type = AAAA;
   if (ptrlistcount) {
     int32_t result = rebrick_resolve_sync(cast_to_const_charptr(ptrlist->data),

@@ -45,12 +45,12 @@ int32_t rebrick_tcpsocket_write(rebrick_tcpsocket_t *socket, uint8_t *buffer, si
 
   result = uv_write(request, cast(&socket->handle.tcp, uv_stream_t *), &buf, 1, on_send);
   if (result < 0) {
-    rebrick_log_info("sending data to  %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
+    rebrick_log_info("sending data to %s port:%s failed: %s\n", socket->peer_ip, socket->peer_port, uv_strerror(result));
     rebrick_free(request->data);
     rebrick_free(request);
     return REBRICK_ERR_UV + result;
   }
-  rebrick_log_debug("data sended  len:%zu to   %s port:%s\n", len, socket->peer_ip, socket->peer_port);
+  rebrick_log_debug("data sended len:%zu to %s port:%s\n", len, socket->peer_ip, socket->peer_port);
   return REBRICK_SUCCESS;
 }
 

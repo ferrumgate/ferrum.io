@@ -15,6 +15,7 @@ typedef struct ferrum_config {
     char addr_str[REBRICK_IP_PORT_STR_LEN];
     char ip[REBRICK_IP_STR_LEN];
     char port[REBRICK_PORT_STR_LEN];
+    int32_t port_int;
     char pass[REBRICK_PASS_STR_LEN];
     int32_t servfail_timeout_ms;
   } redis;
@@ -24,9 +25,20 @@ typedef struct ferrum_config {
     char addr_str[REBRICK_IP_PORT_STR_LEN];
     char ip[REBRICK_IP_STR_LEN];
     char port[REBRICK_PORT_STR_LEN];
+    int32_t port_int;
     char pass[REBRICK_PASS_STR_LEN];
     int32_t servfail_timeout_ms;
   } redis_local;
+
+  struct {
+    rebrick_sockaddr_t addr;
+    char addr_str[REBRICK_IP_PORT_STR_LEN];
+    char ip[REBRICK_IP_STR_LEN];
+    char port[REBRICK_PORT_STR_LEN];
+    int32_t port_int;
+    char pass[REBRICK_PASS_STR_LEN];
+    int32_t servfail_timeout_ms;
+  } redis_intel;
 
   struct {
     char dest_tcp_addr_str[REBRICK_IP_PORT_STR_LEN];
@@ -48,11 +60,14 @@ typedef struct ferrum_config {
   char instance_id[REBRICK_NAME_STR_LEN];
 
   int32_t is_policy_disabled;
+  char db_folder[FERRUM_PATH_LEN];
   char policy_db_folder[FERRUM_PATH_LEN];
   char syslog_host[REBRICK_IP_PORT_STR_LEN];
   char protocol_type[REBRICK_NAME_STR_LEN];
   char dns_db_folder[FERRUM_PATH_LEN];
   char root_fqdn[FERRUM_ROOT_FQDN_LEN];
+  char track_db_folder[FERRUM_PATH_LEN];
+  char authz_db_folder[FERRUM_PATH_LEN];
 
   size_t socket_max_write_buf_size;
 

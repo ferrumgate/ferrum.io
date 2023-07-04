@@ -178,10 +178,10 @@ int32_t ferrum_redis_new(ferrum_redis_t **redis, const char *host, int32_t port,
     rebrick_kill_current_process(REBRICK_ERR_MALLOC);
   }
   constructor(tmp, ferrum_redis_t);
-  strncpy(tmp->host, host, REBRICK_HOST_STR_LEN - 1);
+  string_copy(tmp->host, host, REBRICK_HOST_STR_LEN - 1);
   tmp->port = port;
   if (pass && pass[0])
-    strncpy(tmp->pass, pass, REBRICK_PASS_STR_LEN);
+    string_copy(tmp->pass, pass, REBRICK_PASS_STR_LEN - 1);
 
   redisAsyncContext *rcontext = createContext(host, port, query_timeout_ms);
   if (!rcontext) {
@@ -209,7 +209,7 @@ int32_t ferrum_redis_new_sub(ferrum_redis_t **redis, const char *host,
   tmp->subscribe.cmd.callback.arg1 = callbackdata ? callbackdata : tmp;
   tmp->subscribe.cmd.id = 1;
   tmp->subscribe.cmd.type = 1;
-  strncpy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
+  string_copy(tmp->subscribe.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
   tmp->subscribe.isActived = TRUE;
   return FERRUM_SUCCESS;
 }
@@ -232,8 +232,8 @@ int32_t ferrum_redis_new_stream(ferrum_redis_t **redis, const char *host,
   tmp->stream.cmd_internal.callback.arg1 = callbackdata ? callbackdata : tmp;
   tmp->stream.cmd_internal.id = 1;
   tmp->stream.cmd_internal.type = 1;
-  strncpy(tmp->stream.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
-  strncpy(tmp->stream.pos, "0", sizeof(tmp->stream.pos) - 1);
+  string_copy(tmp->stream.channel, channel, FERRUM_REDIS_CHANNEL_NAME_LEN - 1);
+  string_copy(tmp->stream.pos, "0", sizeof(tmp->stream.pos) - 1);
   tmp->stream.isActived = TRUE;
   return FERRUM_SUCCESS;
 }
@@ -258,7 +258,9 @@ int32_t ferrum_redis_destroy(ferrum_redis_t *redis) {
 }
 
 int32_t ferrum_redis_send(ferrum_redis_t *redis, ferrum_redis_cmd_t *command, const char *fmt, ...) {
-
+  if (redis->is_mock_error) {
+    return FERRUM_ERR_REDIS;
+  }
   ferrum_log_debug("sending command\n");
   if (!redis->is_connected) {
 
@@ -302,6 +304,35 @@ int32_t ferrum_redis_cmd_new2(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type
     return result;
   }
   tmp->callback.arg2 = callback_data2;
+  *cmd = tmp;
+  return FERRUM_SUCCESS;
+}
+int32_t ferrum_redis_cmd_new3(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1, void *callback_data2, void *callback_data3) {
+
+  ferrum_redis_cmd_t *tmp;
+  int32_t result = ferrum_redis_cmd_new2(&tmp, id, type, callback, callback_data1,
+                                         callback_data2);
+  if (result) {
+    ferrum_log_error("redis cmd create new3 failed with error: %d\n", result);
+    return result;
+  }
+  tmp->callback.arg3 = callback_data3;
+  *cmd = tmp;
+  return FERRUM_SUCCESS;
+}
+int32_t ferrum_redis_cmd_new4(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1, void *callback_data2,
+                              void *callback_data3, void *callback_data4) {
+
+  ferrum_redis_cmd_t *tmp;
+  int32_t result = ferrum_redis_cmd_new3(&tmp, id, type, callback, callback_data1,
+                                         callback_data2, callback_data3);
+  if (result) {
+    ferrum_log_error("redis cmd create new3 failed with error: %d\n", result);
+    return result;
+  }
+  tmp->callback.arg4 = callback_data4;
   *cmd = tmp;
   return FERRUM_SUCCESS;
 }

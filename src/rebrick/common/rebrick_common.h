@@ -94,6 +94,10 @@
 #define rebrick_free(x) free(x)
 #define rebrick_realloc(x, y) realloc(x, y)
 #define rebrick_calloc(x, y) calloc(x, y)
+#define rebrick_free_if_not_null_and_set_null(x) \
+  if (x)                                         \
+    free(x);                                     \
+  x = NULL
 
 #define new1(x) rebrick_malloc(sizeof(x))
 
@@ -113,6 +117,16 @@
 #define new3(y, x) \
   y x;             \
   fill_zero(&x, sizeof(y));
+
+#define new4(y, x)                           \
+  y *x = rebrick_malloc(sizeof(y));          \
+  if_is_null_then_die(x, "malloc problem\n") \
+      fill_zero(x, sizeof(y));
+
+#define rebrick_malloc2(x, y)                \
+  x = rebrick_malloc(y);                     \
+  if_is_null_then_die(x, "malloc problem\n") \
+      fill_zero(x, y);
 
 #define new_array(x, len) malloc(sizeof(x) * (len))
 #define fill_zero(x, size) memset((x), 0, (size))

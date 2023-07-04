@@ -301,7 +301,7 @@ static void http2_socket_as_client_create_post_tls(void **start) {
 }
 
 rebrick_sockaddr_t resolved_addr;
-int32_t resolved = FALSE;
+static int32_t resolved = FALSE;
 static void on_resolve(const char *domain, int32_t type, rebrick_sockaddr_t addr) {
   unused(domain);
   unused(type);

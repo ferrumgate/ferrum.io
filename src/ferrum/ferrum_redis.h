@@ -28,6 +28,8 @@ typedef struct ferrum_redis_cmd {
     ferrum_redis_callback_t *func;
     void *arg1;
     void *arg2;
+    void *arg3;
+    void *arg4;
   } callback;
 } ferrum_redis_cmd_t;
 
@@ -63,6 +65,7 @@ typedef struct ferrum_redis {
     char pos[FERRUM_STREAM_POS];
   } stream;
   int32_t is_destroying;
+  int32_t is_mock_error;
 } ferrum_redis_t;
 
 /**
@@ -76,6 +79,14 @@ int32_t ferrum_redis_cmd_new(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
 int32_t ferrum_redis_cmd_new2(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
                               ferrum_redis_callback_t *callback, void *callback_data1,
                               void *callback_data2);
+
+int32_t ferrum_redis_cmd_new3(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1,
+                              void *callback_data2, void *callback_data3);
+int32_t ferrum_redis_cmd_new4(ferrum_redis_cmd_t **cmd, int64_t id, int32_t type,
+                              ferrum_redis_callback_t *callback, void *callback_data1,
+                              void *callback_data2, void *callback_data3,
+                              void *callback_data4);
 
 /**
  * @brief destroy cmd object

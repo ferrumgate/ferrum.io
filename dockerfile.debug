@@ -1,0 +1,49 @@
+################### first part 
+### build and tag 
+### docker tag ferrum.io:latest ferrum.io:builder
+###  then open second part and build fast
+
+
+#FROM debian:11-slim as builder
+#RUN locale
+#RUN apt update &&\
+#    apt install --assume-yes --no-install-recommends build-essential \
+#    automake autoconf libtool cmake zlib1g-dev libpam0g-dev unzip libnetfilter-conntrack-dev conntrack
+#
+##Create app directory
+#RUN mkdir /cores
+#WORKDIR /ferrum.io
+#COPY . .
+#
+#WORKDIR /ferrum.io/external
+#RUN ["chmod", "+x", "prepare.libs.sh"]
+#RUN ./prepare.libs.sh
+
+######################### second part
+
+FROM ferrum.io:builder
+WORKDIR /ferrum.io
+RUN rm -rf /ferrum.io/src
+ADD src  /ferrum.io/src
+RUN ls /ferrum.io
+RUN make clean && make
+RUN mkdir -p /var/run/ferrumgate 
+RUN mkdir -p /var/lib/ferrumgate/db  
+RUN mkdir -p /var/lib/ferrumgate/policy
+RUN mkdir -p /var/lib/ferrumgate/dns 
+RUN mkdir -p /var/lib/ferrumgate/authz 
+RUN mkdir -p /var/lib/ferrumgate/track
+RUN mkdir -p /var/lib/ferrumgate/core
+COPY ferrum.io.sh /ferrum.io/
+RUN chmod +x /ferrum.io/ferrum.io.sh
+RUN ls -al /ferrum.io/external/libs/lib
+CMD [ "/ferrum.io/ferrum.io.sh" ]
+
+
+
+
+
+
+
+
+

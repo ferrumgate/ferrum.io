@@ -107,12 +107,16 @@ static void ferrum_raw_tcp(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
+  loop(counter, 100, TRUE);
+
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -144,7 +148,9 @@ Accept: text/html\r\n\
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 }
 
@@ -174,16 +180,20 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   loop(counter, 100, TRUE);
 
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -209,7 +219,9 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 }
 
@@ -235,16 +247,20 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   loop(counter, 100, TRUE);
 
   ferrum_syslog_t *syslog;
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -283,7 +299,10 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
 
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 }
 
@@ -309,8 +328,8 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 
@@ -318,8 +337,12 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -352,7 +375,10 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 
   tcp_echo_stop();
@@ -390,8 +416,8 @@ static void ferrum_raw_udp(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 
@@ -399,8 +425,12 @@ static void ferrum_raw_udp(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -438,8 +468,12 @@ static void ferrum_raw_udp(void **start) {
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
 
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
   loop(counter, 100, TRUE);
+
+  ferrum_cache_destroy(cache);
+  loop(counter, 100, TRUE);
+
   rebrick_free(testdata);
 }
 
@@ -461,8 +495,8 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 
@@ -470,8 +504,12 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -508,7 +546,10 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   loop(counter, 100, TRUE);
   ferrum_syslog_destroy(syslog);
 
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 
   rebrick_free(testdata);
@@ -540,8 +581,8 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   result = ferrum_policy_new(&policy, config);
   assert_int_equal(result, FERRUM_SUCCESS);
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_dns_db_t *dns;
+  result = ferrum_dns_db_new(&dns, config);
   assert_int_equal(result, FERRUM_SUCCESS);
   loop(counter, 100, TRUE);
 
@@ -549,8 +590,12 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   result = ferrum_syslog_new(&syslog, config);
   loop(counter, 100, TRUE);
 
+  ferrum_cache_t *cache;
+  result = ferrum_cache_new(&cache, 10000);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, dns, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_udpsocket_t *client;
@@ -584,7 +629,10 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   ferrum_syslog_destroy(syslog);
   loop(counter, 100, TRUE);
 
-  ferrum_dns_destroy(dns);
+  ferrum_dns_db_destroy(dns);
+  loop(counter, 100, TRUE);
+
+  ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 }
 

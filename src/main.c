@@ -10,8 +10,12 @@ typedef struct holder {
   ferrum_config_t *config;
   ferrum_policy_t *policy;
   ferrum_syslog_t *syslog;
-  ferrum_dns_t *dns;
+  ferrum_dns_db_t *dns_db;
+  ferrum_redis_t *redis_intel;
+  ferrum_track_db_t *track_db;
+  ferrum_authz_db_t *authz_db;
   ferrum_raw_t *raw;
+  ferrum_cache_t *cache;
   // uv_signal_t sigpipe;
 } holder_t;
 
@@ -43,14 +47,31 @@ void signal_cb(uv_signal_t *handle, int signum) {
     ferrum_log_debug("destroying ferrum policy\n");
     ferrum_policy_destroy(holder->policy);
   }
-  if (holder->dns) {
-    ferrum_log_debug("destroying ferrum dns\n");
-    ferrum_dns_destroy(holder->dns);
+  if (holder->dns_db) {
+    ferrum_log_debug("destroying ferrum dns db\n");
+    ferrum_dns_db_destroy(holder->dns_db);
+  }
+  if (holder->redis_intel) {
+    ferrum_log_debug("destroying ferrum redis intel\n");
+    ferrum_redis_destroy(holder->redis_intel);
+  }
+  if (holder->track_db) {
+    ferrum_log_debug("destroying ferrum track db\n");
+    ferrum_track_db_destroy(holder->track_db);
+  }
+  if (holder->authz_db) {
+    ferrum_log_debug("destroying ferrum authz db\n");
+    ferrum_authz_db_destroy(holder->authz_db);
   }
   if (holder->syslog) {
     ferrum_log_debug("destroying ferrum syslog\n");
     ferrum_syslog_destroy(holder->syslog);
   }
+  if (holder->cache) {
+    ferrum_log_debug("destroying ferrum syslog\n");
+    ferrum_cache_destroy(holder->cache);
+  }
+
   if (holder->config) {
     ferrum_log_debug("destroying ferrum config\n");
     ferrum_config_destroy(holder->config);
@@ -133,10 +154,17 @@ int main() {
     rebrick_kill_current_process(result);
   }
 
-  ferrum_dns_t *dns;
-  result = ferrum_dns_new(&dns, config);
+  ferrum_redis_t *redis_intel;
+  result = ferrum_redis_new(&redis_intel, config->redis_intel.ip, config->redis_intel.port_int, config->redis_intel.pass, 5000, 300);
   if (result) {
-    ferrum_log_fatal("dns create failed:%d\n", result);
+    ferrum_log_fatal("redis intel create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
+  ferrum_dns_db_t *dns_db;
+  result = ferrum_dns_db_new(&dns_db, config);
+  if (result) {
+    ferrum_log_fatal("dns db create failed:%d\n", result);
     rebrick_kill_current_process(result);
   }
 
@@ -146,17 +174,48 @@ int main() {
     ferrum_log_fatal("syslog create failed:%d\n", result);
     rebrick_kill_current_process(result);
   }
+
+  ferrum_track_db_t *track_db;
+  result = ferrum_track_db_new(&track_db, config);
+  if (result) {
+    ferrum_log_fatal("track db create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
+  ferrum_authz_db_t *authz_db;
+  result = ferrum_authz_db_new(&authz_db, config);
+  if (result) {
+    ferrum_log_fatal("authz create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+  ferrum_log_info("service protocol type %s\n", config->protocol_type);
+
+  ferrum_cache_t *cache;
+  if (!strcmp(config->protocol_type, "dns")) {
+    result = ferrum_cache_new(&cache, 5000); // start dns
+  } else {
+    result = ferrum_cache_new(&cache, 0);
+  }
+  if (result) {
+    ferrum_log_fatal("cache create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
   holder_t holder = {
       .config = config,
       .policy = policy,
       .syslog = syslog,
-      .dns = dns
+      .dns_db = dns_db,
+      .redis_intel = redis_intel,
+      .authz_db = authz_db,
+      .track_db = track_db,
+      .cache = cache
 
   };
 
   if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
     ferrum_raw_t *raw = NULL;
-    result = ferrum_raw_new(&raw, config, policy, syslog, dns, rebrick_conntrack_get);
+    result = ferrum_raw_new(&raw, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, cache, rebrick_conntrack_get);
     if (result) {
       ferrum_log_fatal("raw create failed:%d\n", result);
       rebrick_kill_current_process(result);
