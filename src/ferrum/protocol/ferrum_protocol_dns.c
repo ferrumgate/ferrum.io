@@ -123,6 +123,13 @@ int32_t ferrum_dns_packet_from(const uint8_t *buffer, size_t len, ferrum_dns_pac
     // size_t slen = strlen(dns->query);
     dns->query[fqdn_len - 1] = 0;
   }
+  // to lowercase
+  char *qq = dns->query;
+  while (*qq) {
+    *qq = tolower(*qq);
+    qq++;
+  }
+
   dns->query_crc = ferrum_dns_packet_crc(dns);
 
   dns->edns.present = ldns_pkt_edns(query_pkt) && ldns_pkt_edns_data(query_pkt);
