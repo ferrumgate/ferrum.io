@@ -50,7 +50,7 @@
                 },
                 {
                     "name": "RAW_LISTEN_IP",
-                    "value": "192.168.88.250"
+                    "value": "192.168.88.10"
                 },
                 {
                     "name": "RAW_LISTEN_TCP_PORT",
