@@ -4,7 +4,7 @@
 #include "../rebrick/rebrick.h"
 #include "../rebrick/lib/b64/b64.h"
 
-#define FERRUM_VERSION "1.4.0"
+#define FERRUM_VERSION "1.5.0"
 
 #define FERRUM_SUCCESS REBRICK_SUCCESS
 #define ferrum_log_debug rebrick_log_debug

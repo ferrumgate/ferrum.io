@@ -30,7 +30,7 @@ int32_t ferrum_dns_db_destroy(ferrum_dns_db_t *dns) {
   return FERRUM_SUCCESS;
 }
 
-int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, char *fqdn, char ip[REBRICK_IP_STR_LEN]) {
+int32_t ferrum_dns_db_find_local_a(const ferrum_dns_db_t *dns, const char *fqdn, char ip[REBRICK_IP_STR_LEN]) {
 
   ferrum_lmdb_t *lmdb = dns->lmdb;
   lmdb->root->key.size = snprintf(lmdb->root->key.val, sizeof(lmdb->root->key.val) - 1, "/local/dns/%s/a", fqdn);

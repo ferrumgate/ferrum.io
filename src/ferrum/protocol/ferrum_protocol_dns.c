@@ -123,6 +123,13 @@ int32_t ferrum_dns_packet_from(const uint8_t *buffer, size_t len, ferrum_dns_pac
     // size_t slen = strlen(dns->query);
     dns->query[fqdn_len - 1] = 0;
   }
+  // to lowercase
+  char *qq = dns->query;
+  while (*qq) {
+    *qq = tolower(*qq);
+    qq++;
+  }
+
   dns->query_crc = ferrum_dns_packet_crc(dns);
 
   dns->edns.present = ldns_pkt_edns(query_pkt) && ldns_pkt_edns_data(query_pkt);
@@ -786,6 +793,20 @@ int32_t db_get_authz_fqdn_intelligence(char *content, const char *name, char **f
   return FERRUM_SUCCESS;
 }
 
+static int32_t check_dns_query_from_db(ferrum_protocol_t *protocol, const char *query, int32_t *is_nx) {
+  char ip[REBRICK_IP_STR_LEN] = {0};
+  int result = ferrum_dns_db_find_local_a(protocol->dns_db, query, ip);
+  *is_nx = 0;
+  if (result) { // error, return error
+    return result;
+  } else if (!ip[0]) { // nx result
+    *is_nx = 1;
+    return result - 1;
+  } else {
+    return result; // for founded
+  }
+}
+
 static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buffer, size_t len) {
   unused(protocol);
   unused(buffer);
@@ -816,6 +837,15 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   if (dns->query_type != LDNS_RR_TYPE_AAAA && dns->query_type != LDNS_RR_TYPE_A) {
     ferrum_log_debug("dns query is not A or AAAA\n");
     result = send_backend_directly(protocol, pair, dns, buffer, len);
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+
+  // check other domains from database
+  int32_t is_NX;
+  if (!check_dns_query_from_db(protocol, dns->query, &is_NX)) {
+    ferrum_log_debug("dns is in our db fqdn %s\n", dns->query);
+    result = reply_local_dns(protocol, pair, dns);
     ferrum_dns_packet_destroy(dns);
     return result;
   }
