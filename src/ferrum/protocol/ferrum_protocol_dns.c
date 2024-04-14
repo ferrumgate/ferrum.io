@@ -833,11 +833,20 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     return result;
   }
 
+  // add to cache
+  dns->source = pair->client_addr;
+  dns->destination = pair->udp_destination_addr;
+  result = ferrum_dns_cache_add(protocol->cache->dns, dns);
+  if (result) {
+    reply_dns_empty(pair, dns, LDNS_RCODE_SERVFAIL); // we must send servfail
+    ferrum_dns_packet_destroy(dns);
+    return result;
+  }
+
   // we dont care queries out ot AAAA and A, #test3
   if (dns->query_type != LDNS_RR_TYPE_AAAA && dns->query_type != LDNS_RR_TYPE_A) {
     ferrum_log_debug("dns query is not A or AAAA\n");
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -846,7 +855,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   if (!check_dns_query_from_db(protocol, dns->query, &is_NX)) {
     ferrum_log_debug("dns is in our db fqdn %s\n", dns->query);
     result = reply_local_dns(protocol, pair, dns);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -856,7 +865,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     rebrick_log_error("get user and group ids failed %d\n", result);
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     reply_dns_empty(pair, dns, LDNS_RCODE_SERVFAIL); // we must send servfail
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   if (!protocol->identity.user_id && !protocol->identity.group_ids) // we dont know user and group,interesting situation, #test5
@@ -864,7 +873,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_log_debug("user id and group id is null\n");
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_INVALID, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   // we know user and groups now
@@ -878,7 +887,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     // reply_dns_empty(pair, dns, LDNS_RCODE_SERVFAIL);
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   if (!authz_users) { // no user or group found for this service in authz, probably there is a problem, #test 7
@@ -886,7 +895,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_INVALID, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_authz_db_service_user_row_destroy(authz_users);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -910,7 +919,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_INVALID, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
     ferrum_authz_db_service_user_row_destroy(authz_users);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   dns->state.authz_id = strdup(authz_id);
@@ -926,7 +935,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     // reply_dns_empty(pair, dns, LDNS_RCODE_SERVFAIL);
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   if (!authz) // rule not found #test 9x
@@ -934,7 +943,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_log_debug("rule not found %s\n", dns->state.authz_id);
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_INVALID, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   // ignore lists
@@ -946,7 +955,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -959,7 +968,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     // dont log
     ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   // ferrum_authz_db_authz_row_destroy(authz);
@@ -973,7 +982,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -986,7 +995,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     // dont log
     ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
   // ferrum_authz_db_authz_row_destroy(authz);
@@ -1000,7 +1009,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     write_activity_log(protocol, pair, dns, FERRUM_DNS_STATUS_ERROR, FERRUM_FQDN_CATEGORY_UNKNOWN, NULL);
     ferrum_authz_db_authz_row_destroy(authz);
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -1014,7 +1023,7 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
     ferrum_authz_db_authz_row_destroy(authz);
     ferrum_log_debug("fqdn %s will be denied authz: %s \n", dns->query, dns->state.authz_id);
     result = reply_dns_ip(pair, dns, "0.0.0.0", 300);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
 
@@ -1026,19 +1035,21 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   if (result) {                                   // sending redis and backend failed
     ferrum_log_debug("fqdn %s redis failed\n");
     result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
+    // ferrum_dns_packet_destroy(dns);
     return result;
   }
-  // add to cache, everything is going on well
-  dns->source = pair->client_addr;
-  dns->destination = pair->udp_destination_addr;
 
-  result = ferrum_dns_cache_add(protocol->cache->dns, dns);
-  if (result) {
-    result = send_backend_directly(protocol, pair, dns, buffer, len);
-    ferrum_dns_packet_destroy(dns);
-    return result;
-  }
+  /*
+    dns->source = pair->client_addr;
+    dns->destination = pair->udp_destination_addr;
+
+    result = ferrum_dns_cache_add(protocol->cache->dns, dns);
+      if (result) {
+        result = send_backend_directly(protocol, pair, dns, buffer, len);
+        ferrum_dns_packet_destroy(dns);
+        return result;
+      }
+      */
   result = send_backend_directly(protocol, pair, dns, buffer, len);
   // dont care result;
 
@@ -1061,6 +1072,37 @@ static int32_t send_client_directly(ferrum_protocol_t *protocol, const uint8_t *
     rebrick_free(buf);
     return result;
   }
+  return FERRUM_SUCCESS;
+}
+
+int32_t ferrum_protocol_dns_cache_find(const ferrum_cache_t *cache, const uint8_t *buffer, size_t len, ferrum_dns_cache_founded_t **cache_item) {
+  ferrum_dns_packet_new(rdns);
+  int32_t result = ferrum_dns_packet_from(buffer, len, rdns);
+  if (result) {
+    // drop silently
+    rebrick_log_error("output dns packet parse failed %d\n", result);
+    ferrum_dns_packet_destroy(rdns);
+    return FERRUM_ERR_DNS_BAD_PACKET;
+  }
+  if (!rdns->query || !rdns->query[0]) {
+    rebrick_log_error("output dns packet not normal %d\n", result);
+    ferrum_dns_packet_destroy(rdns);
+    return FERRUM_ERR_DNS_BAD_PACKET;
+  }
+
+  result = ferrum_dns_cache_find(cache->dns, rdns, cache_item);
+  if (result) {
+    rebrick_log_error("dns query cache failed %s %d\n", rdns->query, result);
+    ferrum_dns_packet_destroy(rdns);
+    return FERRUM_ERR_DNS_CACHE_FAILED;
+  }
+  if (!((*cache_item)->dns)) { // query dns data not founded
+    rebrick_log_debug("dns query cache not found %s %d\n", rdns->query, result);
+    ferrum_dns_packet_destroy(rdns);
+    ferrum_dns_cache_remove_founded(cache->dns, *cache_item);
+    return FERRUM_ERR_DNS_CACHE_ITEM_NOT_FOUND;
+  }
+  ferrum_dns_packet_destroy(rdns);
   return FERRUM_SUCCESS;
 }
 
@@ -1105,6 +1147,16 @@ static int32_t process_output_udp(ferrum_protocol_t *protocol, const uint8_t *bu
     rebrick_log_debug("dns query cache not found %s %d\n", rdns->query, result);
     ferrum_dns_packet_destroy(rdns);
     ferrum_dns_cache_remove_founded(protocol->cache->dns, cache_item);
+    // TODO log
+    send_client_directly(protocol, buffer, len);
+    return FERRUM_SUCCESS;
+  }
+
+  // we did not send to redis, just reply
+  if (!cache_item->dns->state.is_redis_query_sended && !cache_item->dns->state.is_redis_query_error && !cache_item->dns->state.is_redis_query_not_found && !cache_item->dns->state.is_redis_query_received) {
+    rebrick_log_debug("dns query not sended to redis %s %d\n", rdns->query, result);
+    ferrum_dns_packet_destroy(rdns);
+    ferrum_dns_cache_remove(protocol->cache->dns, cache_item);
     // TODO log
     send_client_directly(protocol, buffer, len);
     return FERRUM_SUCCESS;

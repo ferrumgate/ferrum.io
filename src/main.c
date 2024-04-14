@@ -16,6 +16,7 @@ typedef struct holder {
   ferrum_authz_db_t *authz_db;
   ferrum_raw_t *raw;
   ferrum_cache_t *cache;
+  ferrum_udpsocket_pool_t *udpsocket_pool;
   // uv_signal_t sigpipe;
 } holder_t;
 
@@ -75,6 +76,10 @@ void signal_cb(uv_signal_t *handle, int signum) {
   if (holder->config) {
     ferrum_log_debug("destroying ferrum config\n");
     ferrum_config_destroy(holder->config);
+  }
+  if (holder->udpsocket_pool) {
+    ferrum_log_debug("destroying udp socket pool\n");
+    ferrum_udpsocket_pool_destroy(holder->udpsocket_pool);
   }
 
   uv_close(cast(handle, uv_handle_t *), close_cb);
@@ -192,12 +197,21 @@ int main() {
 
   ferrum_cache_t *cache;
   if (!strcmp(config->protocol_type, "dns")) {
-    result = ferrum_cache_new(&cache, 5000); // start dns
+    result = ferrum_cache_new(&cache, 5000); // start dns cache
   } else {
     result = ferrum_cache_new(&cache, 0);
   }
   if (result) {
     ferrum_log_fatal("cache create failed:%d\n", result);
+    rebrick_kill_current_process(result);
+  }
+
+  ferrum_udpsocket_pool_t *udpsocket_pool;
+  if (!strcmp(config->protocol_type, "dns")) {
+    result = ferrum_udpsocket_pool_new(&udpsocket_pool, 16); // start socket pool for dns
+  }
+  if (result) {
+    ferrum_log_fatal("dns socket pool failed create failed:%d\n", result);
     rebrick_kill_current_process(result);
   }
 
@@ -209,13 +223,14 @@ int main() {
       .redis_intel = redis_intel,
       .authz_db = authz_db,
       .track_db = track_db,
-      .cache = cache
+      .cache = cache,
+      .udpsocket_pool = udpsocket_pool
 
   };
 
   if (config->raw.dest_tcp_addr_str[0] || config->raw.dest_udp_addr_str[0]) {
     ferrum_raw_t *raw = NULL;
-    result = ferrum_raw_new(&raw, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, cache, rebrick_conntrack_get);
+    result = ferrum_raw_new(&raw, config, policy, syslog, redis_intel, dns_db, track_db, authz_db, cache, udpsocket_pool, rebrick_conntrack_get);
     if (result) {
       ferrum_log_fatal("raw create failed:%d\n", result);
       rebrick_kill_current_process(result);
@@ -236,7 +251,7 @@ int main() {
   // uv_signal_start(&sigpipe, signal_ignore_cb, SIGPIPE);
   //////////////////////////////////
   uv_run(uv_default_loop(), UV_RUN_DEFAULT);
-  for (int32_t wait = 0; wait < 1000; ++wait)
+  for (int32_t wait = 0; wait < 5000; ++wait)
     uv_run(uv_default_loop(), UV_RUN_ONCE);
 
   uv_loop_close(uv_default_loop());

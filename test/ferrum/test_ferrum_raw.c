@@ -115,8 +115,12 @@ static void ferrum_raw_tcp(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -152,6 +156,7 @@ Accept: text/html\r\n\
   loop(counter, 100, TRUE);
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
+  ferrum_udpsocket_pool_destroy(pool);
 }
 
 int tcp_error_occured = 0;
@@ -192,8 +197,12 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -223,6 +232,7 @@ static void ferrum_raw_tcp_destination_unreachable(void **start) {
   loop(counter, 100, TRUE);
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
+  ferrum_udpsocket_pool_destroy(pool);
 }
 
 static void ferrum_raw_tcp_destination_closed(void **start) {
@@ -259,8 +269,12 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -304,6 +318,7 @@ static void ferrum_raw_tcp_destination_closed(void **start) {
 
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
+  ferrum_udpsocket_pool_destroy(pool);
 }
 
 static void ferrum_raw_tcp_client_closed(void **start) {
@@ -341,8 +356,12 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_tcpsocket_t *client;
@@ -385,6 +404,7 @@ static void ferrum_raw_tcp_client_closed(void **start) {
   tcp_echo_close_client();
   tcp_echo_close_server();
   loop(counter, 200, TRUE);
+  ferrum_udpsocket_pool_destroy(pool);
 }
 
 static int32_t received_dns_count = 0;
@@ -429,8 +449,12 @@ static void ferrum_raw_udp(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -474,6 +498,8 @@ static void ferrum_raw_udp(void **start) {
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_destroy(pool);
+
   rebrick_free(testdata);
 }
 
@@ -508,8 +534,12 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   // read a sample dns packet
@@ -551,6 +581,8 @@ static void ferrum_raw_udp_disconnected_client(void **start) {
 
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
+
+  ferrum_udpsocket_pool_destroy(pool);
 
   rebrick_free(testdata);
 }
@@ -594,8 +626,12 @@ static void ferrum_raw_udp_closed_destination(void **start) {
   result = ferrum_cache_new(&cache, 10000);
   loop(counter, 100, TRUE);
 
+  ferrum_udpsocket_pool_t *pool;
+  result = ferrum_udpsocket_pool_new(&pool, 16);
+  loop(counter, 100, TRUE);
+
   ferrum_raw_t *raw;
-  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, local_rebrick_conntrack_get);
+  result = ferrum_raw_new(&raw, config, policy, syslog, NULL, dns, NULL, NULL, cache, pool, local_rebrick_conntrack_get);
   loop(counter, 100, TRUE);
 
   rebrick_udpsocket_t *client;
@@ -634,6 +670,8 @@ static void ferrum_raw_udp_closed_destination(void **start) {
 
   ferrum_cache_destroy(cache);
   loop(counter, 100, TRUE);
+
+  ferrum_udpsocket_pool_destroy(pool);
 }
 
 int test_ferrum_raw(void) {
