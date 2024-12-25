@@ -12,6 +12,7 @@
 #include "protocol/ferrum_protocol_raw.h"
 #include "protocol/ferrum_protocol_dns.h"
 #include "cache/ferrum_cache.h"
+#include "pool/ferrum_udpsocket_pool.h"
 
 #define FERRUM_RAW_POLICY_CHECK_MS 5000000
 typedef struct ferrum_raw_udpsocket2 {
@@ -35,6 +36,7 @@ typedef struct ferrum_raw {
   private_ const ferrum_track_db_t *track_db;
   private_ const ferrum_authz_db_t *authz_db;
   private_ const ferrum_cache_t *cache;
+  private_ ferrum_udpsocket_pool_t *udpsocket_pool;
   private_ rebrick_conntrack_get_func_t conntrack_get;
 
   private_ int32_t socket_count;
@@ -80,6 +82,7 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
                        const ferrum_track_db_t *track_db,
                        const ferrum_authz_db_t *authz_db,
                        const ferrum_cache_t *cache,
+                       ferrum_udpsocket_pool_t *udp_pool,
                        rebrick_conntrack_get_func_t conntrack_get);
 int32_t ferrum_raw_destroy(ferrum_raw_t *raw);
 

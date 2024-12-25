@@ -82,7 +82,9 @@ typedef struct base_socket_callbacks {
   protected_ rebrick_socket_on_write_callback_t on_write; \
   protected_ rebrick_socket_on_error_callback_t on_error; \
   protected_ rebrick_socket_on_close_callback_t on_close; \
-  protected_ void *callback_data;
+  protected_ void *callback_data;                         \
+  protected_ void *pool;                                  \
+  protected_ int8_t is_in_pool;
 
 public_ typedef struct rebrick_socket {
   base_socket();

@@ -1154,6 +1154,70 @@ userOrgroupIds = \"\"\n\
   rebrick_free(pair);
 }
 
+static void ferrum_protocol_dns_cache_find_bad_packet(void **start) {
+  uint8_t packet_bytes[] = {
+      0x96, 0xe4, 0x02, 0x60, 0x10, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
+      0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
+      0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
+  ferrum_cache_t *cache;
+  int32_t result = ferrum_cache_new(&cache, 10);
+
+  ferrum_dns_cache_founded_t *item;
+  result = ferrum_protocol_dns_cache_find(cache, packet_bytes, sizeof(packet_bytes), &item);
+  assert_int_equal(result, FERRUM_ERR_DNS_BAD_PACKET);
+  ferrum_cache_destroy(cache);
+  unused(start);
+}
+
+static void ferrum_protocol_dns_cache_find_not_found(void **start) {
+  uint8_t packet_bytes[] = {
+      0x95, 0xd4, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
+      0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
+      0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
+  ferrum_cache_t *cache;
+  int32_t result = ferrum_cache_new(&cache, 10);
+
+  ferrum_dns_cache_founded_t *item;
+  result = ferrum_protocol_dns_cache_find(cache, packet_bytes, sizeof(packet_bytes), &item);
+  assert_int_equal(result, FERRUM_ERR_DNS_CACHE_ITEM_NOT_FOUND);
+  ferrum_cache_destroy(cache);
+  unused(start);
+}
+
+static void ferrum_protocol_dns_cache_find_founded(void **start) {
+  uint8_t packet_bytes[] = {
+      0x95, 0xd4, 0x01, 0x20, 0x00, 0x01, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01, 0x03, 0x77, 0x77, 0x77,
+      0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x03,
+      0x63, 0x6f, 0x6d, 0x00, 0x00, 0x01, 0x00, 0x01,
+      0x00, 0x00, 0x29, 0x10, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x0c, 0x00, 0x0a, 0x00, 0x08, 0xca,
+      0x54, 0x42, 0xa1, 0xc4, 0x77, 0xd7, 0x38};
+
+  ferrum_cache_t *cache;
+  int32_t result = ferrum_cache_new(&cache, 10);
+  ferrum_dns_packet_new(rdns);
+  ferrum_dns_packet_from(packet_bytes, sizeof(packet_bytes), rdns);
+  ferrum_dns_cache_add(cache->dns, rdns);
+
+  ferrum_dns_cache_founded_t *item;
+  result = ferrum_protocol_dns_cache_find(cache, packet_bytes, sizeof(packet_bytes), &item);
+  assert_int_equal(result, FERRUM_SUCCESS);
+  ferrum_dns_cache_remove_founded(cache->dns, item);
+  ferrum_cache_destroy(cache);
+  unused(start);
+}
+
 int test_ferrum_protocol_dns(void) {
   const struct CMUnitTest tests[] = {
       cmocka_unit_test(test_ferrum_parse_dns_query),
@@ -1168,7 +1232,10 @@ int test_ferrum_protocol_dns(void) {
       cmocka_unit_test(test_split_fqdn_for_redis),
       cmocka_unit_test(test_send_redis_intel_lists),
       cmocka_unit_test(test_send_redis_intel),
-      cmocka_unit_test(test_process_dns_state)
+      cmocka_unit_test(test_process_dns_state),
+      cmocka_unit_test(ferrum_protocol_dns_cache_find_bad_packet),
+      cmocka_unit_test(ferrum_protocol_dns_cache_find_not_found),
+      cmocka_unit_test(ferrum_protocol_dns_cache_find_founded),
 
   };
   return cmocka_run_group_tests(tests, setup, teardown);

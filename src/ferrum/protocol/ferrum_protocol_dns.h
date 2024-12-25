@@ -18,4 +18,7 @@ ferrum_protocol_dns_new(ferrum_protocol_t **protocol,
 
 int32_t ferrum_protocol_dns_destroy(ferrum_protocol_t *protocol);
 
+// static functions
+int32_t ferrum_protocol_dns_cache_find(const ferrum_cache_t *cache, const uint8_t *buffer, size_t len, ferrum_dns_cache_founded_t **cache_item);
+
 #endif

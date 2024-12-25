@@ -34,7 +34,7 @@
                 },
                 {
                     "name": "REDIS_HOST",
-                    "value": "localhost:6379"
+                    "value": "192.168.88.250:6379"
                 },
                 {
                     "name": "RAW_DESTINATION_HOST",
@@ -50,7 +50,7 @@
                 },
                 {
                     "name": "RAW_LISTEN_IP",
-                    "value": "192.168.88.10"
+                    "value": "192.168.88.250"
                 },
                 {
                     "name": "RAW_LISTEN_TCP_PORT",

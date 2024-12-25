@@ -36,6 +36,7 @@ typedef struct ferrum_raw_udpsocket_pair {
   UT_hash_handle hh;
 
   struct ferrum_protocol *protocol;
+  uint8_t is_socket_pool;
 
 } ferrum_raw_udpsocket_pair_t;
 

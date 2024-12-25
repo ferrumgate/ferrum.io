@@ -285,7 +285,7 @@ static int32_t create_server_socket(rebrick_tcpsocket_t *socket, int32_t backlog
       return REBRICK_ERR_UV + result;
     }
     int32_t optval = 1;
-    setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &optval, sizeof(optval));
   }
   /////////////////////
   result = uv_tcp_bind(&socket->handle.tcp, &socket->bind_addr.base, 0);

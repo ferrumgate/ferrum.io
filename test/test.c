@@ -36,6 +36,7 @@ extern int test_ferrum_dns_cache();
 extern int test_ferrum_cache();
 extern int test_ferrum_track_db();
 extern int test_ferrum_authz_db();
+extern int test_ferrum_socket_pool();
 int main() {
   fprintf(stdout, "starting test\n");
   rebrick_log_level(REBRICK_LOG_ALL);
@@ -114,6 +115,10 @@ int main() {
   }
 
   if (test_ferrum_protocol_dns()) {
+    exit(1);
+  }
+
+  if (test_ferrum_socket_pool()) {
     exit(1);
   }
 
