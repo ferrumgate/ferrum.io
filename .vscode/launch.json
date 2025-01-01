@@ -42,23 +42,23 @@
                 },
                 {
                     "name": "RAW_DESTINATION_TCP_PORT",
-                    "value": "5555"
+                    "value": "10"
                 },
                 {
                     "name": "RAW_DESTINATION_UDP_PORT",
-                    "value": "5555"
+                    "value": "10"
                 },
                 {
                     "name": "RAW_LISTEN_IP",
-                    "value": "192.168.88.250"
+                    "value": "127.0.0.1"
                 },
                 {
                     "name": "RAW_LISTEN_TCP_PORT",
-                    "value": "5656"
+                    "value": "8081"
                 },
                 {
                     "name": "RAW_LISTEN_UDP_PORT",
-                    "value": "5656"
+                    "value": "8081"
                 },
                 {
                     "name": "GATEWAY_ID",
@@ -94,7 +94,7 @@
                 },
                 {
                     "name": "PROTOCOL_TYPE",
-                    "value": "dns"
+                    "value": "tproxy"
                 },
                 {
                     "name": "LD_LIBRARY_PATH",

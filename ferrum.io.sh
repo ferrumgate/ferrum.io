@@ -11,7 +11,7 @@ echo "starting server"
 echo "***************ip address**************"
 ip a
 echo "***************************************"
-echo $(pwd)
+echo "$(pwd)"
 
 OPT_REDIS_HOST=localhost
 if [ ! -z "$REDIS_HOST" ]; then
@@ -88,7 +88,7 @@ echo "instance id $OPT_INSTANCE_ID"
 OPT_DB_FOLDER=""
 if [ ! -z "$DB_FOLDER" ]; then
     OPT_DB_FOLDER=$DB_FOLDER
-    mkdir -p $OPT_DB_FOLDER
+    mkdir -p "$OPT_DB_FOLDER"
 fi
 echo "db folder $OPT_DB_FOLDER"
 
@@ -97,28 +97,28 @@ if [ ! -z "$POLICY_DB_FOLDER" ]; then
     OPT_POLICY_DB_FOLDER=$POLICY_DB_FOLDER
 fi
 echo "policy db folder $OPT_POLICY_DB_FOLDER"
-mkdir -p $OPT_POLICY_DB_FOLDER
+mkdir -p "$OPT_POLICY_DB_FOLDER"
 
 OPT_TRACK_DB_FOLDER="/var/lib/ferrumgate/track"
 if [ ! -z "$TRACK_DB_FOLDER" ]; then
     OPT_TRACK_DB_FOLDER=$TRACK_DB_FOLDER
 fi
 echo "track db folder $OPT_TRACK_DB_FOLDER"
-mkdir -p $OPT_TRACK_DB_FOLDER
+mkdir -p "$OPT_TRACK_DB_FOLDER"
 
 OPT_AUTHZ_DB_FOLDER="/var/lib/ferrumgate/authz"
 if [ ! -z "$AUTHZ_DB_FOLDER" ]; then
     OPT_AUTHZ_DB_FOLDER=$AUTHZ_DB_FOLDER
 fi
 echo "authz db folder $OPT_AUTHZ_DB_FOLDER"
-mkdir -p $OPT_AUTHZ_DB_FOLDER
+mkdir -p "$OPT_AUTHZ_DB_FOLDER"
 
 OPT_DNS_DB_FOLDER="/var/lib/ferrumgate/dns"
 if [ ! -z "$DNS_DB_FOLDER" ]; then
     OPT_DNS_DB_FOLDER=$DNS_DB_FOLDER
 fi
 echo "dns db folder $OPT_DNS_DB_FOLDER"
-mkdir -p $OPT_DNS_DB_FOLDER
+mkdir -p "$OPT_DNS_DB_FOLDER"
 
 OPT_SOCKET_WRITE_BUF_SIZE="524288"
 if [ ! -z "$SOCKET_WRITE_BUF_SIZE" ]; then
@@ -131,12 +131,6 @@ if [ ! -z "$ROOT_FQDN" ]; then
     OPT_ROOT_FQDN=$ROOT_FQDN
 fi
 echo "root fqdn $OPT_ROOT_FQDN"
-
-OPT_=""
-if [ ! -z "$" ]; then
-    OPT_=$
-fi
-#echo " $OPT_"
 
 #OPT_INSTANCE_ID=$(cat /dev/urandom | tr -dc '[:alnum:]' | fold -w ${1:-12} | head -n 1)
 
@@ -158,7 +152,8 @@ LD_LIBRARY_PATH="/ferrum.io/external/libs/lib" \
     POLICY_DB_FOLDER=$OPT_POLICY_DB_FOLDER \
     DNS_DB_FOLDER=$OPT_DNS_DB_FOLDER \
     TRACK_DB_FOLDER=$OPT_TRACK_DB_FOLDER \
-    AUTHZ_DB_FOLDER=$OPT_AUTHZ_DB_FOLDER ./src/ferrum.io
+    AUTHZ_DB_FOLDER=$OPT_AUTHZ_DB_FOLDER \
+    ./src/ferrum.io
 
 if ls core* 1>/dev/null 2>&1; then
     folder=$(((RANDOM % 1000000) + 1))

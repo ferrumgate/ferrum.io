@@ -5,26 +5,26 @@ if [ ! -f ./test/rebrick/docker_ssl/nginx_data/100m.ignore.txt ]; then
 fi
 
 mkdir -p /tmp/top1m
-if [ -f $(pwd)/test/data/top1m.list ]; then
+if [ -f "$(pwd)/test/data/top1m.list" ]; then
 
-    cp $(pwd)/test/data/top1m.list /tmp/top1m/
+    cp "$(pwd)/test/data/top1m.list" /tmp/top1m/
     echo "copied data"
 fi
 
 echo "starting bind"
 CURRENT_FOLDER=$(pwd)
-echo $CURRENT_FOLDER
-cd $CURRENT_FOLDER/test/rebrick/docker_bind
+echo "$CURRENT_FOLDER"
+cd "$CURRENT_FOLDER/test/rebrick/docker_bind" || exit 1
 bash run.sh
 
-echo $CURRENT_FOLDER
+echo "$CURRENT_FOLDER"
 echo "starting expressjs"
-cd $CURRENT_FOLDER/test/rebrick/docker_expressjs
+cd "$CURRENT_FOLDER/test/rebrick/docker_expressjs" || exit 1
 bash run.sh
 
-echo $CURRENT_FOLDER
+echo "$CURRENT_FOLDER"
 echo "starting nginx ssl"
-cd $CURRENT_FOLDER/test/rebrick/docker_ssl
+cd "$CURRENT_FOLDER/test/rebrick/docker_ssl" || exit 1
 bash run.sh
 
 docker stop redis
