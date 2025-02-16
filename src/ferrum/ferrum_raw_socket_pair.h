@@ -37,6 +37,12 @@ typedef struct ferrum_raw_udpsocket_pair {
 
   struct ferrum_protocol *protocol;
   uint8_t is_socket_pool;
+  // when we are in tproxy mode,
+  // we will reply udp packets over raw sockets
+  rebrick_rawsocket_t *udp_raw_socket;
+  // when we are in tproxy mode,
+  // we need to know the incoming real listening address
+  rebrick_sockaddr_t udp_listening_addr;
 
 } ferrum_raw_udpsocket_pair_t;
 

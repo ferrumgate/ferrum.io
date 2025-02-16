@@ -17,6 +17,11 @@
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
 #include <openssl/engine.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -41,6 +46,7 @@
 #define REBRICK_ERR_RESOLV -13
 #define REBRICK_ERR_IO_RECONNECT -14
 #define REBRICK_ERR_IO_FULL_BUFFER -15
+#define REBRICK_ERR_IO_OPEN -16
 #define REBRICK_ERR_IO_ERR -19
 
 #define REBRICK_ERR_TLS_INIT -20
@@ -55,6 +61,7 @@
 #define REBRICK_ERR_UNSUPPORT_IPFAMILY -31
 
 #define REBRICK_ERR_NOT_FOUND -50
+#define REBRICK_ERR_NOT_IMPLEMENTED -51
 
 #define REBRICK_ERR_HTTP_HEADER_PARSE -100
 
@@ -151,10 +158,21 @@
 #define ssizeof(x) cast(sizeof(x), int32_t)
 
 #define cast_to_uint8ptr(x) cast(x, uint8_t *)
+#define cast_to_uint16ptr(x) cast(x, uint16_t *)
+#define cast_to_int16ptr(x) cast(x, int16_t *)
 #define cast_to_const_uint8ptr(x) cast(x, const uint8_t *)
 #define cast_to_charptr(x) cast(x, char *)
 #define cast_to_const_charptr(x) cast(x, const char *)
 #define cast_to_sockaddr(x) cast(x, struct sockaddr *)
+#define cast_to_sockaddr_in(x) cast(x, struct sockaddr_in *)
+#define cast_to_sockaddr_in6(x) cast(x, struct sockaddr_in6 *)
+#define cast_to_uv_handle_t(x) cast(x, uv_handle_t *)
+#define cast_to_const_uv_handle_t(x) cast(x, const uv_handle_t *)
+#define cast_to_uint16_t(x) cast(x, uint16_t)
+#define cast_to_uint32_t(x) cast(x, uint32_t)
+#define cast_to_int32_t(x) cast(x, int32_t)
+#define cast_to_int64_t(x) cast(x, int64_t)
+#define cast_to_uint64_t(x) cast(x, uint64_t)
 
 #define public_
 #define private_

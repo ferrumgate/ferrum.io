@@ -582,7 +582,6 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
   unused(addr);
   unused(callbackdata);
   unused(socket);
-  unused(addr);
   unused(buffer);
   unused(len);
 
@@ -617,8 +616,16 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
   if (!pair) { // not found, query conntrack
     new2(rebrick_conntrack_t, conntrack);
     new2(ferrum_policy_result_t, presult);
+    struct sockaddr *destination_addr = &socket->bind_addr.base;
+    if (socket->is_tproxy) {
+      struct sockaddr_storage *peer_addr;
+      int32_t dest_addr_len = 0;
+      uv_udp_getpeername_ex(&socket->handle.udp, (struct sockaddr **)(&peer_addr), &dest_addr_len);
+      // save this address to store in pair
+      destination_addr = cast_to_sockaddr(peer_addr);
+    }
 
-    result = raw->conntrack_get(addr, &socket->bind_addr.base, FALSE, &conntrack);
+    result = raw->conntrack_get(addr, destination_addr, FALSE, &conntrack);
     if (result) {
       rebrick_log_error("no conntrack found for ip %s:%s\n", ip_str, port_str);
       presult.is_dropped = TRUE;
@@ -655,8 +662,8 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     callback.on_write = on_udp_client_write;
 
     uint8_t is_socket_from_pool_cache = FALSE;
-    rebrick_udpsocket_t *socket;
-    result = ferrum_raw_udpsocket_destination_create(raw, &socket, &bind_addr, &callback, &is_socket_from_pool_cache);
+    rebrick_udpsocket_t *target_socket;
+    result = ferrum_raw_udpsocket_destination_create(raw, &target_socket, &bind_addr, &callback, &is_socket_from_pool_cache);
     if (result) {
       rebrick_log_error("client socket create failed %s:%s\n", ip_str, port_str);
       ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
@@ -677,11 +684,24 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
     string_copy(pair->udp_destination_ip, raw->listen.udp_destination_ip, sizeof(pair->udp_destination_ip) - 1);
     string_copy(pair->udp_destination_port, raw->listen.udp_destination_port, sizeof(pair->udp_destination_port) - 1);
 
+    if (socket->is_tproxy) {
+      if (pair->udp_destination_addr.base.sa_family == AF_INET) {
+        pair->udp_destination_addr.v4.sin_port = cast_to_sockaddr_in(destination_addr)->sin_port;
+        snprintf(pair->udp_destination_port, sizeof(pair->udp_destination_port), "%d", ntohs(pair->udp_destination_addr.v4.sin_port));
+        pair->udp_listening_addr.v4 = *cast_to_sockaddr_in(destination_addr);
+      } else {
+        pair->udp_destination_addr.v6.sin6_port = cast_to_sockaddr_in6(destination_addr)->sin6_port;
+        snprintf(pair->udp_destination_port, sizeof(pair->udp_destination_port), "%d", ntohs(pair->udp_destination_addr.v6.sin6_port));
+        pair->udp_listening_addr.v6 = *cast_to_sockaddr_in6(destination_addr);
+      }
+    }
+
     pair->last_used_time = rebrick_util_micro_time();
     pair->policy_last_allow_time = rebrick_util_micro_time();
-    pair->udp_socket = socket;
+    pair->udp_socket = target_socket;
     pair->mark = conntrack.mark;
     pair->udp_listening_socket = raw->listen.udp;
+    pair->udp_raw_socket = raw->listen.raw_udp_socket;
     memcpy(&pair->policy_result, &presult, sizeof(presult));
 
     result = ferrum_protocol_create(&pair->protocol, pair, NULL, raw->config, raw->policy, raw->syslog, raw->redis_intel, raw->dns_db, raw->track_db, raw->authz_db, raw->cache);
@@ -689,7 +709,7 @@ static void on_udp_server_read(rebrick_socket_t *socket, void *callbackdata,
       rebrick_log_error("protocol create failed %s:%s\n", ip_str, port_str);
       ferrum_write_activity_log_raw(raw->syslog, log_id, "raw", &presult, &client_addr, ip_str, port_str, FALSE, &raw->listen.udp_destination_addr, raw->listen.udp_destination_ip, raw->listen.udp_destination_port);
       ferrum_udp_socket_pair_free(pair);
-      rebrick_udp_socket_destroy_ex(socket);
+      rebrick_udp_socket_destroy_ex(target_socket);
       return;
     }
 
@@ -828,6 +848,7 @@ static int32_t ferrum_raw_listening_tcpsocket_configure(const ferrum_config_t *c
       return result;
     }
     ferrum_log_debug("tcp socket configured for tproxy\n");
+    socket->is_tproxy = TRUE;
   }
   return FERRUM_SUCCESS;
 }
@@ -836,7 +857,7 @@ static int32_t ferrum_raw_listening_udp_socket_configure(const ferrum_config_t *
   if (!strcmp(config->protocol_type, "tproxy")) {
     const int32_t yes = 1;
     uv_os_fd_t os_fd;
-    int32_t result = uv_fileno((uv_handle_t *)&socket->handle.tcp, &os_fd);
+    int32_t result = uv_fileno((uv_handle_t *)&socket->handle.udp, &os_fd);
     if (result) {
       rebrick_log_fatal("getting os fd failed with error:%d\n", result);
       return result;
@@ -853,6 +874,9 @@ static int32_t ferrum_raw_listening_udp_socket_configure(const ferrum_config_t *
       rebrick_log_fatal("setsockopt failed with error:%d\n", result);
       return result;
     }
+
+    socket->handle.udp.is_tproxy = TRUE;
+    socket->is_tproxy = TRUE;
     ferrum_log_debug("udp socket configured for tproxy\n");
   }
   return FERRUM_SUCCESS;
@@ -933,6 +957,14 @@ int32_t ferrum_raw_new(ferrum_raw_t **raw, const ferrum_config_t *config,
       ferrum_raw_destroy(tmp);
       return result;
     }
+    if (!strcmp(config->protocol_type, "tproxy")) {
+      result = rebrick_rawsocket_new(&tmp->listen.raw_udp_socket, NULL);
+      if (result) {
+        ferrum_log_fatal("raw udp socket failed at %s\n", config->raw.listen_udp_addr_str);
+        ferrum_raw_destroy(tmp);
+        return result;
+      }
+    }
 
     tmp->socket_count++;
     rebrick_log_debug("socket_count %d\n", tmp->socket_count);
@@ -964,10 +996,15 @@ int32_t ferrum_raw_destroy(ferrum_raw_t *raw) {
     rebrick_timer_destroy(raw->udp_tracker);
     raw->is_destroy_started = TRUE;
 
-    if (raw->listen.tcp)
+    if (raw->listen.tcp) {
       rebrick_tcpsocket_destroy(raw->listen.tcp);
-    if (raw->listen.udp)
+    }
+    if (raw->listen.udp) {
       rebrick_udpsocket_destroy(raw->listen.udp);
+    }
+    if (raw->listen.raw_udp_socket) {
+      rebrick_rawsocket_destroy(raw->listen.raw_udp_socket);
+    }
     if (!raw->listen.tcp && !raw->listen.udp) {
       rebrick_free(raw);
     }

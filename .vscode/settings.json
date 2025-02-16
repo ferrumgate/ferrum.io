@@ -54,6 +54,11 @@
         "rebrick.h": "c",
         "rebrick_timer.h": "c",
         "rebrick_common.h": "c",
-        "rebrick_resolve.h": "c"
+        "rebrick_resolve.h": "c",
+        "socket.h": "c",
+        "ferrum.h": "c",
+        "rebrick_rawsocket.h": "c",
+        "rebrick_socket.h": "c",
+        "rebrick_util_net.h": "c"
     }
 }

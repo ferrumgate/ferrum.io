@@ -11,14 +11,6 @@ static int32_t process_input_udp(ferrum_protocol_t *protocol, const uint8_t *buf
   unused(len);
 
   ferrum_raw_udpsocket_pair_t *pair = protocol->pair.udp;
-  /*  if (!protocol->data) { // only when connected
-     char log_id[128] = {0};
-     snprintf(log_id, sizeof(log_id) - 1, "%s%" PRId64 "", protocol->config->instance_id, rebrick_util_micro_time());
-     ferrum_write_activity_log_raw(protocol->syslog, log_id, "raw", &pair->policy_result, &pair->client_addr,
-                                   pair->client_ip, pair->client_port, FALSE, &pair->udp_destination_addr, pair->udp_destination_ip, pair->udp_destination_port);
-     protocol->data = (void *)1; // any invalid pointer data, dont delete it or deference it
-   } */
-
   uint8_t *buf = rebrick_malloc(len);
   if_is_null_then_die(buf, "malloc problem\n");
   memcpy(buf, buffer, len);
@@ -52,13 +44,23 @@ static int32_t process_output_udp(ferrum_protocol_t *protocol, const uint8_t *bu
   clean_func.anydata.ptr = data;
   data->addr = pair->client_addr;
   data->len = len;
+  // if this is tproxy, write directly to client over raw socket
+  if (pair->udp_listening_socket->is_tproxy) {
+    int32_t result = rebrick_rawsocket_write_udp(pair->udp_raw_socket, &pair->udp_listening_addr, &pair->client_addr, buf, len, clean_func);
+    if (result) {
+      rebrick_free(data);
+      rebrick_free(buf);
+      return result;
+    }
 
-  int32_t result = rebrick_udpsocket_write(pair->udp_listening_socket, &pair->client_addr, buf, len, clean_func);
-  if (result) {
-    rebrick_log_error("writing udp destination failed with error: %d\n", result);
-    rebrick_free(data);
-    rebrick_free(buf);
-    return result;
+  } else {
+    int32_t result = rebrick_udpsocket_write(pair->udp_listening_socket, &pair->client_addr, buf, len, clean_func);
+    if (result) {
+      rebrick_log_error("writing udp destination failed with error: %d\n", result);
+      rebrick_free(data);
+      rebrick_free(buf);
+      return result;
+    }
   }
 
   return FERRUM_SUCCESS;

@@ -2,9 +2,10 @@ prefix=/work/projects/ferrum/ferrum.io/external/libs
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
+LIBUV_STATIC=-L${libdir} -l:libuv.a  
 
 Name: libuv
-Version: 1.44.2
+Version: 1.49.2
 Description: multi-platform support library with a focus on asynchronous I/O.
 URL: http://libuv.org/
 
