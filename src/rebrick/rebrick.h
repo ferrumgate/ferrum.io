@@ -4,6 +4,7 @@
 #include "./common/rebrick_log.h"
 #include "./common/rebrick_resolve.h"
 #include "./common/rebrick_util.h"
+#include "./common/rebrick_util_net.h"
 #include "./common/rebrick_tls.h"
 #include "./common/rebrick_timer.h"
 #include "./socket/rebrick_socket.h"
@@ -16,5 +17,6 @@
 #include "./http/rebrick_websocket.h"
 #include "./http/rebrick_websocket2.h"
 #include "./netfilter/rebrick_conntrack.h"
+#include "./socket/rebrick_rawsocket.h"
 
 #define VERSION "1.0.0"

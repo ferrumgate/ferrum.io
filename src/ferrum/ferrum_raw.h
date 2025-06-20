@@ -54,6 +54,8 @@ typedef struct ferrum_raw {
     private_ rebrick_sockaddr_t udp_destination_addr;
     private_ readonly_ char udp_destination_ip[REBRICK_IP_STR_LEN];
     private_ readonly_ char udp_destination_port[REBRICK_PORT_STR_LEN];
+    // for supporting tproxy, we need to a raw socket to send data
+    private_ rebrick_rawsocket_t *raw_udp_socket;
 
   } listen;
 

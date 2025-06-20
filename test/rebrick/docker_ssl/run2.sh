@@ -11,6 +11,6 @@ docker run --name nginx-ssl --rm -d -ti \
   -p 443:443 \
   -e SSLKEYLOGFILE=/tmp/ssl.log \
   -v /tmp/nginx:/tmp \
-  -v $PWD/nginxconfig:/etc/nginx \
+  -v "$PWD/nginxconfig:/etc/nginx" \
   -v /tmp/test6:/var/www/example.com \
   nginx

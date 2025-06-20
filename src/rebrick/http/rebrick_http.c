@@ -351,14 +351,14 @@ int32_t rebrick_http_header_to_http_buffer(const rebrick_http_header_t *header, 
   int32_t written_chars_count = 0;
 
   if (header->path[0])
-    written_chars_count = snprintf(buffer, REBRICK_HTTP_MAX_HEADER_LEN, "%s %s HTTP/%d.%d\r\n", (header->method ? header->method : "GET"), header->path, header->major_version, header->minor_version);
+    written_chars_count = snprintf(buffer, REBRICK_HTTP_MAX_HEADER_LEN, "%s %s HTTP/%d.%d\r\n", (header->method[0] ? header->method : "GET"), header->path, header->major_version, header->minor_version);
   else
     written_chars_count = snprintf(buffer, REBRICK_HTTP_MAX_HEADER_LEN, "HTTP/%d.%d %d %s\r\n", header->major_version, header->minor_version, header->status_code, header->status_code_str);
   if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1) {
     rebrick_log_error("max http header len\n");
     return REBRICK_ERR_LEN_NOT_ENOUGH;
   }
-  if (header->host) {
+  if (header->host[0]) {
     written_chars_count += snprintf(buffer + written_chars_count, REBRICK_HTTP_MAX_HEADER_LEN - written_chars_count, "%s:%s\r\n", "host", header->host);
     if (written_chars_count == REBRICK_HTTP_MAX_HEADER_LEN - 1) {
       rebrick_log_error("max http header len\n");
@@ -426,27 +426,27 @@ int32_t rebrick_http_header_to_http2_buffer(const rebrick_http_header_t *header,
   nghttp2_nv *hdrs = rebrick_malloc(sizeof(nghttp2_nv) * REBRICK_HTTP_MAX_HEADERS);
   if_is_null_then_die(hdrs, "name value array failed\n");
   size_t bytes_count = 0, bytes_count_tmp;
-  if (header->scheme && header->scheme[0]) {
+  if (header->scheme[0]) {
     const char *scheme = header->scheme;
     size_t schemelen = strlen(scheme);
     hdrs[index++] = convert_to_http2_header(":scheme", 7, scheme, schemelen, &bytes_count_tmp);
     bytes_count += bytes_count_tmp;
   }
 
-  if (header->host && header->host[0]) {
+  if (header->host[0]) {
     const char *host = header->host;
     size_t hostlen = strlen(host);
     hdrs[index++] = convert_to_http2_header(":authority", 10, host, hostlen, &bytes_count_tmp);
     bytes_count += bytes_count_tmp;
   }
 
-  if (header->method && header->method[0]) {
+  if (header->method[0]) {
     const char *path = header->method[0] ? header->method : "GET";
     size_t pathlen = strlen(path);
     hdrs[index++] = convert_to_http2_header(":method", 7, path, pathlen, &bytes_count_tmp);
     bytes_count += bytes_count_tmp;
   }
-  if (header->path && header->path[0]) {
+  if (header->path[0]) {
     const char *path = header->path[0] ? header->path : "/";
     size_t pathlen = strlen(path);
     hdrs[index++] = convert_to_http2_header(":path", 5, path, pathlen, &bytes_count_tmp);

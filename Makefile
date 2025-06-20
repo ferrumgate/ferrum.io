@@ -7,35 +7,50 @@ CFLAGSTEST =  -Wall -Wno-unused-function -W -O0 -g -ggdb -std=gnu17 -DHASH_FUNCT
 LDFLAGSTEST = -L$(shell pwd)/../external/libs/lib -lcmocka -luv -lpthread -lssl -lcrypto -lnghttp2 -lhiredis -llmdb -lnetfilter_conntrack -lnfnetlink -lldns
 
 
-
-
 OUTPUT = ferrum.io
 SRC = src
 TEST = test
-OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_log.o ./rebrick/common/rebrick_resolve.o \
- 				./rebrick/common/rebrick_timer.o ./rebrick/socket/rebrick_udpsocket.o ./rebrick/socket/rebrick_tcpsocket.o \
-				./rebrick/common/rebrick_tls.o \
-				./rebrick/socket/rebrick_tlssocket.o ./rebrick/http/rebrick_http.o ./rebrick/http/rebrick_httpsocket.o \
+OBJS_REBRICK = ./rebrick/common/rebrick_util.o ./rebrick/common/rebrick_util_net.o \
+				./rebrick/common/rebrick_log.o ./rebrick/common/rebrick_resolve.o \
+ 				./rebrick/common/rebrick_timer.o ./rebrick/socket/rebrick_udpsocket.o \
+				./rebrick/socket/rebrick_tcpsocket.o ./rebrick/socket/rebrick_rawsocket.o \
+				./rebrick/common/rebrick_tls.o ./rebrick/socket/rebrick_tlssocket.o \
+				./rebrick/http/rebrick_http.o ./rebrick/http/rebrick_httpsocket.o \
 		 		./rebrick/http/rebrick_http2socket.o ./rebrick/http/rebrick_websocket.o \
- 		 		./rebrick/common/rebrick_buffers.o ./rebrick/common/rebrick_buffer.o ./rebrick/lib/b64/decode.o \
-		 		./rebrick/lib/b64/encode.o ./rebrick/lib/picohttpparser.o  ./rebrick/lib/toml.o \
+ 		 		./rebrick/common/rebrick_buffers.o ./rebrick/common/rebrick_buffer.o  \
+				./rebrick/lib/b64/decode.o ./rebrick/lib/b64/encode.o \
+				./rebrick/lib/picohttpparser.o  ./rebrick/lib/toml.o \
 		  		./rebrick/file/rebrick_filestream.o ./rebrick/netfilter/rebrick_conntrack.o
 
-OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_lmdb.o ./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
- ./ferrum/ferrum_policy.o ./ferrum/ferrum_syslog.o ./ferrum/ferrum_activity_log.o ./ferrum/protocol/ferrum_protocol_raw.o \
-./ferrum/ferrum_dns_db.o ./ferrum/protocol/ferrum_protocol_dns.o ./ferrum/cache/ferrum_dns_cache.o ./ferrum/cache/ferrum_cache.o \
-./ferrum/ferrum_track_db.o ./ferrum/ferrum_authz_db.o ./ferrum/pool/ferrum_udpsocket_pool.o
+OBJS_FERRUM = main.o ./ferrum/ferrum_redis.o ./ferrum/ferrum_lmdb.o \
+			./ferrum/ferrum_config.o ./ferrum/ferrum_raw.o \
+			./ferrum/ferrum_policy.o ./ferrum/ferrum_syslog.o \
+ 			./ferrum/ferrum_activity_log.o ./ferrum/protocol/ferrum_protocol_raw.o \
+			./ferrum/ferrum_dns_db.o ./ferrum/protocol/ferrum_protocol_dns.o \
+			./ferrum/cache/ferrum_dns_cache.o ./ferrum/cache/ferrum_cache.o \
+			./ferrum/ferrum_track_db.o ./ferrum/ferrum_authz_db.o \
+			./ferrum/pool/ferrum_udpsocket_pool.o
 
 
-OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o ./rebrick/test_rebrick_util.o ./rebrick/test_rebrick_resolve.o \
-			 ./rebrick/test_rebrick_tls.o ./rebrick/test_rebrick_timer.o \
-			./rebrick/test_rebrick_udpsocket.o ./rebrick/test_rebrick_tcpsocket.o ./rebrick/test_rebrick_tlssocket.o ./rebrick/test_rebrick_http.o ./rebrick/test_rebrick_httpsocket.o \
-			./rebrick/test_rebrick_http2socket.o ./rebrick/test_rebrick_buffer.o ./rebrick/test_rebrick_buffers.o \
-			./rebrick/test_rebrick_filestream.o ./rebrick/test_rebrick_conntrack.o \
-			../src/rebrick/common/rebrick_util.o ../src/rebrick/common/rebrick_log.o  ../src/rebrick/common/rebrick_resolve.o ../src/rebrick/common/rebrick_timer.o  \
-			../src/rebrick/socket/rebrick_udpsocket.o ../src/rebrick/socket/rebrick_tcpsocket.o ../src/rebrick/common/rebrick_buffer.o ../src/rebrick/common/rebrick_buffers.o\
-			../src/rebrick/lib/b64/encode.o ../src/rebrick/lib/b64/decode.o ../src/rebrick/lib/picohttpparser.o ../src/rebrick/lib/toml.o \
-			../src/rebrick/common/rebrick_tls.o ../src/rebrick/socket/rebrick_tlssocket.o ../src/rebrick/http/rebrick_http.o ../src/rebrick/http/rebrick_httpsocket.o  \
+OBJSTEST_REBRICK = ./rebrick/server_client/udpecho.o ./rebrick/server_client/tcpecho.o \
+			./rebrick/test_rebrick_util.o  ./rebrick/test_rebrick_util_net.o  \
+			./rebrick/test_rebrick_resolve.o ./rebrick/test_rebrick_tls.o \
+			./rebrick/test_rebrick_timer.o  ./rebrick/test_rebrick_udpsocket.o \
+			./rebrick/test_rebrick_tcpsocket.o ./rebrick/test_rebrick_rawsocket.o \
+			./rebrick/test_rebrick_tlssocket.o \
+			./rebrick/test_rebrick_http.o ./rebrick/test_rebrick_httpsocket.o \
+			./rebrick/test_rebrick_http2socket.o ./rebrick/test_rebrick_buffer.o \
+			./rebrick/test_rebrick_buffers.o ./rebrick/test_rebrick_filestream.o \
+			./rebrick/test_rebrick_conntrack.o ../src/rebrick/common/rebrick_util.o \
+			../src/rebrick/common/rebrick_util_net.o ../src/rebrick/common/rebrick_log.o  \
+			../src/rebrick/common/rebrick_resolve.o ../src/rebrick/common/rebrick_timer.o  \
+			../src/rebrick/socket/rebrick_udpsocket.o ../src/rebrick/socket/rebrick_tcpsocket.o \
+			../src/rebrick/socket/rebrick_rawsocket.o \
+			../src/rebrick/common/rebrick_buffer.o ../src/rebrick/common/rebrick_buffers.o \
+			../src/rebrick/lib/b64/encode.o ../src/rebrick/lib/b64/decode.o \
+			../src/rebrick/lib/picohttpparser.o ../src/rebrick/lib/toml.o \
+			../src/rebrick/common/rebrick_tls.o ../src/rebrick/socket/rebrick_tlssocket.o \
+			../src/rebrick/http/rebrick_http.o ../src/rebrick/http/rebrick_httpsocket.o  \
 			../src/rebrick/http/rebrick_http2socket.o  ../src/rebrick/http/rebrick_websocket.o \
 			../src/rebrick/file/rebrick_filestream.o ../src/rebrick/netfilter/rebrick_conntrack.o
 

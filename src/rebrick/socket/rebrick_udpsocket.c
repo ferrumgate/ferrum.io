@@ -120,31 +120,64 @@ int32_t rebrick_udpsocket_write_buffer_size(rebrick_udpsocket_t *socket, size_t 
   return REBRICK_SUCCESS;
 }
 
-static int32_t create_socket(rebrick_udpsocket_t *socket) {
+static int32_t create_socket(rebrick_udpsocket_t *udpsocket) {
 
   int32_t result;
 
-  socket->loop = uv_default_loop();
-  result = uv_udp_init(socket->loop, &socket->handle.udp);
+  udpsocket->loop = uv_default_loop();
+  /*int32_t socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (socket_fd < 0) {
+    rebrick_log_fatal("socket failed:%s\n", strerror(errno));
+    return REBRICK_ERR_IO_OPEN;
+  }
+
+    const int32_t yes = 1;
+    if ((result = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes))) < 0) {
+      rebrick_log_fatal("setsockopt failed with error:%s\n", strerror(errno));
+      return result;
+    }
+    if ((result = setsockopt(socket_fd, SOL_IP, IP_TRANSPARENT, &yes, sizeof(yes))) < 0) {
+      rebrick_log_fatal("setsockopt failed with error:%s\n", strerror(errno));
+      return result;
+    }
+    if ((result = setsockopt(socket_fd, SOL_IP, IP_RECVORIGDSTADDR, &yes, sizeof(yes))) < 0) {
+      rebrick_log_fatal("setsockopt failed with error:%s\n", strerror(errno));
+      return result;
+    }
+
+  result = uv_udp_init(udpsocket->loop, &udpsocket->handle.udp);
   if (result < 0) {
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
 
-  result = uv_udp_bind(&socket->handle.udp, &socket->bind_addr.base, UV_UDP_REUSEADDR);
+  result = uv_udp_open(&udpsocket->handle.udp, socket_fd);
+  if (result < 0) {
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
+    return REBRICK_ERR_UV + result;
+  }
+  */
+  // else
+  result = uv_udp_init(udpsocket->loop, &udpsocket->handle.udp);
   if (result < 0) {
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
 
-  result = uv_udp_recv_start(&socket->handle.udp, on_alloc, on_recv);
+  result = uv_udp_bind(&udpsocket->handle.udp, &udpsocket->bind_addr.base, UV_UDP_REUSEADDR);
   if (result < 0) {
     rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
     return REBRICK_ERR_UV + result;
   }
-  socket->is_reading_started = TRUE;
-  rebrick_log_info("socket started at %s port:%s\n", socket->bind_ip, socket->bind_port);
-  socket->handle.udp.data = socket;
+
+  result = uv_udp_recv_start(&udpsocket->handle.udp, on_alloc, on_recv);
+  if (result < 0) {
+    rebrick_log_fatal("socket failed:%s\n", uv_strerror(result));
+    return REBRICK_ERR_UV + result;
+  }
+  udpsocket->is_reading_started = TRUE;
+  rebrick_log_info("socket started at %s port:%s\n", udpsocket->bind_ip, udpsocket->bind_port);
+  udpsocket->handle.udp.data = udpsocket;
 
   return REBRICK_SUCCESS;
 }

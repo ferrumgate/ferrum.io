@@ -8,6 +8,6 @@ docker run --name nginx-ssl -d --rm -ti \
   -p 443:443 \
   -e SSLKEYLOGFILE=/tmp/ssl.log \
   -v /tmp/nginx:/tmp \
-  -v $PWD/nginxconfig:/etc/nginx \
-  -v $PWD/nginx_data:/var/www/example.com \
+  -v "$PWD/nginxconfig:/etc/nginx" \
+  -v "$PWD/nginx_data:/var/www/example.com" \
   nginx:1.22-alpine

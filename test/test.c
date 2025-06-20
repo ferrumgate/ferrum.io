@@ -7,11 +7,13 @@
 #include <unistd.h>
 
 extern int test_rebrick_util();
+extern int test_rebrick_util_net();
 extern int test_rebrick_resolve();
 extern int test_rebrick_filestream();
 extern int test_rebrick_timer();
 extern int test_rebrick_udpsocket();
 extern int test_rebrick_tcpsocket();
+extern int test_rebrick_rawsocket();
 extern int test_rebrick_buffer();
 extern int test_rebrick_buffers();
 extern int test_rebrick_tls();
@@ -44,6 +46,9 @@ int main() {
   if (test_rebrick_util())
     exit(1);
 
+  if (test_rebrick_util_net())
+    exit(1);
+
   if (test_rebrick_filestream())
     exit(1);
 
@@ -63,6 +68,9 @@ int main() {
     exit(1);
 
   if (test_rebrick_tcpsocket())
+    exit(1);
+
+  if (test_rebrick_rawsocket())
     exit(1);
 
   if (test_ferrum_redis())
